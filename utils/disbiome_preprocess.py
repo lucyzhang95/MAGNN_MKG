@@ -123,7 +123,7 @@ disbiome_final_rank_ct = count_entity(
 # export microbe and disease from disbiome_final_filtered records
 # final output e.g., [{59823: '0005301'}, {29523: '0004967'}, ...] -> [{taxid: MONDO}...]
 # if rank == "strain", then use parent_taxid instead of taxid
-# TODO: leading 0 gets removed when converting to integer
+# TODO: leading 0 gets removed when converting identifiers to integer
 disbiome_data4magnn = entity_filter_for_magnn(
     disbiome_final_filtered,
     node1="subject",
