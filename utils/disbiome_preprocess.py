@@ -135,9 +135,9 @@ disbiome_data4magnn = entity_filter_for_magnn(
 )
 # print(disbiome_data4magnn)
 export_data2dat(
-    disbiome_data4magnn,
+    in_data=disbiome_data4magnn,
     col1="taxid",
     col2="mondo",
-    o_fname="../data/MAGNN_data/disbiome_taxid_mondo.dat",
+    out_path="../data/MAGNN_data/disbiome_taxid_mondo.dat",
     database="disbiome",
 )
