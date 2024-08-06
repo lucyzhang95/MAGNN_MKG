@@ -163,7 +163,7 @@ def map_disease_id2mondo(query, scope: list | str, field: list | str) -> dict:
     :param field: str or a list of str
     :return: a dictionary of mapped diseases
 
-    query_op exp: {'0000676': '0005083', '0000195': '0011565' ...} == {"EFO": "MONDO", ...}
+    query_op exp: {'0000676': '0005083', '0000195': '0011565',...} == {"EFO": "MONDO", ...}
     scope and field can be checked via:
     https://docs.mydisease.info/en/latest/doc/data.html#available-fields
     """
@@ -210,7 +210,7 @@ def map_disease_name2mondo(disease_names: list or str, scope: list or str, field
 def entity_filter_for_magnn(data, node1, attr1, val1, node2, attr2, attr3) -> list:
     """
     Final record filter of relational data for MAGNN input
-    Final record exp: [{59823: '0005301'}, {29523: '0004967'}, ...] -> [{taxid: MONDO}...]
+    Final record exp: [{59823: '0005301'}, {29523: '0004967'}, ...] -> [{taxid: MONDO}, ...]
 
     :param data: list of record dictionaries
     :param node1: str (subject or object)
