@@ -1,0 +1,289 @@
+name	mondo	hp
+meningococcal disease	0005373	
+"hand, foot and mouth disease"	0005779	
+postmenopausal		
+cholestasis	0001751	
+irritable bowel syndrome	0005052	
+lung cancer	0008903	
+constipation	0002203	
+seborrheic dermatitis	0006608	
+diarrhea	0001673	
+pemphigus vulgaris	0008219	
+transient ischemic attack	0005264	
+tetratricopeptide repeat domain 7a deficiency	0009465	
+influenza a	0005812	
+frailty		
+gestational diabetes	0005406	
+colorectal cancer	0005575	
+barrett's oesophagus	0013662	
+silicosis	0005960	
+rheumatoid arthritis	0008383	
+giardia intestinalis infection	0001103	
+oligoasthenoteratozoospermia	0850098	
+spondyloarthritis	0005095	
+chronic kidney disease	0005300	
+pediculosis	0003472	
+parkinson's disease	0005180	
+allergic asthma	0004784	
+migraine	0005277	
+fatigue	0005404	
+cirrhosis	0005155	
+reflux esophagitis	0006896	
+recurrent tonsillitis	0001039	
+chagas' disease	0001444	
+periodontal disease	0002635	
+protracted bacterial bronchitis	0003781	
+caries	0005276	
+alcoholic hepatitis	0001505	
+sicca syndrome	0010030	
+idiopathic focal epilepsy	0006710	
+hidradenitis suppurativa	0006559	
+invasive pneumococcal disease	0011888	
+sjögren syndrome	0015356	
+granulomatosis with polyangiitis	0012105	
+ankylosing spondylitis	0005306	
+vestibulodynia	0021722	
+chronic lung disease	0005002	
+hyper ige syndrome	0018037	
+oropharyngeal cancer	0044926	
+rectal carcinoma	0044937	
+collagenous colitis	0000703	
+schizophrenia	0005090	
+covid-19	0100096	
+oral cancer	0005515	
+thyroid carcinoma	0015075	
+osteoporosis	0005298	
+allergy	0000771	
+hyperlipidemia	0021187	
+atopic eczema	0004980	
+idiopathic rem sleep behavior disorder	0005937	
+oral leukoplakia	0004844	
+gastro-oesophageal reflux disease	0007186	
+multiple sclerosis	0005301	
+pressure ulcers	0043839	
+folliculitis decalvans	0018103	
+metabolic syndrome	0011565	
+endometriosis	0005133	
+chronic rhinosinusitis with asthma	0006031	
+colon adenomas	0000527	
+human papilloma virus infection	0005161	
+generalized anxiety disorder	0001942	
+laryngotracheal stenosis	0007688	
+chronic obstructive pulmonary disease	0005002	
+acquired immunodeficiency syndrome	0012268	
+overactive bladder	0006624	
+hepatitis b associated liver failure	0018109	
+atherosclerosis	0005311	
+hypertension	0005044	
+neuromyelitis optica	0019100	
+viral respiratory tract infection	0024352	
+osteoarthritis	0005178	
+juvenile idiopathic arthritis	0011429	
+t2d with hypertension	0005148	
+dandruff	0024343	
+appendicitis	0005649	
+heart failure	0005252	
+primary liver cancer	0002691	
+trichomonas vaginalis infection	0005993	
+"celiac disease, coaliac disease"	0005130	
+obstructive sleep apnea-hypopnea syndrome	0007147	
+idiopathic nephrotic syndrome	0018170	
+bronchiectasis	0004822	
+necrotizing enterocolitis	0005313	
+atopic dermatitis	0004980	
+colon polyps	0100290	
+neisseria gonorrhoeae infection	0021160	
+oral lichen planus	0043923	
+smoking		
+vulvodynia	0021722	
+idiopathic infertility	0005047	
+refractory celiac disease	0018353	
+pneumonia	0005249	
+anorexia nervosa	0005351	
+coronary heart disease	0005010	
+rosacea	0006604	
+kidney stone with hypertension	0008171	
+liver fibrosis	0100430	
+psoriatic arthritis	0011849	
+traumatic brain injury	0858950	
+infective colitis	0006039	
+alcoholism	0007079	
+type 1 diabetes	0005147	
+halitosis		
+psoriasis	0005083	
+copd exacerbation	0005002	
+hirschsprung's disease	0018309	
+aphthous stomatitis	0004845	
+azoospermia	0100459	
+otitis media	0005441	
+stomach cancer	0001056	
+pulmonary tubercolosis	0006052	
+seminal hyperviscosity	0004767	
+biliary atresia	0008867	
+chronic stress		
+h1n1 influenza	0005812	
+kidney stone	0008171	
+pelvic inflammatory disease	0000922	
+non-alcoholic fatty liver disease	0004790	
+genitourinary lichen sclerosus	0006491	
+hiv infection	0005109	
+autoimmune polyendocrine syndrome type 1	0009411	
+helicobacter pylori infection	0006781	
+bronchiolitis	0002465	
+cytolytic vaginosis	0005316	
+adolescent idiopathic scoliosis	0005488	
+prostate cancer	0008315	
+viral diarrhea	0001517	
+chronic rhinosinusitis with cystic fibrosis	0006031	
+bullous pemphigoid	0019082	
+late-onset sepsis	0700217	
+sarcopenia		
+clostridium difficile associated disease	0024388	
+endometrial cancer	0011962	
+pregnancy		
+primary sclerosing cholangitis-ibd	0013433	
+allergic rhinoconjunctivitis	0013180	
+pancreatitis	0004982	
+hashimoto's thyroiditis	0007699	
+attention deficit hyperactivity disorder	0005302	
+hyperglycemia	0002909	
+edentulism		
+miscarriage		0005268
+chronic rhinosinusitis with nasal polyps	0006031	
+alzheimer's disease	0004975	
+blepharitis	0004785	
+intestinal metaplasia	0100190	
+preterm birth		
+gastric carcinoma	0004950	
+drug-resistant epilepsy	0005027	
+chronic fatigue syndrome	0005404	
+aphthous ulcer	0005318	0032154
+chronic mucocutaneous candidiasis	0015279	
+diabetic nephropathy	0005016	
+bleeding gum	0020782	
+periodontal abscess	0002635	
+acute cerbral infarction	0002679	
+bacterial vaginosis	0005316	
+arsenic exposure	0023305	
+laryngeal carcinoma	0002358	
+atrial fibrillation	0004981	
+diverticular disease	0001674	
+recurrent miscarriage		0005268
+excessive vomiting		
+clonorchis sinensis infection	0005705	
+pervasive developmental disorder nos	0000594	
+cervicitis	0002345	
+graves' orbitopathy	0005364	
+crohn's disease	0005011	
+vulvar vestibulitis syndrome	0021722	
+megaesophagus	0001656	
+neuropathic bladder	0019395	
+anovulation	0002775	
+cervical intraneoplasia	0022394	
+spinal cord injury	0043797	
+alopecia areata	0005340	
+spleen deficiency syndrome		
+hepatocellular cancer	0007256	
+maturity-onset diabetes of the young 2	0007453	
+fibromyalgia	0005546	
+rett syndrome	0010726	
+orofacial granulomatosis	0012105	
+chronic ocular graft-versus-host disease	0013730	
+pouchitis	0005312	
+hepatitis b	0005344	
+gastrointestinal follicular lymphoma	0004699	
+chronic liver disease	0100193	
+chronic prostatitis / chronic pelvic pain syndrome	0022103	
+t2d with hypertension and hyperlipidemia	0005148	
+cirrhosis with pneumonia	0005155	
+x-linked inhibitor of apoptosis deficiency	0010385	
+gestational diabetes + hyperlipidemia	0005406	
+cognitive impairment	0013680	0100543
+cardiac valve calcification	0005463	0005146
+autism spectrum disorders	0005258	
+liver transplant		
+chronic pancreatitis	0005003	
+denture stomatitis	0006723	
+keratitis	0003085	
+infant colic		
+human end-stage renal disease	0004375	
+type 2 diabetes	0005148	
+inflammatory bowel disease	0005265	
+acute skin abscess	0021201	
+pancreatic cancer	0009831	
+inactive crohn's disease	0005011	
+chlamydia	0005701	
+chronic urticaria	0850230	
+enthesitis-related arthritis	0019437	
+coronary artery disease	0005010	
+oral potentially malignant disorder	0006858	
+bipolar disorder	0004985	
+acne	0011438	
+hepatic encephalopathy	0001711	
+urolithiasis	0024647	
+opisthorchis felineus infection	0005884	
+nasolacrimal duct obstruction	0007871	0000579
+major depressive disorder	0002009	
+hyperthyroidism	0004425	
+cervical cancer	0002974	
+graves' disease	0005364	
+clostridium difficile infection	0024388	
+autism	0005260	
+alcoholic cirrhosis	0006644	
+severe fever with thrombocytopenia syndrome	0007883	
+breast cancer	0007254	
+ischemic stroke	0018585	0002140
+severe congenital neutropenia	0018542	
+gastroenteritis	0002269	
+pancreatic head cancer	0009831	
+radiation enteritis	0043459	
+gingivitis	0002508	
+microscopic colitis	0000702	
+antrochoanal polyps	0005079	
+e-smoking		
+hypopharyngeal cancer	0005216	
+lower respiratory tract infection	0024355	
+systemic lupus erythematosus	0007915	
+chronic alcoholic pancreatitis	0003232	
+posttraumatic stress syndrome	0005146	
+iron-deficiency anaemia	0001356	
+obesity	0011122	
+asthma	0004979	
+macular degeneration	0003004	
+nongonococcal urethritis	0005297	
+cutaneous burn	0043519	
+aerobic vaginitis	0002234	
+acute lymphoblastic leukemia	0004967	
+cystic fibrosis exacerbation	0009061	
+functional dyspepsia	0002268	
+recurrent aphthous stomatitis	0004845	0011107
+bladder cancer	0001187	
+vogt-koyagani-harada disease		
+multiple system atrophy	0007803	
+primary biliary cholangitis	0005388	
+urgency urinary incontinence	0006624	
+polycystic ovary syndrome	0008487	
+invasive colorectal cancer	0005575	
+henoch-schönlein purpura	0019167	
+primary sclerosing cholangitis	0013433	
+atopic wheeze		
+ulcerative colitis	0005101	
+h7n9	0005812	
+down syndrome	0008608	
+chronic rhinosinusitis	0006031	
+conjunctival scarring	0001174	
+infantile eczema	0004980	
+tongue cancer	0004631	
+aggressive periodontitis	0008226	
+neuro-behcet's disease	0007191	
+dry eye syndrome	0006733	
+wilson's disease	0010200	
+diaper dermatitis	0002406	
+extrinsic black stain		
+disease-free		
+atopy	0005202	
+primary open-angle glaucoma	0005338	
+periodontitis	0005076	
+shiga toxin-producing e. coli infection	0020920	
+hepatitis c	0005231	
+normal weight obesity		

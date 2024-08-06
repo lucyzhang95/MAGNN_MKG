@@ -1,0 +1,289 @@
+,name,mondo
+0,meningococcal disease,
+1,"hand, foot and mouth disease",0005779
+2,postmenopausal,
+3,cholestasis,0001751
+4,irritable bowel syndrome,0005052
+5,lung cancer,0008903
+6,constipation,
+7,seborrheic dermatitis,0006608
+8,diarrhea,0001673
+9,pemphigus vulgaris,0008219
+10,transient ischemic attack,
+11,tetratricopeptide repeat domain 7a deficiency,
+12,influenza a,
+13,frailty,
+14,gestational diabetes,0005406
+15,colorectal cancer,
+16,barrett's oesophagus,
+17,silicosis,0005960
+18,rheumatoid arthritis,0008383
+19,giardia intestinalis infection,
+20,oligoasthenoteratozoospermia,0850098
+21,spondyloarthritis,
+22,chronic kidney disease,0005300
+23,pediculosis,
+24,parkinson's disease,0005180
+25,allergic asthma,0004784
+26,migraine,0005277
+27,fatigue,
+28,cirrhosis,
+29,reflux esophagitis,
+30,recurrent tonsillitis,
+31,chagas' disease,
+32,periodontal disease,0002635
+33,protracted bacterial bronchitis,
+34,caries,
+35,alcoholic hepatitis,0001505
+36,sicca syndrome,
+37,idiopathic focal epilepsy,
+38,hidradenitis suppurativa,0006559
+39,invasive pneumococcal disease,
+40,sjögren syndrome,
+41,granulomatosis with polyangiitis,0012105
+42,ankylosing spondylitis,0005306
+43,vestibulodynia,
+44,chronic lung disease,
+45,hyper ige syndrome,0018037
+46,oropharyngeal cancer,
+47,rectal carcinoma,
+48,collagenous colitis,0000703
+49,schizophrenia,0005090
+50,covid-19,0100096
+51,oral cancer,
+52,thyroid carcinoma,
+53,osteoporosis,0005298
+54,allergy,
+55,hyperlipidemia,
+56,atopic eczema,
+57,idiopathic rem sleep behavior disorder,
+58,oral leukoplakia,
+59,gastro-oesophageal reflux disease,
+60,multiple sclerosis,0005301
+61,pressure ulcers,
+62,folliculitis decalvans,
+63,metabolic syndrome,
+64,endometriosis,0005133
+65,chronic rhinosinusitis with asthma,
+66,colon adenomas,
+67,human papilloma virus infection,
+68,generalized anxiety disorder,0001942
+69,laryngotracheal stenosis,
+70,chronic obstructive pulmonary disease,0005002
+71,acquired immunodeficiency syndrome,0012268
+72,overactive bladder,
+73,hepatitis b associated liver failure,
+74,atherosclerosis,0005311
+75,hypertension,0005044
+76,neuromyelitis optica,0019100
+77,viral respiratory tract infection,
+78,osteoarthritis,0005178
+79,juvenile idiopathic arthritis,
+80,t2d with hypertension,
+81,dandruff,
+82,appendicitis,0005649
+83,heart failure,
+84,primary liver cancer,
+85,trichomonas vaginalis infection,
+86,"celiac disease, coaliac disease",
+87,obstructive sleep apnea-hypopnea syndrome,
+88,idiopathic nephrotic syndrome,
+89,bronchiectasis,0004822
+90,necrotizing enterocolitis,
+91,atopic dermatitis,0004980
+92,colon polyps,
+93,neisseria gonorrhoeae infection,
+94,oral lichen planus,
+95,smoking,
+96,vulvodynia,
+97,idiopathic infertility,
+98,refractory celiac disease,
+99,pneumonia,0005249
+100,anorexia nervosa,0005351
+101,coronary heart disease,
+102,rosacea,0006604
+103,kidney stone with hypertension,
+104,liver fibrosis,
+105,psoriatic arthritis,0011849
+106,traumatic brain injury,0858950
+107,infective colitis,
+108,alcoholism,
+109,type 1 diabetes,
+110,halitosis,
+111,psoriasis,0005083
+112,copd exacerbation,
+113,hirschsprung's disease,0018309
+114,aphthous stomatitis,0004845
+115,azoospermia,0100459
+116,otitis media,0005441
+117,stomach cancer,0001056
+118,pulmonary tubercolosis,
+119,seminal hyperviscosity,
+120,biliary atresia,0008867
+121,chronic stress,
+122,h1n1 influenza,
+123,kidney stone,
+124,pelvic inflammatory disease,0000922
+125,non-alcoholic fatty liver disease,
+126,genitourinary lichen sclerosus,
+127,hiv infection,
+128,autoimmune polyendocrine syndrome type 1,0009411
+129,helicobacter pylori infection,
+130,bronchiolitis,0002465
+131,cytolytic vaginosis,
+132,adolescent idiopathic scoliosis,
+133,prostate cancer,0008315
+134,viral diarrhea,
+135,chronic rhinosinusitis with cystic fibrosis,
+136,bullous pemphigoid,0019082
+137,late-onset sepsis,
+138,sarcopenia,
+139,clostridium difficile associated disease,
+140,endometrial cancer,0011962
+141,pregnancy,
+142,primary sclerosing cholangitis-ibd,
+143,allergic rhinoconjunctivitis,
+144,pancreatitis,0004982
+145,hashimoto's thyroiditis,
+146,attention deficit hyperactivity disorder,0005302
+147,hyperglycemia,0002909
+148,edentulism,
+149,miscarriage,
+150,chronic rhinosinusitis with nasal polyps,
+151,alzheimer's disease,0004975
+152,blepharitis,0004785
+153,intestinal metaplasia,
+154,preterm birth,
+155,gastric carcinoma,
+156,drug-resistant epilepsy,
+157,chronic fatigue syndrome,0005404
+158,aphthous ulcer,
+159,chronic mucocutaneous candidiasis,0015279
+160,diabetic nephropathy,
+161,bleeding gum,
+162,periodontal abscess,
+163,acute cerbral infarction,
+164,bacterial vaginosis,0005316
+165,arsenic exposure,
+166,laryngeal carcinoma,0002358
+167,atrial fibrillation,0004981
+168,diverticular disease,
+169,recurrent miscarriage,
+170,excessive vomiting,
+171,clonorchis sinensis infection,
+172,pervasive developmental disorder nos,
+173,cervicitis,0002345
+174,graves' orbitopathy,
+175,crohn's disease,0005011
+176,vulvar vestibulitis syndrome,
+177,megaesophagus,0001656
+178,neuropathic bladder,
+179,anovulation,0002775
+180,cervical intraneoplasia,
+181,spinal cord injury,
+182,alopecia areata,0005340
+183,spleen deficiency syndrome,
+184,hepatocellular cancer,
+185,maturity-onset diabetes of the young 2,
+186,fibromyalgia,0005546
+187,rett syndrome,0010726
+188,orofacial granulomatosis,
+189,chronic ocular graft-versus-host disease,
+190,pouchitis,
+191,hepatitis b,0005344
+192,gastrointestinal follicular lymphoma,
+193,chronic liver disease,
+194,chronic prostatitis / chronic pelvic pain syndrome,
+195,t2d with hypertension and hyperlipidemia,
+196,cirrhosis with pneumonia,
+197,x-linked inhibitor of apoptosis deficiency,
+198,gestational diabetes + hyperlipidemia,
+199,cognitive impairment,
+200,cardiac valve calcification,
+201,autism spectrum disorders,
+202,liver transplant,
+203,chronic pancreatitis,
+204,denture stomatitis,0006723
+205,keratitis,0003085
+206,infant colic,
+207,human end-stage renal disease,
+208,type 2 diabetes,
+209,inflammatory bowel disease,0005265
+210,acute skin abscess,
+211,pancreatic cancer,0009831
+212,inactive crohn's disease,
+213,chlamydia,0005701
+214,chronic urticaria,0850230
+215,enthesitis-related arthritis,
+216,coronary artery disease,0005010
+217,oral potentially malignant disorder,
+218,bipolar disorder,0004985
+219,acne,0011438
+220,hepatic encephalopathy,0001711
+221,urolithiasis,0024647
+222,opisthorchis felineus infection,
+223,nasolacrimal duct obstruction,
+224,major depressive disorder,0002009
+225,hyperthyroidism,0004425
+226,cervical cancer,0002974
+227,graves' disease,0005364
+228,clostridium difficile infection,
+229,autism,
+230,alcoholic cirrhosis,
+231,severe fever with thrombocytopenia syndrome,
+232,breast cancer,0007254
+233,ischemic stroke,
+234,severe congenital neutropenia,0018542
+235,gastroenteritis,0002269
+236,pancreatic head cancer,
+237,radiation enteritis,
+238,gingivitis,0002508
+239,microscopic colitis,0000702
+240,antrochoanal polyps,
+241,e-smoking,
+242,hypopharyngeal cancer,
+243,lower respiratory tract infection,
+244,systemic lupus erythematosus,0007915
+245,chronic alcoholic pancreatitis,
+246,posttraumatic stress syndrome,
+247,iron-deficiency anaemia,
+248,obesity,0011122
+249,asthma,0004979
+250,macular degeneration,0003004
+251,nongonococcal urethritis,
+252,cutaneous burn,
+253,aerobic vaginitis,
+254,acute lymphoblastic leukemia,0004967
+255,cystic fibrosis exacerbation,
+256,functional dyspepsia,
+257,recurrent aphthous stomatitis,
+258,bladder cancer,
+259,vogt-koyagani-harada disease,
+260,multiple system atrophy,0007803
+261,primary biliary cholangitis,0005388
+262,urgency urinary incontinence,
+263,polycystic ovary syndrome,0008487
+264,invasive colorectal cancer,
+265,henoch-schönlein purpura,
+266,primary sclerosing cholangitis,0013433
+267,atopic wheeze,
+268,ulcerative colitis,0005101
+269,h7n9,
+270,down syndrome,0008608
+271,chronic rhinosinusitis,
+272,conjunctival scarring,
+273,infantile eczema,
+274,tongue cancer,0004631
+275,aggressive periodontitis,0008226
+276,neuro-behcet's disease,
+277,dry eye syndrome,0006733
+278,wilson's disease,
+279,diaper dermatitis,
+280,extrinsic black stain,
+281,disease-free,
+282,atopy,
+283,primary open-angle glaucoma,
+284,periodontitis,0005076
+285,shiga toxin-producing e. coli infection,
+286,hepatitis c,0005231
+287,normal weight obesity,
