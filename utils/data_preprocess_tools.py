@@ -1,4 +1,5 @@
 import json
+import os
 from collections import Counter
 from typing import List, Union
 
@@ -6,20 +7,49 @@ import biothings_client
 import pandas as pd
 
 
-def load_data(data_path):
+def load_data(data_path: str | os.PathLike) -> list:
+    """
+    Loads data from JSON files.
+
+    :return: a list of record dictionaries
+    """
     with open(data_path, "r") as in_file:
         data = json.load(in_file)
     return data
 
 
-def count_entity(data, node, attr=None, split_char=None):
+def count_entity(data: list, node: str, attr: Union[str | None], split_char: Union[str, None]):
     """
+    Count the value types associated with the attribute(key) in records
+    e.g., count value types of rec["subject"]["rank"] from Disbiome data
+    Disbiome:
+    "subject":{
+      "id":"taxid:216816",
+      "taxid":216816,
+      "name":"bifidobacterium longum",
+      "type":"biolink:Bacterium",
+      "scientific_name":"bifidobacterium longum",
+      "parent_taxid":1678,
+      "lineage":[
+         216816,
+         1678,
+         31953,
+         85004,
+         1760,
+         201174,
+         1783272,
+         2,
+         131567,
+         1
+      ],
+      "rank":"species"
+   }
 
-    :param data: path to data file
-    :param node:
-    :param attr:
-    :param split_char:
-    :return:
+    :param data: json data (list of record dictionaries)
+    :param node: str (subject or object)
+    :param attr: str or None (dictionary key)
+    :param split_char: str or None (delimiter such as ":")
+    :return: Counter object (a dictionary of value types)
     """
     if attr and split_char:
         entity2ct = [
@@ -41,12 +71,23 @@ def count_entity(data, node, attr=None, split_char=None):
 
 
 def record_filter_attr1(
-    data,
+    data: list,
     node: str,
     attr: Union[str, None],
     include_vals: Union[str, List[str]],
     exclude_vals: Union[str, List[str]] = None,
 ) -> list:
+    """
+    Filter data records based on one attribute type (key type)
+    e.g., only want the records with "rank":"species" and "rank":"strain"
+
+    :param data: json data (list of record dictionaries)
+    :param node: str (subject or object)
+    :param attr: str or None (dictionary key)
+    :param include_vals: str or list of str (attributes or keys want to be included in the record)
+    :param exclude_vals: str or list of str (attributes or keys want to be excluded in the record)
+    :return: list of record dictionaries
+    """
     if isinstance(include_vals, str):
         include_vals = [include_vals]
     if exclude_vals and isinstance(exclude_vals, str):
@@ -83,6 +124,19 @@ def record_filter_attr2(
     attr2: Union[str, None],
     val2: Union[str, List[str]],
 ) -> list:
+    """
+    Filter data records based on two attribute types (value types)
+    e.g., want to get records filtered by both "rank" and "disease_name"
+
+    :param data: json data (list of dictionary records)
+    :param node1: str (subject or object)
+    :param attr1: str (dictionary key)
+    :param val1: str or list of str (values associated with attributes will be included in the record)
+    :param node2: str (subject or object)
+    :param attr2: str (dictionary key)
+    :param val2: str or list of str (values associated with attributes will be included in the record)
+    :return: list of record dictionaries
+    """
     if isinstance(val1, str):
         val1 = [val1]
         filtered_records = [
@@ -99,13 +153,25 @@ def record_filter_attr2(
     return filtered_records
 
 
-def map_disease_id2mondo(query, scope: list | str, field):
+def map_disease_id2mondo(query, scope: list | str, field: list | str) -> dict:
+    """
+    Use biothings_client to map disease identifiers
+    Map (DOID, MeSH, EFO, Orphanet, MedDRA, HP, etc.) to unified MONDO identifier
+
+    :param query: biothings_client query object (a list of objects)
+    :param scope: str or a list of str
+    :param field: str or a list of str
+    :return: a dictionary of mapped diseases
+
+    query_op exp: {'0000676': '0005083', '0000195': '0011565' ...} == {"EFO": "MONDO", ...}
+    scope and field can be checked via:
+    https://docs.mydisease.info/en/latest/doc/data.html#available-fields
+    """
     unmapped = []
     bt_disease = biothings_client.get_client("disease")
     query = set(query)
     print("count of unique identifier:", len(query))
     get_mondo = bt_disease.querymany(query, scopes=scope, fields=field)
-    # query_op exp: {'0000676': '0005083', '0000195': '0011565'} == {"EFO": "MONDO"}
     query_op = {
         d["query"]: (
             d.get("_id").split(":")[1].strip()
@@ -117,7 +183,20 @@ def map_disease_id2mondo(query, scope: list | str, field):
     return query_op
 
 
-def map_disease_name2mondo(disease_names, scope, field):
+def map_disease_name2mondo(disease_names: list or str, scope: list or str, field: list or str) -> dict:
+    """
+    Use biothings_client to map disease names to unified MONDO identifier
+    Map ("disease_ontology.name" or "disgenet.xrefs.disease_name") to unified MONDO identifier
+
+    :param disease_names: biothings_client query object (a list of disease name strings)
+    :param scope: str or a list of str
+    :param field: str or a list of str
+    :return: a dictionary of mapped diseases
+
+    query_op exp: {'hyperglycemia': '0002909', 'trichomonas vaginalis infection': None, ...}
+    scope and field can be checked via:
+    https://docs.mydisease.info/en/latest/doc/data.html#available-fields
+    """
     bt_disease = biothings_client.get_client("disease")
     disease_names = set(disease_names)
     get_mondo = bt_disease.querymany(disease_names, scopes=scope, fields=field)
@@ -128,7 +207,20 @@ def map_disease_name2mondo(disease_names, scope, field):
     return query_op
 
 
-def entity_filter_for_magnn(data, node1, attr1, val1, node2, attr2, attr3):
+def entity_filter_for_magnn(data, node1, attr1, val1, node2, attr2, attr3) -> list:
+    """
+    Final record filter of relational data for MAGNN input
+    Final record exp: [{59823: '0005301'}, {29523: '0004967'}, ...] -> [{taxid: MONDO}...]
+
+    :param data: list of record dictionaries
+    :param node1: str (subject or object)
+    :param attr1: str (dictionary key)
+    :param val1: str or list of str (values associated with attributes will be included in the record)
+    :param node2: str (subject or object)
+    :param attr2: str (dictionary key)
+    :param attr3: str (dictionary key)
+    :return: list of record dictionaries
+    """
     op = []
     for rec in data:
         if str(rec[node1][attr1]) == str(val1):
@@ -142,13 +234,23 @@ def entity_filter_for_magnn(data, node1, attr1, val1, node2, attr2, attr3):
     return op
 
 
-def export_data2dat(i_data, col1, col2, o_fname, database):
-    records = [(k, v) for d in i_data for k, v in d.items()]
+def export_data2dat(in_data: list, col1: str, col2: str, out_path: str | os.PathLike, database: str):
+    """
+    Export unique relational pair data to .dat files for MAGNN input
+    Final .dat has no header nor index
+
+    :param in_data: list of record dictionaries
+    :param col1: str (column name)
+    :param col2: str (column name)
+    :param out_path: str (path to output file)
+    :param database: str for database name (for printing to show final exported unique relational pairs)
+    """
+    records = [(k, v) for d in in_data for k, v in d.items()]
     print("count of records to be exported:", len(records))
     print("count of records are unique to be exported:", len(set(records)))
     # Convert the list of tuples to a DataFrame
     df = pd.DataFrame(set(records), columns=[col1, col2])
-    df.to_csv(o_fname, sep="\t", header=False, index=False)
+    df.to_csv(out_path, sep="\t", header=False, index=False)
     print(
         f"* {len(df)} records of {col1}-{col2} from {database} have been exported successfully!"
     )
