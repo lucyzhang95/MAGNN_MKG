@@ -14,7 +14,7 @@ disbiome_data_path = "../data/json/disbiome_data.json"
 disbiome_data = load_data(disbiome_data_path)
 
 # count taxonomic rank records
-disbiome_rank_ct = count_entity(disbiome_data, node="subject", attr="rank")
+disbiome_rank_ct = count_entity(disbiome_data, node="subject", attr="rank", split_char=None)
 
 # only want data with taxid and rank == species and strain
 # filter record by get parent_taxid if rank is strain, get taxid if rank is species)
