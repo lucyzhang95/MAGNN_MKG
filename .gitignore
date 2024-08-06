@@ -1,0 +1,5 @@
+/.flake8
+/pyproject.toml
+/data/raw_data/
+/.venv/
+/utils/taxdump.tar.gz
