@@ -18,38 +18,43 @@ def load_data(data_path: str | os.PathLike) -> list:
     return data
 
 
-def count_entity(data: list, node: str, attr: Union[str | None], split_char: Union[str, None]):
+def count_entity(
+    data: list,
+    node: str,
+    attr: Union[str | None],
+    split_char: Union[str, None],
+):
     """
-    Count the value types associated with the attribute(key) in records
-    e.g., count value types of rec["subject"]["rank"] from Disbiome data
-    Disbiome:
-    "subject":{
-      "id":"taxid:216816",
-      "taxid":216816,
-      "name":"bifidobacterium longum",
-      "type":"biolink:Bacterium",
-      "scientific_name":"bifidobacterium longum",
-      "parent_taxid":1678,
-      "lineage":[
-         216816,
-         1678,
-         31953,
-         85004,
-         1760,
-         201174,
-         1783272,
-         2,
-         131567,
-         1
-      ],
-      "rank":"species"
-   }
+     Count the value types associated with the attribute(key) in records
+     e.g., count value types of rec["subject"]["rank"] from Disbiome data
+     Disbiome:
+     "subject":{
+       "id":"taxid:216816",
+       "taxid":216816,
+       "name":"bifidobacterium longum",
+       "type":"biolink:Bacterium",
+       "scientific_name":"bifidobacterium longum",
+       "parent_taxid":1678,
+       "lineage":[
+          216816,
+          1678,
+          31953,
+          85004,
+          1760,
+          201174,
+          1783272,
+          2,
+          131567,
+          1
+       ],
+       "rank":"species"
+    }
 
-    :param data: json data (list of record dictionaries)
-    :param node: str (subject or object)
-    :param attr: str or None (dictionary key)
-    :param split_char: str or None (delimiter such as ":")
-    :return: Counter object (a dictionary of value types)
+     :param data: json data (list of record dictionaries)
+     :param node: str (subject or object)
+     :param attr: str or None (dictionary key)
+     :param split_char: str or None (delimiter such as ":")
+     :return: Counter object (a dictionary of value types)
     """
     if attr and split_char:
         entity2ct = [
@@ -153,7 +158,12 @@ def record_filter_attr2(
     return filtered_records
 
 
-def map_disease_id2mondo(query, scope: list | str, field: list | str) -> dict:
+def map_disease_id2mondo(
+    query,
+    scope: list | str,
+    field: list | str,
+    unmapped_out_path: str | os.PathLike | None,
+) -> dict:
     """
     Use biothings_client to map disease identifiers
     Map (DOID, MeSH, EFO, Orphanet, MedDRA, HP, etc.) to unified MONDO identifier
@@ -161,6 +171,7 @@ def map_disease_id2mondo(query, scope: list | str, field: list | str) -> dict:
     :param query: biothings_client query object (a list of objects)
     :param scope: str or a list of str
     :param field: str or a list of str
+    :param unmapped_out_path: path to unmapped output file
     :return: a dictionary of mapped diseases
 
     query_op exp: {'0000676': '0005083', '0000195': '0011565',...} == {"EFO": "MONDO", ...}
@@ -176,14 +187,22 @@ def map_disease_id2mondo(query, scope: list | str, field: list | str) -> dict:
         d["query"]: (
             d.get("_id").split(":")[1].strip()
             if "notfound" not in d
-            else unmapped.append(d["query"])
+            else unmapped.append((d["query"], None))
         )
         for d in get_mondo
     }
+
+    disease_notfound = pd.DataFrame(unmapped, columns=["disease", "mondo"])
+    print("unmapped diseases:", disease_notfound)
+    disease_notfound.to_csv(
+        unmapped_out_path, sep="\t", header=True, index=False
+    )
     return query_op
 
 
-def map_disease_name2mondo(disease_names: list or str, scope: list or str, field: list or str) -> dict:
+def map_disease_name2mondo(
+    disease_names: list or str, scope: list or str, field: list or str
+) -> dict:
     """
     Use biothings_client to map disease names to unified MONDO identifier
     Map ("disease_ontology.name" or "disgenet.xrefs.disease_name") to unified MONDO identifier
@@ -207,7 +226,9 @@ def map_disease_name2mondo(disease_names: list or str, scope: list or str, field
     return query_op
 
 
-def entity_filter_for_magnn(data, node1, attr1, val1, node2, attr2, attr3) -> list:
+def entity_filter_for_magnn(
+    data, node1, attr1, val1, node2, attr2, attr3
+) -> list:
     """
     Final record filter of relational data for MAGNN input
     Final record exp: [{59823: '0005301'}, {29523: '0004967'}, ...] -> [{taxid: MONDO}, ...]
@@ -234,7 +255,13 @@ def entity_filter_for_magnn(data, node1, attr1, val1, node2, attr2, attr3) -> li
     return op
 
 
-def export_data2dat(in_data: list, col1: str, col2: str, out_path: str | os.PathLike, database: str):
+def export_data2dat(
+    in_data: list,
+    col1: str,
+    col2: str,
+    out_path: str | os.PathLike,
+    database: str,
+):
     """
     Export unique relational pair data to .dat files for MAGNN input
     Final .dat has no header nor index
