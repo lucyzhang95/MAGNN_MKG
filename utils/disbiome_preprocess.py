@@ -86,7 +86,6 @@ for line in tabfile_feeder(filled_disease_path, header=0):
         mapped_disbiome_disease[filled_disbiome_disease] = mondo
     elif mesh:
         mapped_disbiome_disease[filled_disbiome_disease] = mesh
-# print(complete_disbiome_disease)
 print("mapped disease count:", len(mapped_disbiome_disease))
 
 # need to add mondo to the filtered records that do not have mondo
