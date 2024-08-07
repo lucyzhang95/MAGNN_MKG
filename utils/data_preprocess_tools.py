@@ -181,7 +181,7 @@ def map_disease_id2mondo(
     unmapped = []
     bt_disease = biothings_client.get_client("disease")
     query = set(query)
-    print("count of unique identifier:", len(query))
+    print("count of unique disease identifier:", len(query))
     get_mondo = bt_disease.querymany(query, scopes=scope, fields=field)
     query_op = {
         d["query"]: (
