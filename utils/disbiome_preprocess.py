@@ -32,7 +32,7 @@ disbiome_disease_ct = count_entity(
 )
 disbiome_filtered_disease_ct = count_entity(
     disbiome_filtered_by_strain_species,
-    "object",
+    node="object",
     attr="id",
     split_char=":",
 )
