@@ -8,13 +8,14 @@ from data_preprocess_tools import (
     record_filter_attr1,
 )
 
-
 # Data preprocess for Disbiome Database
 disbiome_data_path = "../data/json/disbiome_data.json"
 disbiome_data = load_data(disbiome_data_path)
 
 # count taxonomic rank records
-disbiome_rank_ct = count_entity(disbiome_data, node="subject", attr="rank", split_char=None)
+disbiome_rank_ct = count_entity(
+    disbiome_data, node="subject", attr="rank", split_char=None
+)
 
 # only want data with taxid and rank == species and strain
 # filter record by get parent_taxid if rank is strain, get taxid if rank is species)
@@ -80,9 +81,11 @@ filled_disease_path = (
 # organize the disease name and MONDO id to a dictionary e.g., {'chronic rhinosinusitis': '0006031'}
 mapped_disbiome_disease = {}
 for line in tabfile_feeder(filled_disease_path, header=0):
-    filled_disbiome_disease, mondo_id = line[0], line[1]
-    if mondo_id:
-        mapped_disbiome_disease[filled_disbiome_disease] = mondo_id
+    filled_disbiome_disease, mondo, mesh = line[0], line[1], line[2]
+    if mondo:
+        mapped_disbiome_disease[filled_disbiome_disease] = mondo
+    elif mesh:
+        mapped_disbiome_disease[filled_disbiome_disease] = mesh
 # print(complete_disbiome_disease)
 print("mapped disease count:", len(mapped_disbiome_disease))
 
@@ -90,7 +93,14 @@ print("mapped disease count:", len(mapped_disbiome_disease))
 for rec in disbiome_filtered_by_md:
     disease_name = rec["object"]["name"]
     if disease_name in mapped_disbiome_disease:
-        rec["object"]["id"] = f"MONDO:{mapped_disbiome_disease[disease_name]}"
+        if "D" in mapped_disbiome_disease[disease_name]:
+            rec["object"][
+                "id"
+            ] = f"MESH:{mapped_disbiome_disease[disease_name]}"
+        else:
+            rec["object"][
+                "id"
+            ] = f"MONDO:{mapped_disbiome_disease[disease_name]}"
 
 # count the disease identifiers again after manual mapping
 disbiome_mapped_disease_ct = count_entity(
@@ -108,16 +118,21 @@ disbiome_filtered_mondo = record_filter_attr1(
 
 # merge the two records together (5040)
 disbiome_final = disbiome_filtered_mondo + disbiome_filtered_by_md
-# print(len(disbiome_final))
+print("Total count of merged records with MONDO and MESH", len(disbiome_final))
 
 # final filtered that have records with MONDO identifiers only (4754 = 5040-241-38-6-1)
+# final filtered that have records with MONDO and MESH identifiers excluding MedDRA and EFO (5025 = 5040-14-1)
 disbiome_final_filtered = [
-    rec for rec in disbiome_final if "MONDO" in rec["object"]["id"]
+    rec
+    for rec in disbiome_final
+    if "MONDO" in rec["object"]["id"] or "MESH" in rec["object"]["id"]
 ]
-print("Total count of records with mondo only", len(disbiome_final_filtered))
+print(
+    "Total count of records with mondo and mesh", len(disbiome_final_filtered)
+)
 # count the rank again
 disbiome_final_rank_ct = count_entity(
-    disbiome_final_filtered, node="subject", attr="rank"
+    disbiome_final_filtered, node="subject", attr="rank", split_char=None
 )
 
 # export microbe and disease from disbiome_final_filtered records
