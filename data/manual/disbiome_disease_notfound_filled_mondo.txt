@@ -1,7 +1,7 @@
-name	mondo	hp
+name	mondo	mesh
 meningococcal disease	0005373	
 "hand, foot and mouth disease"	0005779	
-postmenopausal		
+postmenopausal		D017698
 cholestasis	0001751	
 irritable bowel syndrome	0005052	
 lung cancer	0008903	
@@ -12,7 +12,7 @@ pemphigus vulgaris	0008219
 transient ischemic attack	0005264	
 tetratricopeptide repeat domain 7a deficiency	0009465	
 influenza a	0005812	
-frailty		
+frailty		D000073496
 gestational diabetes	0005406	
 colorectal cancer	0005575	
 barrett's oesophagus	0013662	
@@ -94,7 +94,7 @@ atopic dermatitis	0004980
 colon polyps	0100290	
 neisseria gonorrhoeae infection	0021160	
 oral lichen planus	0043923	
-smoking		
+smoking		D012907
 vulvodynia	0021722	
 idiopathic infertility	0005047	
 refractory celiac disease	0018353	
@@ -109,7 +109,7 @@ traumatic brain injury	0858950
 infective colitis	0006039	
 alcoholism	0007079	
 type 1 diabetes	0005147	
-halitosis		
+halitosis		D006209
 psoriasis	0005083	
 copd exacerbation	0005002	
 hirschsprung's disease	0018309	
@@ -120,7 +120,7 @@ stomach cancer	0001056
 pulmonary tubercolosis	0006052	
 seminal hyperviscosity	0004767	
 biliary atresia	0008867	
-chronic stress		
+chronic stress		D013312
 h1n1 influenza	0005812	
 kidney stone	0008171	
 pelvic inflammatory disease	0000922	
@@ -137,27 +137,27 @@ viral diarrhea	0001517
 chronic rhinosinusitis with cystic fibrosis	0006031	
 bullous pemphigoid	0019082	
 late-onset sepsis	0700217	
-sarcopenia		
+sarcopenia		D055948
 clostridium difficile associated disease	0024388	
 endometrial cancer	0011962	
-pregnancy		
+pregnancy		D037841
 primary sclerosing cholangitis-ibd	0013433	
 allergic rhinoconjunctivitis	0013180	
 pancreatitis	0004982	
 hashimoto's thyroiditis	0007699	
 attention deficit hyperactivity disorder	0005302	
 hyperglycemia	0002909	
-edentulism		
-miscarriage		0005268
+edentulism		D009066
+miscarriage		D000022
 chronic rhinosinusitis with nasal polyps	0006031	
 alzheimer's disease	0004975	
 blepharitis	0004785	
 intestinal metaplasia	0100190	
-preterm birth		
+preterm birth		D007234
 gastric carcinoma	0004950	
 drug-resistant epilepsy	0005027	
 chronic fatigue syndrome	0005404	
-aphthous ulcer	0005318	0032154
+aphthous ulcer	0005318	
 chronic mucocutaneous candidiasis	0015279	
 diabetic nephropathy	0005016	
 bleeding gum	0020782	
@@ -168,8 +168,8 @@ arsenic exposure	0023305
 laryngeal carcinoma	0002358	
 atrial fibrillation	0004981	
 diverticular disease	0001674	
-recurrent miscarriage		0005268
-excessive vomiting		
+recurrent miscarriage		D000026
+excessive vomiting		D014839
 clonorchis sinensis infection	0005705	
 pervasive developmental disorder nos	0000594	
 cervicitis	0002345	
@@ -198,14 +198,14 @@ t2d with hypertension and hyperlipidemia	0005148
 cirrhosis with pneumonia	0005155	
 x-linked inhibitor of apoptosis deficiency	0010385	
 gestational diabetes + hyperlipidemia	0005406	
-cognitive impairment	0013680	0100543
-cardiac valve calcification	0005463	0005146
+cognitive impairment	0013680	
+cardiac valve calcification	0005463	
 autism spectrum disorders	0005258	
-liver transplant		
+liver transplant		D016031
 chronic pancreatitis	0005003	
 denture stomatitis	0006723	
 keratitis	0003085	
-infant colic		
+infant colic		D003085
 human end-stage renal disease	0004375	
 type 2 diabetes	0005148	
 inflammatory bowel disease	0005265	
@@ -222,7 +222,7 @@ acne	0011438
 hepatic encephalopathy	0001711	
 urolithiasis	0024647	
 opisthorchis felineus infection	0005884	
-nasolacrimal duct obstruction	0007871	0000579
+nasolacrimal duct obstruction	0007871	
 major depressive disorder	0002009	
 hyperthyroidism	0004425	
 cervical cancer	0002974	
@@ -232,7 +232,7 @@ autism	0005260
 alcoholic cirrhosis	0006644	
 severe fever with thrombocytopenia syndrome	0007883	
 breast cancer	0007254	
-ischemic stroke	0018585	0002140
+ischemic stroke	0018585	
 severe congenital neutropenia	0018542	
 gastroenteritis	0002269	
 pancreatic head cancer	0009831	
@@ -240,7 +240,7 @@ radiation enteritis	0043459
 gingivitis	0002508	
 microscopic colitis	0000702	
 antrochoanal polyps	0005079	
-e-smoking		
+e-smoking		D012907
 hypopharyngeal cancer	0005216	
 lower respiratory tract infection	0024355	
 systemic lupus erythematosus	0007915	
@@ -256,9 +256,9 @@ aerobic vaginitis	0002234
 acute lymphoblastic leukemia	0004967	
 cystic fibrosis exacerbation	0009061	
 functional dyspepsia	0002268	
-recurrent aphthous stomatitis	0004845	0011107
+recurrent aphthous stomatitis	0004845	
 bladder cancer	0001187	
-vogt-koyagani-harada disease		
+vogt-koyagani-harada disease		D014607
 multiple system atrophy	0007803	
 primary biliary cholangitis	0005388	
 urgency urinary incontinence	0006624	
@@ -266,7 +266,7 @@ polycystic ovary syndrome	0008487
 invasive colorectal cancer	0005575	
 henoch-schönlein purpura	0019167	
 primary sclerosing cholangitis	0013433	
-atopic wheeze		
+atopic wheeze		D012135
 ulcerative colitis	0005101	
 h7n9	0005812	
 down syndrome	0008608	
@@ -280,10 +280,10 @@ dry eye syndrome	0006733
 wilson's disease	0010200	
 diaper dermatitis	0002406	
 extrinsic black stain		
-disease-free		
+disease-free		D018572
 atopy	0005202	
 primary open-angle glaucoma	0005338	
 periodontitis	0005076	
 shiga toxin-producing e. coli infection	0020920	
 hepatitis c	0005231	
-normal weight obesity		
+normal weight obesity		D009765
