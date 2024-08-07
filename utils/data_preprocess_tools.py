@@ -229,8 +229,14 @@ def map_disease_name2mondo(
 
 # TODO: need to make the function more readable (too many argv now)
 def entity_filter_for_magnn(
-    data, node1, attr1, val1, node2, attr2, attr3
-) -> list:
+    data: List[dict],
+    node1: str,
+    attr1: str,
+    val1: Union[str | List[str]],
+    node2: str,
+    attr2: str,
+    attr3: str,
+) -> List[dict]:
     """
     Final record filter of relational data for MAGNN input
     Final record exp: [{59823: '0005301'}, {29523: '0004967'}, ...] -> [{taxid: MONDO}, ...]
@@ -245,8 +251,11 @@ def entity_filter_for_magnn(
     :return: list of record dictionaries
     """
     op = []
+    if isinstance(val1, str):
+        val1 = [val1]
+
     for rec in data:
-        if str(rec[node1][attr1]) == str(val1):
+        if rec[node1][attr1] in val1:
             op.append(
                 {rec[node1][attr3]: rec[node2][attr2].split(":")[1].strip()}
             )
