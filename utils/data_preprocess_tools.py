@@ -193,7 +193,7 @@ def map_disease_id2mondo(
     }
 
     disease_notfound = pd.DataFrame(unmapped, columns=["disease", "mondo"])
-    print("unmapped diseases:", disease_notfound)
+    print("unmapped diseases:", disease_notfound.head())
     disease_notfound.to_csv(
         unmapped_out_path, sep="\t", header=True, index=False
     )
