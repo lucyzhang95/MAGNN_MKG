@@ -200,6 +200,7 @@ def map_disease_id2mondo(
     return query_op
 
 
+# TODO: add unmapped disease names, so that I can embed export path directly in it
 def map_disease_name2mondo(
     disease_names: list or str, scope: list or str, field: list or str
 ) -> dict:
@@ -226,6 +227,7 @@ def map_disease_name2mondo(
     return query_op
 
 
+# TODO: need to make the function more readable (too many argv now)
 def entity_filter_for_magnn(
     data, node1, attr1, val1, node2, attr2, attr3
 ) -> list:
