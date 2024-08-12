@@ -61,6 +61,7 @@ def count_entity(
             rec[node][attr].split(split_char)[0]
             for rec in data
             if attr in rec[node] and rec[node][attr] is not None
+            if split_char in rec[node][attr]
         ]
     elif attr:
         entity2ct = [
@@ -69,12 +70,16 @@ def count_entity(
             if attr in rec[node] and rec[node][attr] is not None
         ]
     else:
-        raise ValueError("Either condition or split_char must be provided.")
+        raise ValueError("Either attribute or split_char must be provided.")
 
     entity_ct = Counter(entity2ct)
     print(f"{node}_{attr if attr else split_char}: {entity_ct}")
 
 
+# TODO: rewrite the function with customizable arg
+# def list_filter(a_list, fn):
+#   return [item for item in a_list if fn(item)]
+#   fn1 = lambda d: d[attr] in inclusion_vals or d[attr] not in exclusion_vals
 def record_filter_attr1(
     data: list,
     node: str,
@@ -120,41 +125,9 @@ def record_filter_attr1(
     return filtered_records
 
 
-def record_filter_attr2(
-    data,
-    node1: str,
-    attr1: str,
-    val1: Union[str, List[str]],
-    node2: str,
-    attr2: Union[str, None],
-    val2: Union[str, List[str]],
-) -> list:
-    """
-    Filter data records based on two attribute types (value types)
-    e.g., want to get records filtered by both "rank" and "disease_name"
-
-    :param data: json data (list of dictionary records)
-    :param node1: str (subject or object)
-    :param attr1: str (dictionary key)
-    :param val1: str or list of str (values associated with attributes will be included in the record)
-    :param node2: str (subject or object)
-    :param attr2: str (dictionary key)
-    :param val2: str or list of str (values associated with attributes will be included in the record)
-    :return: list of record dictionaries
-    """
-    if isinstance(val1, str):
-        val1 = [val1]
-        filtered_records = [
-            rec
-            for rec in data
-            if rec[node1].get(attr1) in val1 and val2 in rec[node2]
-        ]
-    else:
-        filtered_records = [
-            rec
-            for rec in data
-            if rec[node1].get(attr1) in val1 and rec[node2].get(attr2) in val2
-        ]
+def record_filter(a_list, fn):
+    filtered_records = [item for item in a_list if fn(item)]
+    print(f"Total count of filtered records: {len(filtered_records)}")
     return filtered_records
 
 
@@ -227,7 +200,20 @@ def map_disease_name2mondo(
     return query_op
 
 
+def map_metabolite2inchikey(
+    metabolites: list or str, scope: list or str, field: list or str
+) -> dict:
+    bt_chem = biothings_client.get_client("chem")
+    get_inchikey = bt_chem.querymany(metabolites, scopes=scope, fields=field)
+    query_op = {
+        d["query"]: d.get("_id") if "notfound" not in d else None
+        for d in get_inchikey
+    }
+    return query_op
+
+
 # TODO: need to make the function more readable (too many argv now)
+# TODO: add more explanation on arg (e.g., attr1: a string represents record key in subj or obj)
 def entity_filter_for_magnn(
     data: List[dict],
     node1: str,
