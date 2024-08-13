@@ -201,7 +201,10 @@ def map_disease_name2mondo(
 
 
 def map_metabolite2inchikey(
-    metabolites: list or str, scope: list or str, field: list or str, unmapped_out_path: str | os.PathLike | None
+    metabolites: list or str,
+    scope: list or str,
+    field: list or str,
+    unmapped_out_path: str | os.PathLike | None,
 ) -> dict:
     unmapped = []
     bt_chem = biothings_client.get_client("chem")
