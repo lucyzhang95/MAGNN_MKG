@@ -5,10 +5,13 @@ from data_preprocess_tools import (
     map_disease_id2mondo,
     record_filter_attr1,
     entity_filter_for_magnn,
-    export_data2dat
+    export_data2dat,
+    record_filter,
+    map_metabolite2inchikey
 )
+from record_filters import is_small_molecule_and_taxid, is_small_molecule_and_gene
 
-# Data preprocess for GMMAD2 database
+# Data preprocess for GMMAD2 microbe-disease data
 gmmad2_data_path = "../data/json/gmmad2_data.json"
 gmmad2_data = load_data(gmmad2_data_path)
 
@@ -103,3 +106,20 @@ export_data2dat(
     out_path="../data/MAGNN_data/gmmad2_md_taxid_mondo.dat",
     database="GMMAD2:Microbe-Disease",
 )
+
+
+# Data preprocess for GMMAD2 microbe-metabolite data
+# filter out records with microbe-metabolite relationship only (864,357)
+gmmad2_mm_rec = record_filter(gmmad2_data, is_small_molecule_and_taxid)
+
+# count the metabolite identifier types (265,705 recs do not have pubchem_cid or kegg.compound)
+met_type_ct = count_entity(gmmad2_mm_rec, node="object", attr="id", split_char=":")
+
+# extract metabolites with no chem identifiers (265,705)
+met4query = [rec["object"].get("chemical_formula") for rec in gmmad2_mm_rec if ":" not in rec["object"]["id"]]
+print(len(met4query))
+# 193 dup hits, 307 no hit, 14 with 1 hit = unique metabolites: 514
+# TODO: not reliable to query the chemical formula, so need to leave it as molecular formula or name or discard
+# met2inchikey = map_metabolite2inchikey(met4query, scope=["pubchem.molecular_formula"], field="_id", unmapped_out_path="../data/manual/gmmad2_met_unmapped.csv")
+# TODO: need to map pubchem_cid and kegg.compound to inchikey
+
