@@ -201,14 +201,27 @@ def map_disease_name2mondo(
 
 
 def map_metabolite2inchikey(
-    metabolites: list or str, scope: list or str, field: list or str
+    metabolites: list or str, scope: list or str, field: list or str, unmapped_out_path: str | os.PathLike | None
 ) -> dict:
+    unmapped = []
     bt_chem = biothings_client.get_client("chem")
+    metabolites = set(metabolites)
+    print("count of unique metabolites:", len(metabolites))
     get_inchikey = bt_chem.querymany(metabolites, scopes=scope, fields=field)
     query_op = {
-        d["query"]: d.get("_id") if "notfound" not in d else None
+        d["query"]: (
+            d.get("_id")
+            if "notfound" not in d
+            else unmapped.append((d["query"]))
+        )
         for d in get_inchikey
     }
+    print("count of unmapped metabolites:", len(unmapped))
+    metabolites_notfound = pd.DataFrame(unmapped, columns=["chemical_formula"])
+    metabolites_notfound.to_csv(
+        unmapped_out_path, sep="\t", header=True, index=False
+    )
+
     return query_op
 
 
@@ -252,6 +265,7 @@ def entity_filter_for_magnn(
     return op
 
 
+# TODO: assign datatype for data (after merging and before assign index)
 def export_data2dat(
     in_data: list,
     col1: str,
