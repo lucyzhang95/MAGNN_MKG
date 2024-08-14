@@ -133,7 +133,7 @@ def record_filter(a_list, fn):
 
 def map_disease_id2mondo(
     query,
-    scope: list | str,
+    scopes: list | str,
     field: list | str,
     unmapped_out_path: str | os.PathLike | None,
 ) -> dict:
@@ -142,7 +142,7 @@ def map_disease_id2mondo(
     Map (DOID, MeSH, EFO, Orphanet, MedDRA, HP, etc.) to unified MONDO identifier
 
     :param query: biothings_client query object (a list of objects)
-    :param scope: str or a list of str
+    :param scopes: str or a list of str
     :param field: str or a list of str
     :param unmapped_out_path: path to unmapped output file
     :return: a dictionary of mapped diseases
@@ -155,7 +155,7 @@ def map_disease_id2mondo(
     bt_disease = biothings_client.get_client("disease")
     query = set(query)
     print("count of unique disease identifier:", len(query))
-    get_mondo = bt_disease.querymany(query, scopes=scope, fields=field)
+    get_mondo = bt_disease.querymany(query, scopes=scopes, fields=field)
     query_op = {
         d["query"]: (
             d.get("_id").split(":")[1].strip()
@@ -175,14 +175,14 @@ def map_disease_id2mondo(
 
 # TODO: add unmapped disease names, so that I can embed export path directly in it
 def map_disease_name2mondo(
-    disease_names: list or str, scope: list or str, field: list or str
+    disease_names: list or str, scopes: list or str, field: list or str
 ) -> dict:
     """
     Use biothings_client to map disease names to unified MONDO identifier
     Map ("disease_ontology.name" or "disgenet.xrefs.disease_name") to unified MONDO identifier
 
     :param disease_names: biothings_client query object (a list of disease name strings)
-    :param scope: str or a list of str
+    :param scopes: str or a list of str
     :param field: str or a list of str
     :return: a dictionary of mapped diseases
 
@@ -192,7 +192,9 @@ def map_disease_name2mondo(
     """
     bt_disease = biothings_client.get_client("disease")
     disease_names = set(disease_names)
-    get_mondo = bt_disease.querymany(disease_names, scopes=scope, fields=field)
+    get_mondo = bt_disease.querymany(
+        disease_names, scopes=scopes, fields=field
+    )
     query_op = {
         d["query"]: d.get("_id").split(":")[1] if "notfound" not in d else None
         for d in get_mondo
@@ -202,7 +204,7 @@ def map_disease_name2mondo(
 
 def map_metabolite2inchikey(
     metabolites: list or str,
-    scope: list or str,
+    scopes: list or str,
     field: list or str,
     unmapped_out_path: str | os.PathLike | None,
 ) -> dict:
@@ -210,17 +212,19 @@ def map_metabolite2inchikey(
     bt_chem = biothings_client.get_client("chem")
     metabolites = set(metabolites)
     print("count of unique metabolites:", len(metabolites))
-    get_inchikey = bt_chem.querymany(metabolites, scopes=scope, fields=field)
+    get_inchikey = bt_chem.querymany(metabolites, scopes=scopes, fields=field)
     query_op = {
         d["query"]: (
             d.get("_id")
             if "notfound" not in d
-            else unmapped.append((d["query"]))
+            else unmapped.append((d["query"], None))
         )
         for d in get_inchikey
     }
     print("count of unmapped metabolites:", len(unmapped))
-    metabolites_notfound = pd.DataFrame(unmapped, columns=["chemical_formula"])
+    metabolites_notfound = pd.DataFrame(
+        unmapped, columns=["metabolite", "inchikey"]
+    )
     metabolites_notfound.to_csv(
         unmapped_out_path, sep="\t", header=True, index=False
     )
