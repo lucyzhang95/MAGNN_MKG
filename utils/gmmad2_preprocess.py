@@ -1,15 +1,18 @@
 from biothings.utils.dataload import tabfile_feeder
 from data_preprocess_tools import (
     count_entity,
-    load_data,
-    map_disease_id2mondo,
-    record_filter_attr1,
     entity_filter_for_magnn,
     export_data2dat,
+    load_data,
+    map_disease_id2mondo,
+    map_metabolite2inchikey,
     record_filter,
-    map_metabolite2inchikey
+    record_filter_attr1,
 )
-from record_filters import is_small_molecule_and_taxid, is_small_molecule_and_gene
+from record_filters import (
+    is_small_molecule_and_gene,
+    is_small_molecule_and_taxid,
+)
 
 # Data preprocess for GMMAD2 microbe-disease data
 gmmad2_data_path = "../data/json/gmmad2_data.json"
@@ -42,7 +45,7 @@ gmmad2_md_mesh = [
 # mesh2mondo exp: {'D000086382': '0100096', ...} == {"mesh": "mondo"}
 mesh2mondo = map_disease_id2mondo(
     query=gmmad2_md_mesh,
-    scope=["ctd.mesh"],
+    scopes=["ctd.mesh"],
     field="mondo",
     unmapped_out_path="../data/manual/gmmad2_md_unmapped.csv",
 )
@@ -81,8 +84,12 @@ for rec in gmmad2_md_rec:
     disease_mesh = rec["object"]["mesh"]
     if disease_mesh in gmmad2_complete_mapped_disease:
         if "D" not in gmmad2_complete_mapped_disease[disease_mesh]:
-            rec["object"]["id"] = f"MONDO:{gmmad2_complete_mapped_disease[disease_mesh]}"
-            rec["object"]["mondo"] = gmmad2_complete_mapped_disease[disease_mesh]
+            rec["object"][
+                "id"
+            ] = f"MONDO:{gmmad2_complete_mapped_disease[disease_mesh]}"
+            rec["object"]["mondo"] = gmmad2_complete_mapped_disease[
+                disease_mesh
+            ]
 # print(gmmad2_md_rec)
 
 # count the disease identifiers again after manual mapping (total:508,141)
@@ -91,13 +98,15 @@ gmmad2_mapped_disease_ct = count_entity(
 )
 
 # final record filter for MAGNN input with {taxid:mondo} only (508,141)
-gmmad2_data4magnn = entity_filter_for_magnn(gmmad2_md_rec,
-                                            node1="subject",
-                                            attr1="taxid",
-                                            val1=["strain", "subspecies", "biotype", "species group"],
-                                            node2="object",
-                                            attr2="id",
-                                            attr3="parent_taxid")
+gmmad2_data4magnn = entity_filter_for_magnn(
+    gmmad2_md_rec,
+    node1="subject",
+    attr1="taxid",
+    val1=["strain", "subspecies", "biotype", "species group"],
+    node2="object",
+    attr2="id",
+    attr3="parent_taxid",
+)
 # export the final filtered records to .dat file (495,936; 12,205 less)
 export_data2dat(
     in_data=gmmad2_data4magnn,
@@ -113,13 +122,43 @@ export_data2dat(
 gmmad2_mm_rec = record_filter(gmmad2_data, is_small_molecule_and_taxid)
 
 # count the metabolite identifier types (265,705 recs do not have pubchem_cid or kegg.compound)
-met_type_ct = count_entity(gmmad2_mm_rec, node="object", attr="id", split_char=":")
+met_type_ct = count_entity(
+    gmmad2_mm_rec, node="object", attr="id", split_char=":"
+)
 
 # extract metabolites with no chem identifiers (265,705)
-met4query = [rec["object"].get("chemical_formula") for rec in gmmad2_mm_rec if ":" not in rec["object"]["id"]]
-print(len(met4query))
+met_no_id = [
+    rec["object"].get("chemical_formula")
+    for rec in gmmad2_mm_rec
+    if ":" not in rec["object"]["id"]
+]
+# print(len(met_no_id))
 # 193 dup hits, 307 no hit, 14 with 1 hit = unique metabolites: 514
 # TODO: not reliable to query the chemical formula, so need to leave it as molecular formula or name or discard
 # met2inchikey = map_metabolite2inchikey(met4query, scope=["pubchem.molecular_formula"], field="_id", unmapped_out_path="../data/manual/gmmad2_met_unmapped.csv")
 # TODO: need to map pubchem_cid and kegg.compound to inchikey
+met4query = [
+    rec["object"]["id"].split(":")[1].strip()
+    for rec in gmmad2_mm_rec
+    if ":" in rec["object"]["id"]
+]
+# print(len(met4query))
+met2inchikey = map_metabolite2inchikey(
+    met4query,
+    scopes=["pubchem.cid", "chebi.xrefs.kegg_compound", "chebi.xrefs.kegg_glycan"],
+    field="inchikey",
+    unmapped_out_path="../data/manual/gmmad2_met_unmapped.csv",
+)
 
+metname_ct = [
+    rec["object"].get("name")
+    for rec in gmmad2_mm_rec
+    if "name" in rec["object"]
+]
+print(len(metname_ct))
+metchem_formula_ct = [
+    rec["object"].get("chemical_formula")
+    for rec in gmmad2_mm_rec
+    if "chemical_formula" in rec["object"]
+]
+print(len(metchem_formula_ct))
