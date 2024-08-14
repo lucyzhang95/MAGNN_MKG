@@ -78,8 +78,7 @@ print(
     len(set(gmmad2_complete_mapped_disease)),
 )
 
-# TODO: how to make the code below cleaner?
-# need to add mondo to the filtered records that do not have mondo
+# add mondo to the filtered records without mondo
 for rec in gmmad2_md_rec:
     disease_mesh = rec["object"]["mesh"]
     if disease_mesh in gmmad2_complete_mapped_disease:
@@ -126,39 +125,70 @@ met_type_ct = count_entity(
     gmmad2_mm_rec, node="object", attr="id", split_char=":"
 )
 
-# extract metabolites with no chem identifiers (265,705)
-met_no_id = [
-    rec["object"].get("chemical_formula")
-    for rec in gmmad2_mm_rec
-    if ":" not in rec["object"]["id"]
-]
-# print(len(met_no_id))
-# 193 dup hits, 307 no hit, 14 with 1 hit = unique metabolites: 514
-# TODO: not reliable to query the chemical formula, so need to leave it as molecular formula or name or discard
-# met2inchikey = map_metabolite2inchikey(met4query, scope=["pubchem.molecular_formula"], field="_id", unmapped_out_path="../data/manual/gmmad2_met_unmapped.csv")
-# TODO: need to map pubchem_cid and kegg.compound to inchikey
+# map pubchem_cid, kegg_compound, and kegg_glycan to inchikey
+# 6 dup hits and 63 no hit
 met4query = [
     rec["object"]["id"].split(":")[1].strip()
     for rec in gmmad2_mm_rec
     if ":" in rec["object"]["id"]
 ]
-# print(len(met4query))
+
+# export unmapped metabolites to a csv file
+# output dict values: inchikey, chebi, None
+# output exp: {'834': 'ILRYLPWNYFXEMH-UHFFFAOYSA-N', 'C00125': None, 'C06140': '28058'}
 met2inchikey = map_metabolite2inchikey(
     met4query,
-    scopes=["pubchem.cid", "chebi.xrefs.kegg_compound", "chebi.xrefs.kegg_glycan"],
+    scopes=[
+        "pubchem.cid",
+        "chebi.xrefs.kegg_compound",
+        "chebi.xrefs.kegg_glycan",
+    ],
     field="inchikey",
     unmapped_out_path="../data/manual/gmmad2_met_unmapped.csv",
 )
 
-metname_ct = [
-    rec["object"].get("name")
-    for rec in gmmad2_mm_rec
-    if "name" in rec["object"]
-]
-print(len(metname_ct))
-metchem_formula_ct = [
+# load manually mapped metabolite data
+gmmad2_filled_metabolite_path = (
+    "../data/manual/gmmad2_metabolite_notfound_filled.txt"
+)
+
+# organize the kegg metabolite id and identifiers to a dictionary
+# TODO: do I use pubchem_sid or original kegg id for the metabolites?
+# e.g., {'C00125': '3425', 'G02055': 'G02055', ...}
+# {"kegg_compound": "pubchem_sid", "kegg_glycan": "kegg_glycan", ...}
+met_manual = {}
+for line in tabfile_feeder(gmmad2_filled_metabolite_path, header=1):
+    kegg, inchikey, pubchem_sid = line[0], line[1], line[2]
+    if inchikey:
+        met_manual[kegg] = inchikey
+    elif pubchem_sid:
+        met_manual[kegg] = pubchem_sid
+    else:
+        met_manual[kegg] = kegg
+
+# merge met2inchikey and manual mapped metabolites (1663 unique)
+met_mapped = met2inchikey | met_manual
+
+# add inchikey, pubchem_sid, chebi to the filtered records (598652)
+for rec in gmmad2_mm_rec:
+    if ":" in rec["object"]["id"]:
+        met_kegg = rec["object"]["id"].split(":")[1].strip()
+        if met_kegg in met_mapped:
+            rec["object"]["magnn_in"] = met_mapped[met_kegg]
+
+# extract metabolites with no chem identifiers (265,705) ~ 1/3 of the total
+# met2inchikey = map_metabolite2inchikey(met4query,
+# scope=["pubchem.molecular_formula"], field="_id",
+# unmapped_out_path="../data/manual/gmmad2_met_unmapped.csv")
+# 193 dup hits, 307 no hit, 14 with 1 hit = unique metabolites: 514
+# TODO: not reliable to query the chemical formula, what attr should I use for these metabolites?
+#  do not want to discard everything without chem identifiers ~ 1/3 of the total
+#  but concerned about assigning index to name or chemical formula resulting in duplicates
+#  (identical chemicals with different indices)
+#  potential solution can be clustering these chemicals by name or formula with similarities then assign index
+met_no_id = [
     rec["object"].get("chemical_formula")
     for rec in gmmad2_mm_rec
-    if "chemical_formula" in rec["object"]
+    if ":" not in rec["object"]["id"]
 ]
-print(len(metchem_formula_ct))
+# print(len(set(met_no_id)))
