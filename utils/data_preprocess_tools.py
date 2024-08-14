@@ -217,7 +217,11 @@ def map_metabolite2inchikey(
     get_inchikey = bt_chem.querymany(metabolites, scopes=scopes, fields=field)
     query_op = {
         d["query"]: (
-            d.get("_id")
+            (
+                d.get("_id").split(":")[1].strip()
+                if d.get("_id") and ":" in d.get("_id")
+                else d.get("_id")
+            )
             if "notfound" not in d
             else unmapped.append((d["query"], None))
         )
