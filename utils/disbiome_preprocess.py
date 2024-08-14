@@ -57,7 +57,7 @@ print("unique disease names exclude mondo:", len(set(disbiome_disease_names)))
 # map disease names to their MONDO identifiers with search for doid names
 # output e.g., {'hyperglycemia': '0002909', 'trichomonas vaginalis infection': None, ...}
 doidname2mondo = map_disease_name2mondo(
-    disbiome_disease_names, scope="disease_ontology.name", field="all"
+    disbiome_disease_names, scopes="disease_ontology.name", field="all"
 )
 # print(doidname2mondo)
 # print("Mapping output with None count:", len(doidname2mondo))
