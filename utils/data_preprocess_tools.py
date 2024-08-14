@@ -164,7 +164,9 @@ def map_disease_id2mondo(
         )
         for d in get_mondo
     }
+    print("count of unmapped diseases:", len(unmapped))
 
+    unmapped.sort(key=lambda x: x[0])
     disease_notfound = pd.DataFrame(unmapped, columns=["disease", "mondo"])
     print("unmapped diseases:", disease_notfound.head())
     disease_notfound.to_csv(
@@ -222,9 +224,13 @@ def map_metabolite2inchikey(
         for d in get_inchikey
     }
     print("count of unmapped metabolites:", len(unmapped))
+
+    # sort the metabolites by identifier to ensure the order
+    unmapped.sort(key=lambda x: x[0])
     metabolites_notfound = pd.DataFrame(
         unmapped, columns=["metabolite", "inchikey"]
     )
+    print("unmapped metabolites:", metabolites_notfound.head())
     metabolites_notfound.to_csv(
         unmapped_out_path, sep="\t", header=True, index=False
     )
