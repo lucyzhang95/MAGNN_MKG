@@ -171,7 +171,7 @@ def map_disease_id2mondo(
     get_mondo = bt_disease.querymany(query, scopes=scopes, fields=field)
     query_op = {
         d["query"]: (
-            d.get("_id").split(":")[1].strip()
+            d.get("_id")
             if "notfound" not in d
             else unmapped.append((d["query"], None))
         )
@@ -313,7 +313,7 @@ def entity_filter_for_magnn(
 ) -> List[dict]:
     """
     Final record filter of relational data for MAGNN input
-    Final record exp: [{59823: '0005301'}, {29523: '0004967'}, ...] -> [{taxid: MONDO}, ...]
+    Final record e.g., [ {'NCBITaxon:9': 'MONDO:0011565'}, {'NCBITaxon:9': 'MESH:D050177'}, ...]
 
     :param data: list of record dictionaries
     :param node1: str (subject or object)
@@ -330,25 +330,19 @@ def entity_filter_for_magnn(
 
     for rec in data:
         node1_value = rec[node1][attr1]
-        node2_value_split = rec[node2][attr2].split(":")[1].strip()
+        node2_value = rec[node2][attr2]
 
         if attr3 is None:
             # Case when attr3 is None: use node1's attr1 and node2's attr2
             if ":" in node1_value:
-                op.append(
-                    {
-                        rec[node1][attr1]
-                        .split(":")[1]
-                        .strip(): node2_value_split
-                    }
-                )
+                op.append({node1_value: node2_value})
         else:
             # Case when attr3 is provided: use node1's attr3 and node2's attr2
             if node1_value in val1:
-                op.append({rec[node1][attr3]: node2_value_split})
+                op.append({f"NCBITaxon:{rec[node1][attr3]}": node2_value})
             else:
                 # Default case: use node1's attr1 and node2's attr2
-                op.append({node1_value: node2_value_split})
+                op.append({f"NCBITaxon:{node1_value}": node2_value})
 
     print("Total records to be exported:", len(op))
     return op
