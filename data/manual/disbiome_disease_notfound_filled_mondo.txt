@@ -1,289 +1,289 @@
 name	mondo	mesh
-meningococcal disease	0005373	
-"hand, foot and mouth disease"	0005779	
-postmenopausal		D017698
-cholestasis	0001751	
-irritable bowel syndrome	0005052	
-lung cancer	0008903	
-constipation	0002203	
-seborrheic dermatitis	0006608	
-diarrhea	0001673	
-pemphigus vulgaris	0008219	
-transient ischemic attack	0005264	
-tetratricopeptide repeat domain 7a deficiency	0009465	
-influenza a	0005812	
-frailty		D000073496
-gestational diabetes	0005406	
-colorectal cancer	0005575	
-barrett's oesophagus	0013662	
-silicosis	0005960	
-rheumatoid arthritis	0008383	
-giardia intestinalis infection	0001103	
-oligoasthenoteratozoospermia	0850098	
-spondyloarthritis	0005095	
-chronic kidney disease	0005300	
-pediculosis	0003472	
-parkinson's disease	0005180	
-allergic asthma	0004784	
-migraine	0005277	
-fatigue	0005404	
-cirrhosis	0005155	
-reflux esophagitis	0006896	
-recurrent tonsillitis	0001039	
-chagas' disease	0001444	
-periodontal disease	0002635	
-protracted bacterial bronchitis	0003781	
-caries	0005276	
-alcoholic hepatitis	0001505	
-sicca syndrome	0010030	
-idiopathic focal epilepsy	0006710	
-hidradenitis suppurativa	0006559	
-invasive pneumococcal disease	0011888	
-sjögren syndrome	0015356	
-granulomatosis with polyangiitis	0012105	
-ankylosing spondylitis	0005306	
-vestibulodynia	0021722	
-chronic lung disease	0005002	
-hyper ige syndrome	0018037	
-oropharyngeal cancer	0044926	
-rectal carcinoma	0044937	
-collagenous colitis	0000703	
-schizophrenia	0005090	
-covid-19	0100096	
-oral cancer	0005515	
-thyroid carcinoma	0015075	
-osteoporosis	0005298	
-allergy	0000771	
-hyperlipidemia	0021187	
-atopic eczema	0004980	
-idiopathic rem sleep behavior disorder	0005937	
-oral leukoplakia	0004844	
-gastro-oesophageal reflux disease	0007186	
-multiple sclerosis	0005301	
-pressure ulcers	0043839	
-folliculitis decalvans	0018103	
-metabolic syndrome	0011565	
-endometriosis	0005133	
-chronic rhinosinusitis with asthma	0006031	
-colon adenomas	0000527	
-human papilloma virus infection	0005161	
-generalized anxiety disorder	0001942	
-laryngotracheal stenosis	0007688	
-chronic obstructive pulmonary disease	0005002	
-acquired immunodeficiency syndrome	0012268	
-overactive bladder	0006624	
-hepatitis b associated liver failure	0018109	
-atherosclerosis	0005311	
-hypertension	0005044	
-neuromyelitis optica	0019100	
-viral respiratory tract infection	0024352	
-osteoarthritis	0005178	
-juvenile idiopathic arthritis	0011429	
-t2d with hypertension	0005148	
-dandruff	0024343	
-appendicitis	0005649	
-heart failure	0005252	
-primary liver cancer	0002691	
-trichomonas vaginalis infection	0005993	
-"celiac disease, coaliac disease"	0005130	
-obstructive sleep apnea-hypopnea syndrome	0007147	
-idiopathic nephrotic syndrome	0018170	
-bronchiectasis	0004822	
-necrotizing enterocolitis	0005313	
-atopic dermatitis	0004980	
-colon polyps	0100290	
-neisseria gonorrhoeae infection	0021160	
-oral lichen planus	0043923	
-smoking		D012907
-vulvodynia	0021722	
-idiopathic infertility	0005047	
-refractory celiac disease	0018353	
-pneumonia	0005249	
-anorexia nervosa	0005351	
-coronary heart disease	0005010	
-rosacea	0006604	
-kidney stone with hypertension	0008171	
-liver fibrosis	0100430	
-psoriatic arthritis	0011849	
-traumatic brain injury	0858950	
-infective colitis	0006039	
-alcoholism	0007079	
-type 1 diabetes	0005147	
-halitosis		D006209
-psoriasis	0005083	
-copd exacerbation	0005002	
-hirschsprung's disease	0018309	
-aphthous stomatitis	0004845	
-azoospermia	0100459	
-otitis media	0005441	
-stomach cancer	0001056	
-pulmonary tubercolosis	0006052	
-seminal hyperviscosity	0004767	
-biliary atresia	0008867	
-chronic stress		D013312
-h1n1 influenza	0005812	
-kidney stone	0008171	
-pelvic inflammatory disease	0000922	
-non-alcoholic fatty liver disease	0004790	
-genitourinary lichen sclerosus	0006491	
-hiv infection	0005109	
-autoimmune polyendocrine syndrome type 1	0009411	
-helicobacter pylori infection	0006781	
-bronchiolitis	0002465	
-cytolytic vaginosis	0005316	
-adolescent idiopathic scoliosis	0005488	
-prostate cancer	0008315	
-viral diarrhea	0001517	
-chronic rhinosinusitis with cystic fibrosis	0006031	
-bullous pemphigoid	0019082	
-late-onset sepsis	0700217	
-sarcopenia		D055948
-clostridium difficile associated disease	0024388	
-endometrial cancer	0011962	
-pregnancy		D037841
-primary sclerosing cholangitis-ibd	0013433	
-allergic rhinoconjunctivitis	0013180	
-pancreatitis	0004982	
-hashimoto's thyroiditis	0007699	
-attention deficit hyperactivity disorder	0005302	
-hyperglycemia	0002909	
-edentulism		D009066
-miscarriage		D000022
-chronic rhinosinusitis with nasal polyps	0006031	
-alzheimer's disease	0004975	
-blepharitis	0004785	
-intestinal metaplasia	0100190	
-preterm birth		D007234
-gastric carcinoma	0004950	
-drug-resistant epilepsy	0005027	
-chronic fatigue syndrome	0005404	
-aphthous ulcer	0005318	
-chronic mucocutaneous candidiasis	0015279	
-diabetic nephropathy	0005016	
-bleeding gum	0020782	
-periodontal abscess	0002635	
-acute cerbral infarction	0002679	
-bacterial vaginosis	0005316	
-arsenic exposure	0023305	
-laryngeal carcinoma	0002358	
-atrial fibrillation	0004981	
-diverticular disease	0001674	
-recurrent miscarriage		D000026
-excessive vomiting		D014839
-clonorchis sinensis infection	0005705	
-pervasive developmental disorder nos	0000594	
-cervicitis	0002345	
-graves' orbitopathy	0005364	
-crohn's disease	0005011	
-vulvar vestibulitis syndrome	0021722	
-megaesophagus	0001656	
-neuropathic bladder	0019395	
-anovulation	0002775	
-cervical intraneoplasia	0022394	
-spinal cord injury	0043797	
-alopecia areata	0005340	
+meningococcal disease	MONDO:0005373	
+"hand, foot and mouth disease"	MONDO:0005779	
+postmenopausal		MESH:D017698
+cholestasis	MONDO:0001751	
+irritable bowel syndrome	MONDO:0005052	
+lung cancer	MONDO:0008903	
+constipation	MONDO:0002203	
+seborrheic dermatitis	MONDO:0006608	
+diarrhea	MONDO:0001673	
+pemphigus vulgaris	MONDO:0008219	
+transient ischemic attack	MONDO:0005264	
+tetratricopeptide repeat domain 7a deficiency	MONDO:0009465	
+influenza a	MONDO:0005812	
+frailty		MESH:D000073496
+gestational diabetes	MONDO:0005406	
+colorectal cancer	MONDO:0005575	
+barrett's oesophagus	MONDO:0013662	
+silicosis	MONDO:0005960	
+rheumatoid arthritis	MONDO:0008383	
+giardia intestinalis infection	MONDO:0001103	
+oligoasthenoteratozoospermia	MONDO:0850098	
+spondyloarthritis	MONDO:0005095	
+chronic kidney disease	MONDO:0005300	
+pediculosis	MONDO:0003472	
+parkinson's disease	MONDO:0005180	
+allergic asthma	MONDO:0004784	
+migraine	MONDO:0005277	
+fatigue	MONDO:0005404	
+cirrhosis	MONDO:0005155	
+reflux esophagitis	MONDO:0006896	
+recurrent tonsillitis	MONDO:0001039	
+chagas' disease	MONDO:0001444	
+periodontal disease	MONDO:0002635	
+protracted bacterial bronchitis	MONDO:0003781	
+caries	MONDO:0005276	
+alcoholic hepatitis	MONDO:0001505	
+sicca syndrome	MONDO:0010030	
+idiopathic focal epilepsy	MONDO:0006710	
+hidradenitis suppurativa	MONDO:0006559	
+invasive pneumococcal disease	MONDO:0011888	
+sjögren syndrome	MONDO:0015356	
+granulomatosis with polyangiitis	MONDO:0012105	
+ankylosing spondylitis	MONDO:0005306	
+vestibulodynia	MONDO:0021722	
+chronic lung disease	MONDO:0005002	
+hyper ige syndrome	MONDO:0018037	
+oropharyngeal cancer	MONDO:0044926	
+rectal carcinoma	MONDO:0044937	
+collagenous colitis	MONDO:0000703	
+schizophrenia	MONDO:0005090	
+covid-19	MONDO:0100096	
+oral cancer	MONDO:0005515	
+thyroid carcinoma	MONDO:0015075	
+osteoporosis	MONDO:0005298	
+allergy	MONDO:0000771	
+hyperlipidemia	MONDO:0021187	
+atopic eczema	MONDO:0004980	
+idiopathic rem sleep behavior disorder	MONDO:0005937	
+oral leukoplakia	MONDO:0004844	
+gastro-oesophageal reflux disease	MONDO:0007186	
+multiple sclerosis	MONDO:0005301	
+pressure ulcers	MONDO:0043839	
+folliculitis decalvans	MONDO:0018103	
+metabolic syndrome	MONDO:0011565	
+endometriosis	MONDO:0005133	
+chronic rhinosinusitis with asthma	MONDO:0006031	
+colon adenomas	MONDO:0000527	
+human papilloma virus infection	MONDO:0005161	
+generalized anxiety disorder	MONDO:0001942	
+laryngotracheal stenosis	MONDO:7688	
+chronic obstructive pulmonary disease	MONDO:0005002	
+acquired immunodeficiency syndrome	MONDO:0012268	
+overactive bladder	MONDO:6624	
+hepatitis b associated liver failure	MONDO:18109	
+atherosclerosis	MONDO:0005311	
+hypertension	MONDO:0005044	
+neuromyelitis optica	MONDO:0019100	
+viral respiratory tract infection	MONDO:24352	
+osteoarthritis	MONDO:0005178	
+juvenile idiopathic arthritis	MONDO:11429	
+t2d with hypertension	MONDO:5148	
+dandruff	MONDO:24343	
+appendicitis	MONDO:0005649	
+heart failure	MONDO:5252	
+primary liver cancer	MONDO:2691	
+trichomonas vaginalis infection	MONDO:5993	
+"celiac disease, coaliac disease"	MONDO:5130	
+obstructive sleep apnea-hypopnea syndrome	MONDO:7147	
+idiopathic nephrotic syndrome	MONDO:18170	
+bronchiectasis	MONDO:0004822	
+necrotizing enterocolitis	MONDO:5313	
+atopic dermatitis	MONDO:0004980	
+colon polyps	MONDO:100290	
+neisseria gonorrhoeae infection	MONDO:21160	
+oral lichen planus	MONDO:43923	
+smoking		MESH:D012907
+vulvodynia	MONDO:21722	
+idiopathic infertility	MONDO:5047	
+refractory celiac disease	MONDO:18353	
+pneumonia	MONDO:0005249	
+anorexia nervosa	MONDO:0005351	
+coronary heart disease	MONDO:5010	
+rosacea	MONDO:0006604	
+kidney stone with hypertension	MONDO:8171	
+liver fibrosis	MONDO:100430	
+psoriatic arthritis	MONDO:0011849	
+traumatic brain injury	MONDO:0858950	
+infective colitis	MONDO:6039	
+alcoholism	MONDO:7079	
+type 1 diabetes	MONDO:5147	
+halitosis		MESH:D006209
+psoriasis	MONDO:0005083	
+copd exacerbation	MONDO:5002	
+hirschsprung's disease	MONDO:0018309	
+aphthous stomatitis	MONDO:0004845	
+azoospermia	MONDO:0100459	
+otitis media	MONDO:0005441	
+stomach cancer	MONDO:0001056	
+pulmonary tubercolosis	MONDO:6052	
+seminal hyperviscosity	MONDO:4767	
+biliary atresia	MONDO:0008867	
+chronic stress		MESH:D013312
+h1n1 influenza	MONDO:5812	
+kidney stone	MONDO:8171	
+pelvic inflammatory disease	MONDO:0000922	
+non-alcoholic fatty liver disease	MONDO:4790	
+genitourinary lichen sclerosus	MONDO:6491	
+hiv infection	MONDO:5109	
+autoimmune polyendocrine syndrome type 1	MONDO:0009411	
+helicobacter pylori infection	MONDO:6781	
+bronchiolitis	MONDO:0002465	
+cytolytic vaginosis	MONDO:5316	
+adolescent idiopathic scoliosis	MONDO:5488	
+prostate cancer	MONDO:0008315	
+viral diarrhea	MONDO:1517	
+chronic rhinosinusitis with cystic fibrosis	MONDO:6031	
+bullous pemphigoid	MONDO:0019082	
+late-onset sepsis	MONDO:700217	
+sarcopenia		MESH:D055948
+clostridium difficile associated disease	MONDO:24388	
+endometrial cancer	MONDO:0011962	
+pregnancy		MESH:D037841
+primary sclerosing cholangitis-ibd	MONDO:13433	
+allergic rhinoconjunctivitis	MONDO:13180	
+pancreatitis	MONDO:0004982	
+hashimoto's thyroiditis	MONDO:7699	
+attention deficit hyperactivity disorder	MONDO:0005302	
+hyperglycemia	MONDO:0002909	
+edentulism		MESH:D009066
+miscarriage		MESH:D000022
+chronic rhinosinusitis with nasal polyps	MONDO:6031	
+alzheimer's disease	MONDO:0004975	
+blepharitis	MONDO:0004785	
+intestinal metaplasia	MONDO:100190	
+preterm birth		MESH:D007234
+gastric carcinoma	MONDO:4950	
+drug-resistant epilepsy	MONDO:5027	
+chronic fatigue syndrome	MONDO:0005404	
+aphthous ulcer	MONDO:5318	
+chronic mucocutaneous candidiasis	MONDO:0015279	
+diabetic nephropathy	MONDO:5016	
+bleeding gum	MONDO:20782	
+periodontal abscess	MONDO:2635	
+acute cerbral infarction	MONDO:2679	
+bacterial vaginosis	MONDO:0005316	
+arsenic exposure	MONDO:23305	
+laryngeal carcinoma	MONDO:0002358	
+atrial fibrillation	MONDO:0004981	
+diverticular disease	MONDO:1674	
+recurrent miscarriage		MESH:D000026
+excessive vomiting		MESH:D014839
+clonorchis sinensis infection	MONDO:5705	
+pervasive developmental disorder nos	MONDO:594	
+cervicitis	MONDO:0002345	
+graves' orbitopathy	MONDO:5364	
+crohn's disease	MONDO:0005011	
+vulvar vestibulitis syndrome	MONDO:21722	
+megaesophagus	MONDO:0001656	
+neuropathic bladder	MONDO:19395	
+anovulation	MONDO:0002775	
+cervical intraneoplasia	MONDO:22394	
+spinal cord injury	MONDO:43797	
+alopecia areata	MONDO:0005340	
 spleen deficiency syndrome		
-hepatocellular cancer	0007256	
-maturity-onset diabetes of the young 2	0007453	
-fibromyalgia	0005546	
-rett syndrome	0010726	
-orofacial granulomatosis	0012105	
-chronic ocular graft-versus-host disease	0013730	
-pouchitis	0005312	
-hepatitis b	0005344	
-gastrointestinal follicular lymphoma	0004699	
-chronic liver disease	0100193	
-chronic prostatitis / chronic pelvic pain syndrome	0022103	
-t2d with hypertension and hyperlipidemia	0005148	
-cirrhosis with pneumonia	0005155	
-x-linked inhibitor of apoptosis deficiency	0010385	
-gestational diabetes + hyperlipidemia	0005406	
-cognitive impairment	0013680	
-cardiac valve calcification	0005463	
-autism spectrum disorders	0005258	
-liver transplant		D016031
-chronic pancreatitis	0005003	
-denture stomatitis	0006723	
-keratitis	0003085	
-infant colic		D003085
-human end-stage renal disease	0004375	
-type 2 diabetes	0005148	
-inflammatory bowel disease	0005265	
-acute skin abscess	0021201	
-pancreatic cancer	0009831	
-inactive crohn's disease	0005011	
-chlamydia	0005701	
-chronic urticaria	0850230	
-enthesitis-related arthritis	0019437	
-coronary artery disease	0005010	
-oral potentially malignant disorder	0006858	
-bipolar disorder	0004985	
-acne	0011438	
-hepatic encephalopathy	0001711	
-urolithiasis	0024647	
-opisthorchis felineus infection	0005884	
-nasolacrimal duct obstruction	0007871	
-major depressive disorder	0002009	
-hyperthyroidism	0004425	
-cervical cancer	0002974	
-graves' disease	0005364	
-clostridium difficile infection	0024388	
-autism	0005260	
-alcoholic cirrhosis	0006644	
-severe fever with thrombocytopenia syndrome	0007883	
-breast cancer	0007254	
-ischemic stroke	0018585	
-severe congenital neutropenia	0018542	
-gastroenteritis	0002269	
-pancreatic head cancer	0009831	
-radiation enteritis	0043459	
-gingivitis	0002508	
-microscopic colitis	0000702	
-antrochoanal polyps	0005079	
-e-smoking		D012907
-hypopharyngeal cancer	0005216	
-lower respiratory tract infection	0024355	
-systemic lupus erythematosus	0007915	
-chronic alcoholic pancreatitis	0003232	
-posttraumatic stress syndrome	0005146	
-iron-deficiency anaemia	0001356	
-obesity	0011122	
-asthma	0004979	
-macular degeneration	0003004	
-nongonococcal urethritis	0005297	
-cutaneous burn	0043519	
-aerobic vaginitis	0002234	
-acute lymphoblastic leukemia	0004967	
-cystic fibrosis exacerbation	0009061	
-functional dyspepsia	0002268	
-recurrent aphthous stomatitis	0004845	
-bladder cancer	0001187	
-vogt-koyagani-harada disease		D014607
-multiple system atrophy	0007803	
-primary biliary cholangitis	0005388	
-urgency urinary incontinence	0006624	
-polycystic ovary syndrome	0008487	
-invasive colorectal cancer	0005575	
-henoch-schönlein purpura	0019167	
-primary sclerosing cholangitis	0013433	
-atopic wheeze		D012135
-ulcerative colitis	0005101	
-h7n9	0005812	
-down syndrome	0008608	
-chronic rhinosinusitis	0006031	
-conjunctival scarring	0001174	
-infantile eczema	0004980	
-tongue cancer	0004631	
-aggressive periodontitis	0008226	
-neuro-behcet's disease	0007191	
-dry eye syndrome	0006733	
-wilson's disease	0010200	
-diaper dermatitis	0002406	
+hepatocellular cancer	MONDO:7256	
+maturity-onset diabetes of the young 2	MONDO:7453	
+fibromyalgia	MONDO:0005546	
+rett syndrome	MONDO:0010726	
+orofacial granulomatosis	MONDO:12105	
+chronic ocular graft-versus-host disease	MONDO:13730	
+pouchitis	MONDO:5312	
+hepatitis b	MONDO:0005344	
+gastrointestinal follicular lymphoma	MONDO:4699	
+chronic liver disease	MONDO:100193	
+chronic prostatitis / chronic pelvic pain syndrome	MONDO:22103	
+t2d with hypertension and hyperlipidemia	MONDO:5148	
+cirrhosis with pneumonia	MONDO:5155	
+x-linked inhibitor of apoptosis deficiency	MONDO:10385	
+gestational diabetes + hyperlipidemia	MONDO:5406	
+cognitive impairment	MONDO:13680	
+cardiac valve calcification	MONDO:5463	
+autism spectrum disorders	MONDO:5258	
+liver transplant		MESH:D016031
+chronic pancreatitis	MONDO:5003	
+denture stomatitis	MONDO:0006723	
+keratitis	MONDO:0003085	
+infant colic		MESH:D003085
+human end-stage renal disease	MONDO:4375	
+type 2 diabetes	MONDO:5148	
+inflammatory bowel disease	MONDO:0005265	
+acute skin abscess	MONDO:21201	
+pancreatic cancer	MONDO:0009831	
+inactive crohn's disease	MONDO:5011	
+chlamydia	MONDO:0005701	
+chronic urticaria	MONDO:0850230	
+enthesitis-related arthritis	MONDO:19437	
+coronary artery disease	MONDO:0005010	
+oral potentially malignant disorder	MONDO:6858	
+bipolar disorder	MONDO:0004985	
+acne	MONDO:0011438	
+hepatic encephalopathy	MONDO:0001711	
+urolithiasis	MONDO:0024647	
+opisthorchis felineus infection	MONDO:5884	
+nasolacrimal duct obstruction	MONDO:7871	
+major depressive disorder	MONDO:0002009	
+hyperthyroidism	MONDO:0004425	
+cervical cancer	MONDO:0002974	
+graves' disease	MONDO:0005364	
+clostridium difficile infection	MONDO:24388	
+autism	MONDO:5260	
+alcoholic cirrhosis	MONDO:6644	
+severe fever with thrombocytopenia syndrome	MONDO:7883	
+breast cancer	MONDO:0007254	
+ischemic stroke	MONDO:18585	
+severe congenital neutropenia	MONDO:0018542	
+gastroenteritis	MONDO:0002269	
+pancreatic head cancer	MONDO:9831	
+radiation enteritis	MONDO:43459	
+gingivitis	MONDO:0002508	
+microscopic colitis	MONDO:0000702	
+antrochoanal polyps	MONDO:5079	
+e-smoking		MESH:D012907
+hypopharyngeal cancer	MONDO:5216	
+lower respiratory tract infection	MONDO:24355	
+systemic lupus erythematosus	MONDO:0007915	
+chronic alcoholic pancreatitis	MONDO:3232	
+posttraumatic stress syndrome	MONDO:5146	
+iron-deficiency anaemia	MONDO:1356	
+obesity	MONDO:0011122	
+asthma	MONDO:0004979	
+macular degeneration	MONDO:0003004	
+nongonococcal urethritis	MONDO:5297	
+cutaneous burn	MONDO:43519	
+aerobic vaginitis	MONDO:2234	
+acute lymphoblastic leukemia	MONDO:0004967	
+cystic fibrosis exacerbation	MONDO:9061	
+functional dyspepsia	MONDO:2268	
+recurrent aphthous stomatitis	MONDO:4845	
+bladder cancer	MONDO:1187	
+vogt-koyagani-harada disease		MESH:D014607
+multiple system atrophy	MONDO:0007803	
+primary biliary cholangitis	MONDO:0005388	
+urgency urinary incontinence	MONDO:6624	
+polycystic ovary syndrome	MONDO:0008487	
+invasive colorectal cancer	MONDO:5575	
+henoch-schönlein purpura	MONDO:19167	
+primary sclerosing cholangitis	MONDO:0013433	
+atopic wheeze		MESH:D012135
+ulcerative colitis	MONDO:0005101	
+h7n9	MONDO:5812	
+down syndrome	MONDO:0008608	
+chronic rhinosinusitis	MONDO:6031	
+conjunctival scarring	MONDO:1174	
+infantile eczema	MONDO:4980	
+tongue cancer	MONDO:0004631	
+aggressive periodontitis	MONDO:0008226	
+neuro-behcet's disease	MONDO:7191	
+dry eye syndrome	MONDO:0006733	
+wilson's disease	MONDO:10200	
+diaper dermatitis	MONDO:2406	
 extrinsic black stain		
-disease-free		D018572
-atopy	0005202	
-primary open-angle glaucoma	0005338	
-periodontitis	0005076	
-shiga toxin-producing e. coli infection	0020920	
-hepatitis c	0005231	
-normal weight obesity		D009765
+disease-free		MESH:D018572
+atopy	MONDO:5202	
+primary open-angle glaucoma	MONDO:5338	
+periodontitis	MONDO:0005076	
+shiga toxin-producing e. coli infection	MONDO:20920	
+hepatitis c	MONDO:0005231	
+normal weight obesity		MESH:D009765
