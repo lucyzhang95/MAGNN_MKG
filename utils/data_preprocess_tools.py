@@ -256,6 +256,45 @@ def map_metabolite2chebi_cid(
     return mapped
 
 
+def map_gene2entrez(
+    genes: list or str,
+    scopes: list or str,
+    field: list or str,
+    unmapped_out_path: str | os.PathLike | None,
+) -> dict:
+    unmapped = []
+    query_op = {}
+    bt_gene = biothings_client.get_client("gene")
+    genes = set(genes)
+    print("count of unique genes:", len(genes))
+
+    # query biothings_client to map uniportkb to entrezgene(NCBIgene)
+    get_entrez = bt_gene.querymany(genes, scopes=scopes, fields=field)
+    for d in get_entrez:
+        if "notfound" not in d:
+            if d.get("entrezgene"):
+                query_op[d["query"]] = f"NCBIGene:{d['entrezgene']}"
+        else:
+            unmapped.append(d["query"])
+    mapped = {
+        uniprotkb: entrezgene
+        for uniprotkb, entrezgene in query_op.items()
+        if entrezgene
+    }
+    print("count of mapped unique genes:", len(mapped))
+    print("count of unmapped unique genes:", len(unmapped))
+
+    # sort the genes by identifier to ensure the order
+    unmapped.sort(key=lambda x: x[0])
+    genes_notfound = pd.DataFrame(unmapped, columns=["uniprotkb"])
+    # print("unmapped genes:", genes_notfound.head())
+    genes_notfound.to_csv(
+        unmapped_out_path, sep="\t", header=True, index=False
+    )
+
+    return mapped
+
+
 # TODO: need to make the function more readable (too many argv now)
 # TODO: add more explanation on arg (e.g., attr1: a string represents record key in subj or obj)
 def entity_filter_for_magnn(
