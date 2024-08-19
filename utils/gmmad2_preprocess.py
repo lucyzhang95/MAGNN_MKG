@@ -5,11 +5,14 @@ from data_preprocess_tools import (
     export_data2dat,
     load_data,
     map_disease_id2mondo,
-    map_metabolite2inchikey,
+    map_metabolite2chebi_cid,
     record_filter,
     record_filter_attr1,
+    record_id_filter,
 )
 from record_filters import (
+    is_not_id,
+    is_not_pubchem_cid,
     is_small_molecule_and_gene,
     is_small_molecule_and_taxid,
 )
@@ -115,35 +118,31 @@ export_data2dat(
     database="GMMAD2:Microbe-Disease",
 )
 
-
+# TODO: Question-How to just run the blocks of codes below instead of the entire file?
+#  Jupyter notebook or put everything into functions or select the blocks of codes to run (check)
+#  debugging mode (line or block)
 # Data preprocess for GMMAD2 microbe-metabolite data
 # filter out records with microbe-metabolite relationship only (864,357)
 gmmad2_mm_rec = record_filter(gmmad2_data, is_small_molecule_and_taxid)
 
-# count the metabolite identifier types (265,705 recs do not have pubchem_cid or kegg.compound)
+# count the metabolite identifier types (265,705 recs do not have identifier)
 met_type_ct = count_entity(
     gmmad2_mm_rec, node="object", attr="id", split_char=":"
 )
 
-# map pubchem_cid, kegg_compound, and kegg_glycan to inchikey
-# 6 dup hits and 63 no hit
-met4query = [
-    rec["object"]["id"].split(":")[1].strip()
-    for rec in gmmad2_mm_rec
-    if ":" in rec["object"]["id"]
-]
+# extract kegg_compound and kegg_glycan from the metabolite records (42,549; unique 110)
+met4query = record_id_filter(gmmad2_mm_rec, is_not_pubchem_cid)
 
-# export unmapped metabolites to a csv file
-# output dict values: inchikey, chebi, None
-# output exp: {'834': 'ILRYLPWNYFXEMH-UHFFFAOYSA-N', 'C00125': None, 'C06140': '28058'}
-met2inchikey = map_metabolite2inchikey(
+# map kegg_compound and kegg_glycan to pubchem_cid or chebi (6 dup hits and 63 no hit)
+# output dict values: pubchem.cid or chebi.id
+# output exp: {'C00805': 'CHEBI:16914', 'C04105': 'PUBCHEM.COMPOUND:542', ...}
+met2chebi_cid = map_metabolite2chebi_cid(
     met4query,
     scopes=[
-        "pubchem.cid",
         "chebi.xrefs.kegg_compound",
         "chebi.xrefs.kegg_glycan",
     ],
-    field="inchikey",
+    field=["chebi.id", "pubchem.cid"],
     unmapped_out_path="../data/manual/gmmad2_met_unmapped.csv",
 )
 
@@ -153,42 +152,42 @@ gmmad2_filled_metabolite_path = (
 )
 
 # organize the kegg metabolite id and identifiers to a dictionary
-# TODO: do I use pubchem_sid or original kegg id for the metabolites?
-# e.g., {'C00125': '3425', 'G02055': 'G02055', ...}
-# {"kegg_compound": "pubchem_sid", "kegg_glycan": "kegg_glycan", ...}
+# dictionary value types: CHEBI, PUBCHEM.SUBSTANCE, PUBCHEM.COMPOUND, KEGG.COMPOUND, KEGG.GLYCAN
+# e.g., {'C00125': 'CHEBI:15991', 'C04688': 'PUBCHEM.SUBSTANCE:7269', ...}
 met_manual = {}
 for line in tabfile_feeder(gmmad2_filled_metabolite_path, header=1):
-    kegg, inchikey, pubchem_sid = line[0], line[1], line[2]
-    if inchikey:
-        met_manual[kegg] = inchikey
-    elif pubchem_sid:
-        met_manual[kegg] = pubchem_sid
+    kegg, pubchem, chebi, ccsd = line[0], line[1], line[2], line[3]
+    if chebi:
+        met_manual[kegg] = chebi
+    elif pubchem:
+        met_manual[kegg] = pubchem
     else:
-        met_manual[kegg] = kegg
+        met_manual[kegg] = (
+            f"KEGG.COMPOUND:{kegg}" if "C" in kegg else f"KEGG.GLYCAN:{kegg}"
+        )
+# print(met_manual)
 
-# merge met2inchikey and manual mapped metabolites (1663 unique)
-met_mapped = met2inchikey | met_manual
+# merge met2chebi_cid and manual mapped metabolites (110 unique)
+met_mapped = met2chebi_cid | met_manual
 
-# add inchikey, pubchem_sid, chebi to the filtered records (598652)
+# add mapped pubchem_sid, pubchem_cid, chebi to gmmad2_mm_rec.object.id
+# gmmad2_mmc_rec includes records with and without identifiers (864,357)
 for rec in gmmad2_mm_rec:
-    if ":" in rec["object"]["id"]:
-        met_kegg = rec["object"]["id"].split(":")[1].strip()
-        if met_kegg in met_mapped:
-            rec["object"]["magnn_in"] = met_mapped[met_kegg]
+    met_id = rec["object"]["id"]
+    if ":" in met_id and "PUBCHEM.COMPOUND" not in met_id:
+        met_kegg = met_id.split(":")[1].strip()
+        rec["object"]["id"] = met_mapped.get(met_kegg, met_id)
 
-# extract metabolites with no chem identifiers (265,705) ~ 1/3 of the total
-# met2inchikey = map_metabolite2inchikey(met4query,
-# scope=["pubchem.molecular_formula"], field="_id",
-# unmapped_out_path="../data/manual/gmmad2_met_unmapped.csv")
-# 193 dup hits, 307 no hit, 14 with 1 hit = unique metabolites: 514
-# TODO: not reliable to query the chemical formula, what attr should I use for these metabolites?
-#  do not want to discard everything without chem identifiers ~ 1/3 of the total
-#  but concerned about assigning index to name or chemical formula resulting in duplicates
-#  (identical chemicals with different indices)
-#  potential solution can be clustering these chemicals by name or formula with similarities then assign index
-met_no_id = [
-    rec["object"].get("chemical_formula")
-    for rec in gmmad2_mm_rec
-    if ":" not in rec["object"]["id"]
-]
-# print(len(set(met_no_id)))
+# filter the records with metabolite identifiers (598,652)
+gmmad2_mm_rec_filtered = record_filter(gmmad2_mm_rec, is_not_id)
+
+# count the metabolite types after mapping
+met_type_ct2 = count_entity(
+    gmmad2_mm_rec_filtered, node="object", attr="id", split_char=":"
+)
+
+
+# TODO: need add the metabolites with no identifiers to GMMAD2 internal identifiers
+#  Need to change the original parser to include the internal identifiers
+#  Also need to differentiate KEGG.COMPOUND and KEGG.GLYCAN in original parser
+# metabolites with no chem identifiers (265,705) ~ 1/3 of the total
