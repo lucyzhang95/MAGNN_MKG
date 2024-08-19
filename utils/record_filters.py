@@ -1,4 +1,11 @@
 #
+
+def is_organism_and_disease(rec):
+    return (
+            rec.get("association", {}).get("predicate") == "OrganismalEntityAsAModelOfDiseaseAssociation"
+    )
+
+
 def is_small_molecule_and_taxid(rec):
     return rec.get("object", {}).get(
         "type"
@@ -7,15 +14,15 @@ def is_small_molecule_and_taxid(rec):
 
 def is_small_molecule_and_gene(rec):
     return (
-        rec.get("subject", {}).get("type") == "biolink:SmallMolecule"
-        and rec.get("object", {}).get("type") == "biolink:Gene"
+            rec.get("subject", {}).get("type") == "biolink:SmallMolecule"
+            and rec.get("object", {}).get("type") == "biolink:Gene"
     )
 
 
 def is_not_pubchem_cid(rec):
     return (
-        ":" in rec["object"]["id"]
-        and "PUBCHEM.COMPOUND" not in rec["object"]["id"]
+            ":" in rec["object"]["id"]
+            and "PUBCHEM.COMPOUND" not in rec["object"]["id"]
     )
 
 
