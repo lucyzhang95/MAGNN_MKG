@@ -21,15 +21,15 @@ def is_small_molecule_and_gene(rec):
     )
 
 
-def is_not_pubchem_cid(rec):
+def is_not_pubchem_cid(rec, node):
     return (
-        ":" in rec["object"]["id"]
-        and "PUBCHEM.COMPOUND" not in rec["object"]["id"]
+        ":" in rec[node]["id"]
+        and "PUBCHEM.COMPOUND" not in rec[node]["id"]
     )
 
 
-def is_not_id(rec):
-    return ":" in rec["object"]["id"]
+def is_not_id(rec, node):
+    return ":" in rec[node]["id"]
 
 
 def is_uniprotkb(rec):
