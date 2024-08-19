@@ -131,11 +131,9 @@ def record_filter(a_list, fn):
     return filtered_records
 
 
-def record_id_filter(a_list, fn):
+def record_id_filter(a_list, fn, node):
     filtered_ids = [
-        item["object"]["id"].split(":")[1].strip()
-        for item in a_list
-        if fn(item)
+        item[node]["id"].split(":")[1].strip() for item in a_list if fn(item)
     ]
     print(f"Total count of filtered ids: {len(filtered_ids)}")
     return filtered_ids
