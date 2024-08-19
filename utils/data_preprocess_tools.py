@@ -228,9 +228,9 @@ def map_metabolite2chebi_cid(
             elif isinstance(d.get("chebi"), dict):
                 query_op[d["query"]] = d["chebi"]["id"]
             else:
-                unmapped.append((d["query"], None))
+                unmapped.append(d["query"])
         else:
-            unmapped.append((d["query"], None))
+            unmapped.append(d["query"])
     mapped = {
         kegg: chebi_cid for kegg, chebi_cid in query_op.items() if chebi_cid
     }
@@ -239,9 +239,7 @@ def map_metabolite2chebi_cid(
 
     # sort the metabolites by identifier to ensure the order
     unmapped.sort(key=lambda x: x[0])
-    metabolites_notfound = pd.DataFrame(
-        unmapped, columns=["metabolite", "pubchem_cid"]
-    )
+    metabolites_notfound = pd.DataFrame(unmapped, columns=["metabolite"])
     # print("unmapped metabolites:", metabolites_notfound.head())
     metabolites_notfound.to_csv(
         unmapped_out_path, sep="\t", header=True, index=False
