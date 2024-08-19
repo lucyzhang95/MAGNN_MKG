@@ -17,3 +17,7 @@ def is_not_pubchem_cid(rec):
         ":" in rec["object"]["id"]
         and "PUBCHEM.COMPOUND" not in rec["object"]["id"]
     )
+
+
+def is_not_id(rec):
+    return ":" in rec["object"]["id"]
