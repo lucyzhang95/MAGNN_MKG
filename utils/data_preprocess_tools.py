@@ -168,7 +168,7 @@ def map_disease_id2mondo(
 
     unmapped.sort(key=lambda x: x[0])
     disease_notfound = pd.DataFrame(unmapped, columns=["disease", "mondo"])
-    print("unmapped diseases:", disease_notfound.head())
+    # print("unmapped diseases:", disease_notfound.head())
     disease_notfound.to_csv(
         unmapped_out_path, sep="\t", header=True, index=False
     )
@@ -204,42 +204,45 @@ def map_disease_name2mondo(
     return query_op
 
 
-def map_metabolite2inchikey(
+def map_metabolite2chebi_cid(
     metabolites: list or str,
     scopes: list or str,
     field: list or str,
     unmapped_out_path: str | os.PathLike | None,
 ) -> dict:
     unmapped = []
+    query_op = {}
     bt_chem = biothings_client.get_client("chem")
     metabolites = set(metabolites)
     print("count of unique metabolites:", len(metabolites))
-    get_inchikey = bt_chem.querymany(metabolites, scopes=scopes, fields=field)
-    query_op = {
-        d["query"]: (
-            (
-                d.get("_id").split(":")[1].strip()
-                if d.get("_id") and ":" in d.get("_id")
-                else d.get("_id")
-            )
-            if "notfound" not in d
-            else unmapped.append((d["query"], None))
-        )
-        for d in get_inchikey
-    }
-    print("count of unmapped metabolites:", len(unmapped))
+
+    # query biothings_client to map metabolites to chebi or pubchem_cid
+    get_chebi_cid = bt_chem.querymany(metabolites, scopes=scopes, fields=field)
+    for d in get_chebi_cid:
+        if "notfound" not in d:
+            if d.get("pubchem") and "cid" in d.get("pubchem"):
+                query_op[d["query"]] = f"PUBCHEM.COMPOUND:{d['pubchem']['cid']}"
+            elif isinstance(d.get("chebi"), dict):
+                query_op[d["query"]] = d["chebi"]["id"]
+            else:
+                unmapped.append((d["query"], None))
+        else:
+            unmapped.append((d["query"], None))
+    mapped = {kegg: chebi_cid for kegg, chebi_cid in query_op.items() if chebi_cid}
+    print("count of mapped unique metabolites:", len(mapped))
+    print("count of unmapped unique metabolites:", len(unmapped))
 
     # sort the metabolites by identifier to ensure the order
     unmapped.sort(key=lambda x: x[0])
     metabolites_notfound = pd.DataFrame(
-        unmapped, columns=["metabolite", "inchikey"]
+        unmapped, columns=["metabolite", "pubchem_cid"]
     )
-    print("unmapped metabolites:", metabolites_notfound.head())
+    # print("unmapped metabolites:", metabolites_notfound.head())
     metabolites_notfound.to_csv(
         unmapped_out_path, sep="\t", header=True, index=False
     )
 
-    return query_op
+    return mapped
 
 
 # TODO: need to make the function more readable (too many argv now)
