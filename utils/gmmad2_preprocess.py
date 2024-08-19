@@ -17,12 +17,13 @@ from record_filters import (
     is_small_molecule_and_taxid,
 )
 
-# Data preprocess for GMMAD2 microbe-disease data
+# Load full GMMAD2 data (w/ 3 different relational types)
 gmmad2_data_path = "../data/json/gmmad2_data.json"
 gmmad2_data = load_data(gmmad2_data_path)
 
+# Data preprocess for GMMAD2 microbe-disease data
 # filter out records with microbe-disease relationship only (508,141)
-gmmad2_md_rec = record_filter(gmmad2_data, is_organism_and_disease)
+gmmad2_md_rec = record_filter(gmmad2_data, is_organism_and_disease, node=None)
 
 # count taxonomic rank types
 gmmad2_md_microbe_ct = count_entity(
@@ -115,7 +116,9 @@ export_data2dat(
 #  debugging mode (line or block)
 # Data preprocess for GMMAD2 microbe-metabolite data
 # filter out records with microbe-metabolite relationship only (864,357)
-gmmad2_mm_rec = record_filter(gmmad2_data, is_small_molecule_and_taxid)
+gmmad2_mm_rec = record_filter(
+    gmmad2_data, is_small_molecule_and_taxid, node=None
+)
 
 # count the metabolite identifier types (265,705 recs do not have identifier)
 met_type_ct = count_entity(
@@ -123,7 +126,7 @@ met_type_ct = count_entity(
 )
 
 # extract kegg_compound and kegg_glycan from the metabolite records (42,549; unique 110)
-met4query = record_id_filter(gmmad2_mm_rec, is_not_pubchem_cid)
+met4query = record_id_filter(gmmad2_mm_rec, is_not_pubchem_cid, node="object")
 
 # map kegg_compound and kegg_glycan to pubchem_cid or chebi (6 dup hits and 63 no hit)
 # output dict values: pubchem.cid or chebi.id
@@ -171,7 +174,7 @@ for rec in gmmad2_mm_rec:
         rec["object"]["id"] = met_mapped.get(met_kegg, met_id)
 
 # filter the records with metabolite identifiers (598,652)
-gmmad2_mm_rec_filtered = record_filter(gmmad2_mm_rec, is_not_id)
+gmmad2_mm_rec_filtered = record_filter(gmmad2_mm_rec, is_not_id, node="object")
 
 # count the metabolite types after mapping
 met_type_final_ct = count_entity(
@@ -204,3 +207,24 @@ export_data2dat(
     out_path="../data/MAGNN_data/gmmad2_taxid_met.dat",
     database="GMMAD2: Microbe-Metabolite",
 )
+
+
+# Data preprocess for GMMAD2 metabolite-gene data
+# filter out records with metabolite-gene relationship only (53,278)
+gmmad2_mg_rec = record_filter(gmmad2_data, is_small_molecule_and_gene)
+
+# # count the gene identifier types
+# gene_type_ct = count_entity(
+#     gmmad2_mg_rec, node="object", attr="id", split_char=":"
+# )
+
+# # count the metabolite identifier types
+# mg_met_type_ct = count_entity(
+#     gmmad2_mg_rec, node="subject", attr="id", split_char=":"
+# )
+
+# extract the 1 record has no PUBCHEM.COMPOUND identifier
+mg_no_pubchem_cid = record_filter(
+    gmmad2_mg_rec, is_not_pubchem_cid, node="subject"
+)
+print(mg_no_pubchem_cid)
