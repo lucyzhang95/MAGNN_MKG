@@ -210,6 +210,7 @@ def map_metabolite2chebi_cid(
     field: list or str,
     unmapped_out_path: str | os.PathLike | None,
 ) -> dict:
+
     unmapped = []
     query_op = {}
     bt_chem = biothings_client.get_client("chem")
@@ -221,14 +222,18 @@ def map_metabolite2chebi_cid(
     for d in get_chebi_cid:
         if "notfound" not in d:
             if d.get("pubchem") and "cid" in d.get("pubchem"):
-                query_op[d["query"]] = f"PUBCHEM.COMPOUND:{d['pubchem']['cid']}"
+                query_op[d["query"]] = (
+                    f"PUBCHEM.COMPOUND:{d['pubchem']['cid']}"
+                )
             elif isinstance(d.get("chebi"), dict):
                 query_op[d["query"]] = d["chebi"]["id"]
             else:
                 unmapped.append((d["query"], None))
         else:
             unmapped.append((d["query"], None))
-    mapped = {kegg: chebi_cid for kegg, chebi_cid in query_op.items() if chebi_cid}
+    mapped = {
+        kegg: chebi_cid for kegg, chebi_cid in query_op.items() if chebi_cid
+    }
     print("count of mapped unique metabolites:", len(mapped))
     print("count of unmapped unique metabolites:", len(unmapped))
 
