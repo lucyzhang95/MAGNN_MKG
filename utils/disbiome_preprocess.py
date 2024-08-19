@@ -8,7 +8,7 @@ from data_preprocess_tools import (
     record_filter_attr1,
 )
 
-# Data preprocess for Disbiome Database
+# Data preprocess for Disbiome Database (10,866)
 disbiome_data_path = "../data/json/disbiome_data.json"
 disbiome_data = load_data(disbiome_data_path)
 
