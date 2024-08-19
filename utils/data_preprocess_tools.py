@@ -309,7 +309,7 @@ def entity_filter_for_magnn(
     val1: Union[str | List[str]],
     node2: str,
     attr2: str,
-    attr3: str,
+    attr3: str | None,
 ) -> List[dict]:
     """
     Final record filter of relational data for MAGNN input
@@ -329,16 +329,28 @@ def entity_filter_for_magnn(
         val1 = [val1]
 
     for rec in data:
-        if rec[node1][attr1] in val1:
-            op.append(
-                {rec[node1][attr3]: rec[node2][attr2].split(":")[1].strip()}
-            )
-        else:
-            op.append(
-                {rec[node1][attr1]: rec[node2][attr2].split(":")[1].strip()}
-            )
+        node1_value = rec[node1][attr1]
+        node2_value_split = rec[node2][attr2].split(":")[1].strip()
 
-    print("Total record will be exported:", len(op))
+        if attr3 is None:
+            # Case when attr3 is None: use node1's attr1 and node2's attr2
+            if ":" in node1_value:
+                op.append(
+                    {
+                        rec[node1][attr1]
+                        .split(":")[1]
+                        .strip(): node2_value_split
+                    }
+                )
+        else:
+            # Case when attr3 is provided: use node1's attr3 and node2's attr2
+            if node1_value in val1:
+                op.append({rec[node1][attr3]: node2_value_split})
+            else:
+                # Default case: use node1's attr1 and node2's attr2
+                op.append({node1_value: node2_value_split})
+
+    print("Total records to be exported:", len(op))
     return op
 
 
