@@ -55,53 +55,40 @@ print("disease names exclude mondo records:", len(disbiome_disease_names))
 print("unique disease names exclude mondo:", len(set(disbiome_disease_names)))
 
 # map disease names to their MONDO identifiers with search for doid names
-# output e.g., {'hyperglycemia': '0002909', 'trichomonas vaginalis infection': None, ...}
+# 67 dup hits and 145 no hit
+# output e.g., {'hyperglycemia': 'MONDO:0002909', ...}
 doidname2mondo = map_disease_name2mondo(
-    disbiome_disease_names, scopes="disease_ontology.name", field="all"
+    disbiome_disease_names,
+    scopes="disease_ontology.name",
+    field="all",
+    unmapped_out_path="../data/manual/disbiome_disease_mondo_notfound2.csv",
 )
 # print(doidname2mondo)
-# print("Mapping output with None count:", len(doidname2mondo))
-
-# # tested to use different scope such as disgenet.xrefs.disease_name
-# # the output is too complicated to process, so ignored
-# # output has 111 input dup hits and 113 found no hit for using disgenet2.xrefs.disease_name
-# disgenet2mondo = map_disease_name2mondo(get_disease_name, "disgenet.xrefs.disease_name", "all")
-# print(len(disgenet2mondo))
-
-# # export all notfound disease names to csv and do manual mapping
-# disease_notfound = pd.DataFrame.from_dict(doidname2mondo, orient='index', dtype=str).reset_index()
-# print(disease_notfound)
-# disease_notfound.columns = ["name", "mondo"]
-# disease_notfound.to_csv("../data/manual/disbiome_disease_mondo_notfound.csv")
 
 # load manually mapped disease data
 filled_disease_path = (
     "../data/manual/disbiome_disease_notfound_filled_mondo.txt"
 )
-# organize the disease name and MONDO id to a dictionary e.g., {'chronic rhinosinusitis': '0006031'}
+# organize the disease name and MONDO id to a dictionary
+# e.g., {'chronic rhinosinusitis': 'MONDO:0006031'}
 mapped_disbiome_disease = {}
 for line in tabfile_feeder(filled_disease_path, header=0):
-    filled_disbiome_disease, mondo, mesh = line[0], line[1], line[2]
+    disease_name, mondo, mesh = line[0], line[1], line[2]
     if mondo:
-        mapped_disbiome_disease[filled_disbiome_disease] = mondo
+        mapped_disbiome_disease[disease_name] = mondo
     elif mesh:
-        mapped_disbiome_disease[filled_disbiome_disease] = mesh
-print("mapped disease count:", len(mapped_disbiome_disease))
+        mapped_disbiome_disease[disease_name] = mesh
+# print(mapped_disbiome_disease)
 
-# need to add mondo to the filtered records that do not have mondo
+# add mondo to disbiome_filtered_by_md.object.id
 for rec in disbiome_filtered_by_md:
     disease_name = rec["object"]["name"]
     if disease_name in mapped_disbiome_disease:
-        if "D" in mapped_disbiome_disease[disease_name]:
-            rec["object"][
-                "id"
-            ] = f"MESH:{mapped_disbiome_disease[disease_name]}"
-        else:
-            rec["object"][
-                "id"
-            ] = f"MONDO:{mapped_disbiome_disease[disease_name]}"
+        rec["object"]["id"] = mapped_disbiome_disease[disease_name]
+# print(disbiome_filtered_by_md)
 
 # count the disease identifiers again after manual mapping
+# {'MONDO': 4360, 'MESH': 271, 'MedDRA': 14, 'EFO': 1}
 disbiome_mapped_disease_ct = count_entity(
     disbiome_filtered_by_md, node="object", attr="id", split_char=":"
 )
@@ -115,8 +102,9 @@ disbiome_filtered_mondo = record_filter_attr1(
     exclude_vals=None,
 )
 
-# merge the two records together (5040)
+# merge the two records together (5,040)
 disbiome_final = disbiome_filtered_mondo + disbiome_filtered_by_md
+# print(disbiome_final)
 print("Total count of merged records with MONDO and MESH", len(disbiome_final))
 
 # final filtered that have records with MONDO identifiers only (4754 = 5040-241-38-6-1)
@@ -129,15 +117,15 @@ disbiome_final_filtered = [
 print(
     "Total count of records with mondo and mesh", len(disbiome_final_filtered)
 )
+
 # count the rank again
+# {'species': 5011, 'strain': 14}
 disbiome_final_rank_ct = count_entity(
     disbiome_final_filtered, node="subject", attr="rank", split_char=None
 )
 
 # export microbe and disease from disbiome_final_filtered records
-# final output e.g., [{59823: '0005301'}, {29523: '0004967'}, ...] -> [{taxid: MONDO}...]
-# if rank == "strain", then use parent_taxid instead of taxid
-# TODO: leading 0 gets removed when converting identifiers to integer
+# final output e.g., [{'NCBITaxon:59823': 'MONDO:0005010'}, {'NCBITaxon:853': 'MESH:D009765'}, ...]
 disbiome_data4magnn = entity_filter_for_magnn(
     disbiome_final_filtered,
     node1="subject",
@@ -148,10 +136,11 @@ disbiome_data4magnn = entity_filter_for_magnn(
     attr3="parent_taxid",
 )
 # print(disbiome_data4magnn)
+
 export_data2dat(
     in_data=disbiome_data4magnn,
     col1="taxid",
-    col2="mondo",
+    col2="disease_id",
     out_path="../data/MAGNN_data/disbiome_taxid_mondo.dat",
     database="disbiome",
 )
