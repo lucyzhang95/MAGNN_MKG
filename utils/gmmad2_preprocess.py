@@ -199,8 +199,6 @@ gmmad2_mm4magnn = entity_filter_for_magnn(
 # print(gmmad2_mm4magnn)
 
 # export the final filtered records to .dat file (598,652->598,603 unique; 49 less)
-# TODO: need to double check removed duplicated relationships
-#  since it could be same numbers but from different databases
 export_data2dat(
     in_data=gmmad2_mm4magnn,
     col1="taxid",
