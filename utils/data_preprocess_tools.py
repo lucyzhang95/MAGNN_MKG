@@ -125,15 +125,20 @@ def record_filter_attr1(
     return filtered_records
 
 
-def record_filter(a_list, fn):
-    filtered_records = [item for item in a_list if fn(item)]
+def record_filter(a_list, fn, node=None):
+    if node is None:
+        filtered_records = [item for item in a_list if fn(item)]
+    else:
+        filtered_records = [item for item in a_list if fn(item, node)]
     print(f"Total count of filtered records: {len(filtered_records)}")
     return filtered_records
 
 
 def record_id_filter(a_list, fn, node):
     filtered_ids = [
-        item[node]["id"].split(":")[1].strip() for item in a_list if fn(item)
+        item[node]["id"].split(":")[1].strip()
+        for item in a_list
+        if fn(item, node)
     ]
     print(f"Total count of filtered ids: {len(filtered_ids)}")
     return filtered_ids
