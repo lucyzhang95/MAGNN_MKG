@@ -131,6 +131,16 @@ def record_filter(a_list, fn):
     return filtered_records
 
 
+def record_id_filter(a_list, fn):
+    filtered_ids = [
+        item["object"]["id"].split(":")[1].strip()
+        for item in a_list
+        if fn(item)
+    ]
+    print(f"Total count of filtered ids: {len(filtered_ids)}")
+    return filtered_ids
+
+
 def map_disease_id2mondo(
     query,
     scopes: list | str,
