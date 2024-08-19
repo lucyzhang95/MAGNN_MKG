@@ -146,7 +146,7 @@ met2chebi_cid = map_metabolite2chebi_cid(
     unmapped_out_path="../data/manual/gmmad2_met_unmapped.csv",
 )
 
-# load manually mapped metabolite data
+# load manually mapped metabolite data (w/ 6 dup hits)
 gmmad2_filled_metabolite_path = (
     "../data/manual/gmmad2_metabolite_notfound_filled.txt"
 )
