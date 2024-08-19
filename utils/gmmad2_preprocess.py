@@ -100,7 +100,7 @@ gmmad2_mapped_disease_ct = count_entity(
 )
 
 # final record filter for MAGNN input with {taxid:mondo} only (508,141)
-gmmad2_data4magnn = entity_filter_for_magnn(
+gmmad2_md4magnn = entity_filter_for_magnn(
     gmmad2_md_rec,
     node1="subject",
     attr1="taxid",
@@ -111,11 +111,11 @@ gmmad2_data4magnn = entity_filter_for_magnn(
 )
 # export the final filtered records to .dat file (495,936; 12,205 less)
 export_data2dat(
-    in_data=gmmad2_data4magnn,
+    in_data=gmmad2_md4magnn,
     col1="taxid",
     col2="mondo",
-    out_path="../data/MAGNN_data/gmmad2_md_taxid_mondo.dat",
-    database="GMMAD2:Microbe-Disease",
+    out_path="../data/MAGNN_data/gmmad2_taxid_mondo.dat",
+    database="GMMAD2: Microbe-Disease",
 )
 
 # TODO: Question-How to just run the blocks of codes below instead of the entire file?
@@ -182,12 +182,31 @@ for rec in gmmad2_mm_rec:
 gmmad2_mm_rec_filtered = record_filter(gmmad2_mm_rec, is_not_id)
 
 # count the metabolite types after mapping
-met_type_ct2 = count_entity(
+met_type_final_ct = count_entity(
     gmmad2_mm_rec_filtered, node="object", attr="id", split_char=":"
 )
 
-
 # TODO: need add the metabolites with no identifiers to GMMAD2 internal identifiers
 #  Need to change the original parser to include the internal identifiers
+#  metabolites with no chem identifiers (265,705) ~ 1/3 of the total
 #  Also need to differentiate KEGG.COMPOUND and KEGG.GLYCAN in original parser
-# metabolites with no chem identifiers (265,705) ~ 1/3 of the total
+
+# final record filter for MAGNN input with {taxid:met_id} (598,652)
+gmmad2_mm4magnn = entity_filter_for_magnn(
+    gmmad2_mm_rec_filtered,
+    node1="subject",
+    attr1="taxid",
+    val1=["strain", "subspecies", "biotype", "species group"],
+    node2="object",
+    attr2="id",
+    attr3="parent_taxid",
+)
+
+# export the final filtered records to .dat file (598,104 unique; 548 less)
+export_data2dat(
+    in_data=gmmad2_mm4magnn,
+    col1="taxid",
+    col2="metabolite",
+    out_path="../data/MAGNN_data/gmmad2_taxid_met.dat",
+    database="GMMAD2: Microbe-Metabolite",
+)
