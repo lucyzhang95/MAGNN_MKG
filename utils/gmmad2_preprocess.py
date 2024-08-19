@@ -34,7 +34,7 @@ gmmad2_md_disease_ct = count_entity(
     gmmad2_md_rec, node="object", attr="id", split_char=":"
 )
 
-# extract disease mesh id
+# extract disease mesh id (a list of mesh ids)
 gmmad2_md_mesh = [
     rec["object"]["mesh"] for rec in gmmad2_md_rec if "mesh" in rec["object"]
 ]
@@ -54,19 +54,19 @@ gmmad2_filled_disease_path = (
 )
 
 # organize the disease mesh id and MONDO id to a dictionary
-# e.g., {'D016360': '0024388', ...} == {"mesh": "mondo"}
+# e.g., {'D016360': 'MONDO:0024388', 'D000067877': 'MESH:D000067877', ...}
 mapped_gmmad2_disease = {}
 for line in tabfile_feeder(gmmad2_filled_disease_path, header=1):
     mesh, mondo = line[0], line[1]
     if mondo:
         mapped_gmmad2_disease[mesh] = mondo
     elif mesh:
-        mapped_gmmad2_disease[mesh] = mesh
+        mapped_gmmad2_disease[mesh] = f"MESH:{mesh}"
 # print(mapped_gmmad2_disease)
 print("manually mapped disease count:", len(mapped_gmmad2_disease))
 
 # merge mesh2mondo + mapped mesh (83 unique)
-# e.g., {'D037841': 'D037841', 'D010661': '0009861', ...} == {"mesh": "mesh", "mesh": "mondo", ...}
+# e.g., {'D037841': 'MESH:D037841', 'D010661': 'MONDO:0009861', ...}
 gmmad2_complete_mapped_disease = mesh2mondo | mapped_gmmad2_disease
 # print(gmmad2_complete_mapped_disease)
 print(
@@ -74,25 +74,20 @@ print(
     len(set(gmmad2_complete_mapped_disease)),
 )
 
-# add mondo to the filtered records without mondo
+# add mapped disease mondo to gmmad2_md_rec.object.id
 for rec in gmmad2_md_rec:
     disease_mesh = rec["object"]["mesh"]
     if disease_mesh in gmmad2_complete_mapped_disease:
-        if "D" not in gmmad2_complete_mapped_disease[disease_mesh]:
-            rec["object"][
-                "id"
-            ] = f"MONDO:{gmmad2_complete_mapped_disease[disease_mesh]}"
-            rec["object"]["mondo"] = gmmad2_complete_mapped_disease[
-                disease_mesh
-            ]
+        rec["object"]["id"] = gmmad2_complete_mapped_disease[disease_mesh]
 # print(gmmad2_md_rec)
 
-# count the disease identifiers again after manual mapping (total:508,141)
+# count the disease identifiers again after manual mapping
+# {'MONDO': 422606, 'MESH': 85535} == total:508,141
 gmmad2_mapped_disease_ct = count_entity(
     gmmad2_md_rec, node="object", attr="id", split_char=":"
 )
 
-# final record filter for MAGNN input with {taxid:mondo} only (508,141)
+# final record filter for MAGNN (508,141)
 gmmad2_md4magnn = entity_filter_for_magnn(
     gmmad2_md_rec,
     node1="subject",
@@ -102,7 +97,9 @@ gmmad2_md4magnn = entity_filter_for_magnn(
     attr2="id",
     attr3="parent_taxid",
 )
-# export the final filtered records to .dat file (508,141->495,936; 12,205 less)
+# print(gmmad2_md4magnn)
+
+# export the final filtered records to .dat file (508,141-> 502,039; 6102 less)
 export_data2dat(
     in_data=gmmad2_md4magnn,
     col1="taxid",
@@ -110,6 +107,7 @@ export_data2dat(
     out_path="../data/MAGNN_data/gmmad2_taxid_mondo.dat",
     database="GMMAD2: Microbe-Disease",
 )
+
 
 # TODO: Question-How to just run the blocks of codes below instead of the entire file?
 #  Jupyter notebook or put everything into functions or select the blocks of codes to run (check)
@@ -164,6 +162,7 @@ for line in tabfile_feeder(gmmad2_filled_metabolite_path, header=1):
 
 # merge met2chebi_cid and manual mapped metabolites (110 unique)
 met_mapped = met2chebi_cid | met_manual
+print("Merged mapped unique metabolite count:", len(set(met_mapped)))
 
 # add mapped pubchem_sid, pubchem_cid, chebi to gmmad2_mm_rec.object.id
 # gmmad2_mmc_rec includes records with and without identifiers (864,357)
@@ -176,7 +175,8 @@ for rec in gmmad2_mm_rec:
 # filter the records with metabolite identifiers (598,652)
 gmmad2_mm_rec_filtered = record_filter(gmmad2_mm_rec, is_not_id, node="object")
 
-# count the metabolite types after mapping
+# count the metabolite types after mapping (598,652)
+# {'PUBCHEM.COMPOUND': 560655, 'CHEBI': 29204, 'PUBCHEM.SUBSTANCE': 8450, 'KEGG.GLYCAN': 343}
 met_type_final_ct = count_entity(
     gmmad2_mm_rec_filtered, node="object", attr="id", split_char=":"
 )
@@ -186,7 +186,7 @@ met_type_final_ct = count_entity(
 #  metabolites with no chem identifiers (265,705) ~ 1/3 of the total
 #  Also need to differentiate KEGG.COMPOUND and KEGG.GLYCAN in original parser
 
-# final record filter for MAGNN input with {taxid:met_id} (598,652)
+# final record filter for MAGNN input (598,652)
 gmmad2_mm4magnn = entity_filter_for_magnn(
     gmmad2_mm_rec_filtered,
     node1="subject",
@@ -196,8 +196,9 @@ gmmad2_mm4magnn = entity_filter_for_magnn(
     attr2="id",
     attr3="parent_taxid",
 )
+# print(gmmad2_mm4magnn)
 
-# export the final filtered records to .dat file (598,652->598,104 unique; 548 less)
+# export the final filtered records to .dat file (598,652->598,603 unique; 49 less)
 # TODO: need to double check removed duplicated relationships
 #  since it could be same numbers but from different databases
 export_data2dat(
@@ -225,6 +226,7 @@ mg_met_type_ct = count_entity(
 )
 
 # final record filter for MAGNN input with {pubchem_cid:gene_id} (53,277)
+# e.g., [{'PUBCHEM.COMPOUND:985': 'NCBIGene:2796'}, ...]
 gmmad2_mg4magnn = entity_filter_for_magnn(
     gmmad2_mg_rec,
     node1="subject",
@@ -236,7 +238,7 @@ gmmad2_mg4magnn = entity_filter_for_magnn(
 )
 # print(gmmad2_mg4magnn)
 
-# export the final filtered records to .dat file (53,277->53277 unique)
+# export the final filtered records to .dat file (53,277->53,277 unique)
 export_data2dat(
     in_data=gmmad2_mg4magnn,
     col1="pubchem_cid",
