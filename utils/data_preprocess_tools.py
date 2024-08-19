@@ -1,6 +1,8 @@
 import json
 import os
-from collections import Counter
+import re
+import tarfile
+from collections import Counter, defaultdict
 from typing import List, Union
 
 import biothings_client
@@ -404,3 +406,75 @@ def export_data2dat(
     print(
         f"* {len(df)} records of {col1}-{col2} from {database} have been exported successfully!"
     )
+
+
+def load_ncbi_taxdump(tar_gz_file_path):
+    """
+    Map microbial names to taxid using NCBI name.dmp file in taxdump.tar.gz
+    fields e.g.,
+    ['1115873', 'paraorygmatobothrium taylori cutmore, bennett & cribb, 2009', '', 'authority', '']
+    ['1115873', 'paraorygmatobothrium taylori', '', 'scientific name', '']
+    output e.g.,
+    ('rhinura nr. populonia eo1166', 'rhinura nr. populonia'): {'taxid': 'NCBITaxon:3132808'}
+    """
+    # open the tar.gz file
+    with tarfile.open(tar_gz_file_path, "r:gz") as tar:
+        # List all files in the tar archive
+        file_list = tar.getnames()
+        print("Files in the tar.gz:", file_list)
+
+        # extract and read the 'names.dmp' file
+        with tar.extractfile("names.dmp") as dmp_file:
+            dmp_content = dmp_file.read().decode("utf-8")
+            lines = dmp_content.splitlines()
+            synonym_dict = defaultdict(dict)
+            pattern = re.compile(r"\t\|\t|\t\|")
+
+            temp_dict = defaultdict(list)
+
+            for line in lines:
+                fields = pattern.split(line.strip())
+                if len(fields) >= 5:
+                    taxid = fields[0]
+                    name_txt = fields[1].lower()
+                    name_class = fields[3]
+                    if (
+                        name_class == "synonym"
+                        or name_class == "scientific name"
+                    ):
+                        temp_dict[taxid].append(name_txt)
+
+            for taxid, synonyms in temp_dict.items():
+                synonym_dict[tuple(synonyms)] = {"taxid": f"NCBITaxon:{taxid}"}
+            return synonym_dict
+
+
+def map_microbe_name2taxid(mapping_src, microbe_names, unmapped_out_path):
+    microbe_names = set(microbe_names)
+    print("count of unique microbial names to map:", len(microbe_names))
+
+    mapped = {
+        microbe: data["taxid"]
+        for microbe in microbe_names
+        for synonyms, data in mapping_src.items()
+        if microbe in synonyms
+    }
+
+    unmapped = [
+        microbe
+        for microbe in microbe_names
+        if not any(microbe in synonyms for synonyms in mapping_src)
+    ]
+
+    print("count of mapped unique microbial names:", len(mapped))
+    print("count of unmapped unique microbial names:", len(unmapped))
+
+    # sort unmapped microbial names
+    unmapped.sort(key=lambda x: x[0])
+    names_notfound = pd.DataFrame(unmapped, columns=["microbe_name"])
+    # print("unmapped genes:", names_notfound.head())
+    names_notfound.to_csv(
+        unmapped_out_path, sep="\t", header=True, index=False
+    )
+
+    return mapped
