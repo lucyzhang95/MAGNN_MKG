@@ -1,6 +1,10 @@
 #
 
 
+def is_no_taxid(rec, node):
+    return "taxid" not in rec[node]
+
+
 def is_organism_and_disease(rec):
     return (
         rec.get("association", {}).get("predicate")
