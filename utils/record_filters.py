@@ -22,10 +22,7 @@ def is_small_molecule_and_gene(rec):
 
 
 def is_not_pubchem_cid(rec, node):
-    return (
-        ":" in rec[node]["id"]
-        and "PUBCHEM.COMPOUND" not in rec[node]["id"]
-    )
+    return ":" in rec[node]["id"] and "PUBCHEM.COMPOUND" not in rec[node]["id"]
 
 
 def is_not_id(rec, node):
