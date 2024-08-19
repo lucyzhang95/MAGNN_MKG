@@ -213,18 +213,34 @@ export_data2dat(
 # filter out records with metabolite-gene relationship only (53,278)
 gmmad2_mg_rec = record_filter(gmmad2_data, is_small_molecule_and_gene)
 
-# # count the gene identifier types
-# gene_type_ct = count_entity(
-#     gmmad2_mg_rec, node="object", attr="id", split_char=":"
-# )
-
-# # count the metabolite identifier types
-# mg_met_type_ct = count_entity(
-#     gmmad2_mg_rec, node="subject", attr="id", split_char=":"
-# )
-
-# extract the 1 record has no PUBCHEM.COMPOUND identifier
-mg_no_pubchem_cid = record_filter(
-    gmmad2_mg_rec, is_not_pubchem_cid, node="subject"
+# count the gene identifier types
+gene_type_ct = count_entity(
+    gmmad2_mg_rec, node="object", attr="id", split_char=":"
 )
-print(mg_no_pubchem_cid)
+
+# count the metabolite identifier types
+# 1 record does not have metabolite identifier, discard it
+mg_met_type_ct = count_entity(
+    gmmad2_mg_rec, node="subject", attr="id", split_char=":"
+)
+
+# final record filter for MAGNN input with {pubchem_cid:gene_id} (53,277)
+gmmad2_mg4magnn = entity_filter_for_magnn(
+    gmmad2_mg_rec,
+    node1="subject",
+    attr1="id",
+    val1=["PUBCHEM.COMPOUND"],
+    node2="object",
+    attr2="id",
+    attr3=None,
+)
+# print(gmmad2_mg4magnn)
+
+# export the final filtered records to .dat file (53,277->53277 unique)
+export_data2dat(
+    in_data=gmmad2_mg4magnn,
+    col1="pubchem_cid",
+    col2="gene",
+    out_path="../data/MAGNN_data/gmmad2_met_gene.dat",
+    database="GMMAD2: Metabolite-Gene",
+)
