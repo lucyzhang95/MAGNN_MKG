@@ -118,13 +118,13 @@ print(
     "Total count of records with mondo and mesh", len(disbiome_final_filtered)
 )
 
-# count the rank again
+# count the rank again (5025)
 # {'species': 5011, 'strain': 14}
 disbiome_final_rank_ct = count_entity(
     disbiome_final_filtered, node="subject", attr="rank", split_char=None
 )
 
-# export microbe and disease from disbiome_final_filtered records
+# export microbe and disease from disbiome_final_filtered records (5025)
 # final output e.g., [{'NCBITaxon:59823': 'MONDO:0005010'}, {'NCBITaxon:853': 'MESH:D009765'}, ...]
 disbiome_data4magnn = entity_filter_for_magnn(
     disbiome_final_filtered,
@@ -137,6 +137,7 @@ disbiome_data4magnn = entity_filter_for_magnn(
 )
 # print(disbiome_data4magnn)
 
+# export to .dat (5025->3813; 1212 less due to duplication)
 export_data2dat(
     in_data=disbiome_data4magnn,
     col1="taxid",
