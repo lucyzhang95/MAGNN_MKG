@@ -190,12 +190,16 @@ def map_disease_id2mondo(
 
 # TODO: add unmapped disease names, so that I can embed export path directly in it
 def map_disease_name2mondo(
-    disease_names: list or str, scopes: list or str, field: list or str
+    disease_names: list or str,
+    scopes: list or str,
+    field: list or str,
+    unmapped_out_path: str | os.PathLike | None,
 ) -> dict:
     """
     Use biothings_client to map disease names to unified MONDO identifier
     Map ("disease_ontology.name" or "disgenet.xrefs.disease_name") to unified MONDO identifier
 
+    :param unmapped_out_path: path to unmapped output file
     :param disease_names: biothings_client query object (a list of disease name strings)
     :param scopes: str or a list of str
     :param field: str or a list of str
@@ -205,16 +209,41 @@ def map_disease_name2mondo(
     scope and field can be checked via:
     https://docs.mydisease.info/en/latest/doc/data.html#available-fields
     """
-    bt_disease = biothings_client.get_client("disease")
+    unmapped = []
     disease_names = set(disease_names)
+    print("count of unique disease names:", len(disease_names))
+
+    bt_disease = biothings_client.get_client("disease")
     get_mondo = bt_disease.querymany(
         disease_names, scopes=scopes, fields=field
     )
     query_op = {
-        d["query"]: d.get("_id").split(":")[1] if "notfound" not in d else None
+        d["query"]: (
+            d.get("_id")
+            if "notfound" not in d
+            else unmapped.append(d["query"])
+        )
         for d in get_mondo
     }
-    return query_op
+
+    # filter out None values
+    mapped = {
+        disease_name: mondo
+        for disease_name, mondo in query_op.items()
+        if mondo
+    }
+    print("count of mapped disease names:", len(mapped))
+    print("count of unmapped disease names:", len(unmapped))
+
+    # sort the metabolites by identifier to ensure the order
+    unmapped.sort(key=lambda x: x[0])
+    disease_names_notfound = pd.DataFrame(unmapped, columns=["disease_name"])
+    # print("unmapped disease_name:", disease_names_notfound.head())
+    disease_names_notfound.to_csv(
+        unmapped_out_path, sep="\t", header=True, index=False
+    )
+
+    return mapped
 
 
 def map_metabolite2chebi_cid(
