@@ -295,6 +295,8 @@ def entity_filter_for_magnn(
             op.append(
                 {rec[node1][attr1]: rec[node2][attr2].split(":")[1].strip()}
             )
+
+    print("Total record will be exported:", len(op))
     return op
 
 
