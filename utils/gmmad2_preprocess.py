@@ -7,12 +7,12 @@ from data_preprocess_tools import (
     map_disease_id2mondo,
     map_metabolite2chebi_cid,
     record_filter,
-    record_filter_attr1,
     record_id_filter,
 )
 from record_filters import (
     is_not_id,
     is_not_pubchem_cid,
+    is_organism_and_disease,
     is_small_molecule_and_gene,
     is_small_molecule_and_taxid,
 )
@@ -21,17 +21,10 @@ from record_filters import (
 gmmad2_data_path = "../data/json/gmmad2_data.json"
 gmmad2_data = load_data(gmmad2_data_path)
 
-# filter out records with microbe-disease relationship only
-gmmad2_md_rec = record_filter_attr1(
-    data=gmmad2_data,
-    node="association",
-    attr="predicate",
-    include_vals="OrganismalEntityAsAModelOfDiseaseAssociation",
-    exclude_vals=None,
-)
+# filter out records with microbe-disease relationship only (508,141)
+gmmad2_md_rec = record_filter(gmmad2_data, is_organism_and_disease)
 
-# count rank types
-# except species rank, the other types need to use parent_taxid corresponding to species
+# count taxonomic rank types
 gmmad2_md_microbe_ct = count_entity(
     gmmad2_md_rec, node="subject", attr="rank", split_char=None
 )
@@ -71,9 +64,8 @@ for line in tabfile_feeder(gmmad2_filled_disease_path, header=1):
 # print(mapped_gmmad2_disease)
 print("manually mapped disease count:", len(mapped_gmmad2_disease))
 
-# merge mesh2mondo + mapped mesh
-# merged output exp:
-# {'D037841': 'D037841', 'D010661': '0009861', ...} == {"mesh": "mesh", "mesh": "mondo", ...}
+# merge mesh2mondo + mapped mesh (83 unique)
+# e.g., {'D037841': 'D037841', 'D010661': '0009861', ...} == {"mesh": "mesh", "mesh": "mondo", ...}
 gmmad2_complete_mapped_disease = mesh2mondo | mapped_gmmad2_disease
 # print(gmmad2_complete_mapped_disease)
 print(
