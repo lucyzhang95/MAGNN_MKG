@@ -441,6 +441,7 @@ def load_ncbi_taxdump(tar_gz_file_path):
                     if (
                         name_class == "synonym"
                         or name_class == "scientific name"
+                        or name_class == "equivalent name"
                     ):
                         temp_dict[taxid].append(name_txt)
 
