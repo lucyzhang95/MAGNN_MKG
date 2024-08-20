@@ -272,7 +272,7 @@ metdisease_op = [
     {
         rec["xrefs"].get("pubchem_cid")
         or rec["xrefs"].get("chebi")
-        or rec["_id"]: disease["id"]
+        or f"HMDB:{rec['_id']}": disease["id"]
     }
     for rec in disease_rec_ct
     for disease in rec.get("associated_diseases")
@@ -282,6 +282,7 @@ metdisease_op = [
 # print(len(metdisease_op))
 
 # export the unique metabolite-disease associations (27,546)
+# HMDB: 9553, PUBCHEM.COMPOUND: 17,887, CHEBI:111
 export_data2dat(
     in_data=metdisease_op,
     col1="metabolite_id",
