@@ -31,10 +31,6 @@ def load_ncbi_taxdump(tar_gz_file_path):
     """
     # open the tar.gz file
     with tarfile.open(tar_gz_file_path, "r:gz") as tar:
-        # List all files in the tar archive
-        file_list = tar.getnames()
-        print("Files in the tar.gz:", file_list)
-
         # extract and read the 'names.dmp' file
         with tar.extractfile("names.dmp") as dmp_file:
             dmp_content = dmp_file.read().decode("utf-8")
