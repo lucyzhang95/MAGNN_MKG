@@ -116,6 +116,29 @@ def count_entity(
     print(f"{node}_{attr if attr else split_char}: {entity_ct}")
 
 
+def count_entity4hmdb(
+    data: list,
+    main_keys: str,
+    xrefs_key=None,
+):
+
+    main_key_counter = Counter()
+    xrefs_key_counter = Counter()
+    for rec in data:
+        for key in main_keys:
+            if key in rec:
+                main_key_counter[key] += 1
+
+        if xrefs_key and "xrefs" in rec:
+            if xrefs_key in rec["xrefs"]:
+                xrefs_key_counter[xrefs_key] += 1
+
+    ct_result = dict(main_key_counter)
+    ct_result.update(xrefs_key_counter)
+    print(f"Total count of main keys and xrefs keys in records: {ct_result}")
+    return ct_result
+
+
 # TODO: rewrite the function with customizable arg
 # def list_filter(a_list, fn):
 #   return [item for item in a_list if fn(item)]
