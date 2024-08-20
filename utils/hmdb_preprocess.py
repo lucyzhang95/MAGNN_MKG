@@ -282,7 +282,7 @@ metdisease_op = [
 # print(len(metdisease_op))
 
 # export the unique metabolite-disease associations (27,546)
-# HMDB: 9553, PUBCHEM.COMPOUND: 17,887, CHEBI:111
+# HMDB: 9548, PUBCHEM.COMPOUND: 17,887, CHEBI:111 = 27,546
 export_data2dat(
     in_data=metdisease_op,
     col1="metabolite_id",
