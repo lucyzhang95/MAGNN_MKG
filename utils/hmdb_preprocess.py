@@ -92,20 +92,23 @@ for rec in data:
                     )
 
 # get the final_op for MAGNN (299 unique)
+# only use the records with species and strain rank (271)
 # e.g., {'NCBITaxon:1227946': 'PUBCHEM.COMPOUND:5280899', 'NCBITaxon:571': 'CHEBI:62064',...}
 final_op = {}
 for rec in data:
-    for microbe in rec["associated_microbes"]:
-        if "taxid" in microbe:
-            taxid = microbe["taxid"]
-            if "pubchem_cid" in rec["xrefs"]:
-                pubchem_cid = rec["xrefs"]["pubchem_cid"]
-                final_op[f"NCBITaxon:{taxid}"] = pubchem_cid
-            else:
-                final_op[f"NCBITaxon:{taxid}"] = rec["xrefs"]["chebi"]
+    met_id = rec["xrefs"].get("pubchem_cid", rec["xrefs"].get("chebi"))
+
+    for microbe in rec.get("associated_microbes", []):
+        taxid_key = (
+            f"NCBITaxon:{microbe['taxid']}"
+            if microbe.get("rank") == "species"
+            else f"NCBITaxon:{microbe.get('parent_taxid')}"
+        )
+        final_op[taxid_key] = met_id
 # print(final_op)
 # print(len(final_op))
 
+# final export record (299->271; 28 less)
 export_data2dat(
     in_data=[final_op],
     col1="taxid",
