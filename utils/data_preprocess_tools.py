@@ -221,6 +221,12 @@ def map_disease_id2mondo(
         )
         for d in get_mondo
     }
+
+    mapped = {
+        disease_id: mondo for disease_id, mondo in query_op.items() if mondo
+    }
+
+    print("count of mapped diseases:", len(mapped))
     print("count of unmapped diseases:", len(unmapped))
 
     unmapped.sort(key=lambda x: x[0])
@@ -229,7 +235,7 @@ def map_disease_id2mondo(
     disease_notfound.to_csv(
         unmapped_out_path, sep="\t", header=True, index=False
     )
-    return query_op
+    return mapped
 
 
 # TODO: add unmapped disease names, so that I can embed export path directly in it
