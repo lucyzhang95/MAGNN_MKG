@@ -3,16 +3,21 @@ from data_preprocess_tools import (
     get_taxonomy_info,
     load_data,
     load_ncbi_taxdump,
+    map_disease_id2mondo,
     map_microbe_name2taxid,
 )
 
 # Load HMDB data
-data_path = "../data/json/hmdb_microbe_metabolites.json"
+data_path = "../data/json/hmdb_metabolites_full.json"
 data = load_data(data_path)
+
+# Data preprocess for microbe-metabolite association data
+mm_data = [rec for rec in data if "associated_microbes" in rec]
+
 # microbial names to map (118 unique)
 micro_names = [
     taxon.get("scientific_name").strip()
-    for rec in data
+    for rec in mm_data
     if "associated_microbes" in rec
     for taxon in rec.get("associated_microbes")
     if "taxid" not in taxon
@@ -76,8 +81,8 @@ manual_mapped_full_info = {
 # print(manual_mapped_full_info)
 # print(len(manual_mapped_full_info))
 
-# add microbial taxids and taxon info to original HMDB data
-for rec in data:
+# add microbial taxids and taxon info to mm_data
+for rec in mm_data:
     if "associated_microbes" in rec:
         for microbe_d in rec.get("associated_microbes"):
             if "taxid" not in microbe_d:
@@ -95,7 +100,7 @@ for rec in data:
 # only use the records with species and strain rank (271)
 # e.g., {'NCBITaxon:1227946': 'PUBCHEM.COMPOUND:5280899', 'NCBITaxon:571': 'CHEBI:62064',...}
 final_op = {}
-for rec in data:
+for rec in mm_data:
     met_id = rec["xrefs"].get("pubchem_cid", rec["xrefs"].get("chebi"))
 
     for microbe in rec.get("associated_microbes", []):
@@ -116,3 +121,80 @@ export_data2dat(
     out_path="../data/MAGNN_data/hmdb_taxid_met.dat",
     database="HMDB",
 )
+
+
+# Data preprocess for metabolite-disease association data (22,600)
+disease_rec_ct = [rec for rec in data if "associated_diseases" in rec]
+print(
+    "Total count for records including associated_diseases:",
+    len(disease_rec_ct),
+)
+
+"""
+# extract disease names for mondo or mesh query (27670, 657 unique)
+disease_names4query = [
+    disease["name"].strip()
+    for rec in data
+    if "associated_diseases" in rec
+    for disease in rec.get("associated_diseases")
+]
+# print(set(disease_names))
+print("Total count of disease names:", len(disease_names4query))
+
+# extract omim ids for mondo query (391 unique)
+omim4query = [
+    disease["omim"].split(":")[1].strip()
+    for rec in data
+    if "associated_diseases" in rec
+    for disease in rec.get("associated_diseases")
+    if "omim" in disease
+]
+print(len(omim4query))
+
+# map disease names to mondo
+# 114 dup hits, 340 no hits
+name2mondo = map_disease_name2mondo(
+    disease_names4query,
+    scopes=["disease_ontology.name"],
+    field=["all"],
+    unmapped_out_path="../data/manual/hmdb_disease_names_notfound.csv",
+)
+print(name2mondo)
+
+# map omim ids to mondo (373 unique)
+# 18 no hits
+omim2mondo = map_disease_id2mondo(
+    omim4query,
+    scopes=["mondo.xrefs.omim"],
+    field=["mondo"],
+    unmapped_out_path="../data/manual/hmdb_disease_omim_notfound.csv",
+)
+print(omim2mondo)
+"""
+
+# get omim and disease names in case no omim available (646)
+disease4query = [
+    (
+        disease.get("omim").split(":")[1].strip()
+        if "omim" in disease
+        else disease["name"]
+    )
+    for rec in data
+    if "associated_diseases" in rec
+    for disease in rec.get("associated_diseases")
+]
+# print(set(disease4query))
+print(
+    "Total count of unique omim and disease names for query:",
+    len(set(disease4query)),
+)
+
+# map disease names and omim ids to mondo (467)
+# 50 dup hits, 179 no hits
+disease2mondo = map_disease_id2mondo(
+    disease4query,
+    scopes=["mondo.xrefs.omim", "disease_ontology.name"],
+    field=["mondo"],
+    unmapped_out_path="../data/manual/hmdb_disease_notfound.csv",
+)
+print(disease2mondo)
