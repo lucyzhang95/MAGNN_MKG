@@ -116,6 +116,7 @@ def count_entity(
     print(f"{node}_{attr if attr else split_char}: {entity_ct}")
 
 
+# TODO: need to fix the main key counter
 def count_entity4hmdb(
     data: list,
     main_keys: str,
