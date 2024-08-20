@@ -103,7 +103,7 @@ final_op = {}
 for rec in mm_data:
     met_id = rec["xrefs"].get("pubchem_cid", rec["xrefs"].get("chebi"))
 
-    for microbe in rec.get("associated_microbes", []):
+    for microbe in rec.get("associated_microbes"):
         taxid_key = (
             f"NCBITaxon:{microbe['taxid']}"
             if microbe.get("rank") == "species"
@@ -172,29 +172,29 @@ omim2mondo = map_disease_id2mondo(
 print(omim2mondo)
 """
 
-# get omim and disease names in case no omim available (646)
-disease4query = [
-    (
-        disease.get("omim").split(":")[1].strip()
-        if "omim" in disease
-        else disease["name"]
-    )
-    for rec in data
-    if "associated_diseases" in rec
-    for disease in rec.get("associated_diseases")
-]
-# print(set(disease4query))
-print(
-    "Total count of unique omim and disease names for query:",
-    len(set(disease4query)),
-)
-
-# map disease names and omim ids to mondo (467)
-# 50 dup hits, 179 no hits
-disease2mondo = map_disease_id2mondo(
-    disease4query,
-    scopes=["mondo.xrefs.omim", "disease_ontology.name"],
-    field=["mondo"],
-    unmapped_out_path="../data/manual/hmdb_disease_notfound.csv",
-)
-print(disease2mondo)
+# # get omim and disease names in case no omim available (646)
+# disease4query = [
+#     (
+#         disease.get("omim").split(":")[1].strip()
+#         if "omim" in disease
+#         else disease["name"]
+#     )
+#     for rec in data
+#     if "associated_diseases" in rec
+#     for disease in rec.get("associated_diseases")
+# ]
+# # print(set(disease4query))
+# print(
+#     "Total count of unique omim and disease names for query:",
+#     len(set(disease4query)),
+# )
+#
+# # map disease names and omim ids to mondo (467)
+# # 50 dup hits, 179 no hits
+# disease2mondo = map_disease_id2mondo(
+#     disease4query,
+#     scopes=["mondo.xrefs.omim", "disease_ontology.name"],
+#     field=["mondo"],
+#     unmapped_out_path="../data/manual/hmdb_disease_notfound.csv",
+# )
+# print(disease2mondo)
