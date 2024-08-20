@@ -1,4 +1,6 @@
+from biothings.utils.dataload import tabfile_feeder
 from data_preprocess_tools import (
+    count_entity4hmdb,
     export_data2dat,
     get_taxonomy_info,
     load_data,
@@ -96,10 +98,10 @@ for rec in mm_data:
                         ]
                     )
 
-# get the final_op for MAGNN (299 unique)
-# only use the records with species and strain rank (271)
+# get the mm_op for MAGNN (625 unique)
+# only use the records with species and strain rank (599)
 # e.g., {'NCBITaxon:1227946': 'PUBCHEM.COMPOUND:5280899', 'NCBITaxon:571': 'CHEBI:62064',...}
-final_op = {}
+mm_op = []
 for rec in mm_data:
     met_id = rec["xrefs"].get("pubchem_cid", rec["xrefs"].get("chebi"))
 
@@ -109,13 +111,13 @@ for rec in mm_data:
             if microbe.get("rank") == "species"
             else f"NCBITaxon:{microbe.get('parent_taxid')}"
         )
-        final_op[taxid_key] = met_id
-# print(final_op)
-# print(len(final_op))
+        mm_op.append({taxid_key: met_id})
+# print(mm_op)
+# print(len(mm_op))
 
-# final export record (299->271; 28 less)
+# final export record (599)
 export_data2dat(
-    in_data=[final_op],
+    in_data=mm_op,
     col1="taxid",
     col2="metabolite_id",
     out_path="../data/MAGNN_data/hmdb_taxid_met.dat",
@@ -128,6 +130,19 @@ disease_rec_ct = [rec for rec in data if "associated_diseases" in rec]
 print(
     "Total count for records including associated_diseases:",
     len(disease_rec_ct),
+)
+
+# count pubchem_cid with associated diseases  (13044; 13037 unique)
+pubchem_cid_ct = count_entity4hmdb(
+    disease_rec_ct, main_keys="_id", xrefs_key="pubchem_cid"
+)
+# count chebi with associated diseases (1989)
+chebi_ct = count_entity4hmdb(
+    disease_rec_ct, main_keys="_id", xrefs_key="chebi"
+)
+# count inchikey with associated diseases (22,600)
+inchikey_ct = count_entity4hmdb(
+    disease_rec_ct, main_keys="_id", xrefs_key="inchikey"
 )
 
 """
@@ -172,29 +187,105 @@ omim2mondo = map_disease_id2mondo(
 print(omim2mondo)
 """
 
-# # get omim and disease names in case no omim available (646)
-# disease4query = [
-#     (
-#         disease.get("omim").split(":")[1].strip()
-#         if "omim" in disease
-#         else disease["name"]
-#     )
-#     for rec in data
-#     if "associated_diseases" in rec
-#     for disease in rec.get("associated_diseases")
-# ]
-# # print(set(disease4query))
-# print(
-#     "Total count of unique omim and disease names for query:",
-#     len(set(disease4query)),
-# )
-#
-# # map disease names and omim ids to mondo (467)
-# # 50 dup hits, 179 no hits
-# disease2mondo = map_disease_id2mondo(
-#     disease4query,
-#     scopes=["mondo.xrefs.omim", "disease_ontology.name"],
-#     field=["mondo"],
-#     unmapped_out_path="../data/manual/hmdb_disease_notfound.csv",
-# )
-# print(disease2mondo)
+# get omim or disease names if no omim (646)
+disease4query = [
+    (
+        disease.get("omim").split(":")[1].strip()
+        if "omim" in disease
+        else disease["name"]
+    )
+    for rec in data
+    if "associated_diseases" in rec
+    for disease in rec.get("associated_diseases")
+]
+# print(set(disease4query))
+print(
+    "Total count of unique omim and disease names for query:",
+    len(set(disease4query)),
+)
+
+# map disease names and omim ids to mondo (467)
+# 50 dup hits, 179 no hits
+disease2mondo = map_disease_id2mondo(
+    disease4query,
+    scopes=["mondo.xrefs.omim", "disease_ontology.name"],
+    field=["mondo"],
+    unmapped_out_path="../data/manual/hmdb_disease_notfound.csv",
+)
+
+# load manually mapped disease data
+manual_disease_path = "../data/manual/hmdb_disease_notfound_filled.txt"
+manual_mapped_diseases = {}
+# organize the disease name and mapped ids to a dictionary (180)
+# 1 no mapping (oxidative stress)
+# MONDO:161, MESH:16, UMLS:3
+# e.g., { 'tuberculous meningitis': 'MONDO:0006042', 'nonketotic hyperglycinemia': 'MESH:D020158', ...}
+for line in tabfile_feeder(manual_disease_path, header=1):
+    # Organize disease names and mapped IDs into a dictionary
+    disease_name, mondo, mesh, doid, umls = line[:5]
+
+    # Prioritize mapping in the order: MONDO, MESH, DOID, UMLS
+    manual_mapped_diseases[disease_name] = next(
+        (disease_id for disease_id in [mondo, mesh, doid, umls] if disease_id),
+        None,
+    )
+
+# remove None values
+manual_mapped_diseases = {k: v for k, v in manual_mapped_diseases.items() if v}
+# print(manual_mapped_diseases)
+# print(len(manual_mapped_diseases))
+# print(len(set(manual_mapped_diseases)))
+
+# merge all mapped diseases (645)
+# MONDO:626, MESH:16, UMLS:3
+full_mapped_diseases = disease2mondo.copy() | manual_mapped_diseases
+# print(full_mapped_diseases)
+print("Total count of mapped diseases:", len(full_mapped_diseases))
+
+# add mapped diseases to disease_ct_rec.associated_diseases.id
+for rec in disease_rec_ct:
+    associated_diseases = rec.get("associated_diseases")
+    for disease in associated_diseases:
+        disease_name = disease.get("name")
+        omim = disease.get("omim")
+        omim_id = omim.split(":")[1].strip() if omim else None
+
+        mapped_id = full_mapped_diseases.get(
+            disease_name
+        ) or full_mapped_diseases.get(omim_id)
+        if mapped_id:
+            disease["id"] = mapped_id
+
+# count the disease identifiers again after manual mapping (27652)
+# MONDO: 27,535, MESH: 100, UMLS: 17 = 27,652
+mondo2ct = [
+    disease["id"].split(":")[0]
+    for rec in disease_rec_ct
+    for disease in rec.get("associated_diseases")
+    if "id" in disease
+]
+# print(mondo2ct)
+# print(len(mondo2ct))
+
+# get the record dictionary for MAGNN (27,652)
+metdisease_op = [
+    {
+        rec["xrefs"].get("pubchem_cid")
+        or rec["xrefs"].get("chebi")
+        or rec["_id"]: disease["id"]
+    }
+    for rec in disease_rec_ct
+    for disease in rec.get("associated_diseases")
+    if disease.get("id")
+]
+# print(metdisease_op)
+# print(len(metdisease_op))
+
+# export the unique metabolite-disease associations (27,546)
+export_data2dat(
+    in_data=metdisease_op,
+    col1="metabolite_id",
+    col2="disease_id",
+    out_path="../data/MAGNN_data/hmdb_met_disease.dat",
+    database="HMDB",
+)
