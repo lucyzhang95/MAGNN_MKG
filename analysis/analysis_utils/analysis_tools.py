@@ -32,12 +32,12 @@ def filter_entity(df, colname, threshold: int | None):
         )
         print("Count of unique entity:", len(entity_counts))
         print(
-            f"Count of unique entity freq. < {threshold}: "
+            f"Count of unique entity node degree < {threshold}: "
             f"{len(entity_counts_less_than_threshold)} "
             f"({entity_counts_percent}%)"
         )
         print(
-            f"Count of unique entity freq. > {threshold}: "
+            f"Count of unique entity node degree > {threshold}: "
             f"{len(entity_counts_more_than_threshold)} "
             f"({100 - entity_counts_percent}%)"
         )
@@ -74,9 +74,9 @@ def plot_entity_distribution(
         color=color,
         alpha=0.7,
     )
-    plt.xlabel(f"Unique {entity_name1} IDs", fontsize=18)
+    plt.xlabel(f"Unique {entity_name1}", fontsize=18)
     plt.ylabel(
-        f"Frequency of each {entity_name1} \n in {entity_name1.capitalize()}-{entity_name2.capitalize()}",
+        f"Node degree of each {entity_name1} \n in {entity_name1.capitalize()}-{entity_name2.capitalize()}",
         fontsize=18,
     )
 
@@ -126,7 +126,7 @@ def find_optimal_threshold(df, colname, desired_ratios=None):
 
         threshold_data.append(
             {
-                "Threshold": threshold,
+                "Node Degree Threshold": threshold,
                 "Less Than Proportion (%)": less_than_prop,
                 "Greater Than Proportion (%)": greater_than_prop,
                 "Ratio": (round(less_than_prop), round(greater_than_prop)),
