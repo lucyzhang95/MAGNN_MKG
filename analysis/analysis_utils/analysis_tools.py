@@ -76,7 +76,7 @@ def plot_entity_distribution(
     )
     plt.xlabel(f"{entity_name1.capitalize()} index ranges", fontsize=18)
     plt.ylabel(
-        f"Node degree of each {entity_name1} \n in {entity_name1.capitalize()}-{entity_name2.capitalize()}",
+        f"Node degree of {entity_name1} \n in {entity_name1.capitalize()}-{entity_name2.capitalize()}",
         fontsize=18,
     )
 
