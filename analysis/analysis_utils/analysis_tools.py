@@ -1,6 +1,7 @@
 import math
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 
@@ -102,3 +103,61 @@ def plot_entity_distribution(
         plt.savefig(save_path, format="png", dpi=300)
 
     plt.show()
+
+
+def find_optimal_threshold(df, colname, desired_ratios=None):
+    if desired_ratios is None:
+        desired_ratios = [(50, 50), (40, 60), (30, 70), (20, 80)]
+
+    entity_counts = df[colname].value_counts().sort_index()
+    total_entities = len(entity_counts)
+
+    thresholds = np.unique(entity_counts.values)
+    threshold_data = []
+
+    for threshold in thresholds:
+        less_than_threshold = entity_counts[entity_counts < threshold].count()
+        greater_than_threshold = entity_counts[
+            entity_counts >= threshold
+        ].count()
+
+        less_than_prop = less_than_threshold / total_entities * 100
+        greater_than_prop = greater_than_threshold / total_entities * 100
+
+        threshold_data.append(
+            {
+                "Threshold": threshold,
+                "Less Than Proportion (%)": less_than_prop,
+                "Greater Than Proportion (%)": greater_than_prop,
+                "Ratio": (round(less_than_prop), round(greater_than_prop)),
+            }
+        )
+
+    threshold_data_df = pd.DataFrame(threshold_data)
+
+    for desired_ratio in desired_ratios:
+        threshold_data_df["Difference"] = threshold_data_df.apply(
+            lambda row: abs(row["Ratio"][0] - desired_ratio[0])
+            + abs(row["Ratio"][1] - desired_ratio[1]),
+            axis=1,
+        )
+        closest_match = threshold_data_df.loc[
+            threshold_data_df["Difference"].idxmin()
+        ]
+
+        if closest_match["Ratio"] == desired_ratio:
+            return (
+                closest_match["Threshold"],
+                closest_match["Ratio"],
+                threshold_data_df,
+            )
+
+        # If no exact match is found, return the closest possible ratio
+    closest_match = threshold_data_df.loc[
+        threshold_data_df["Difference"].idxmin()
+    ]
+    return (
+        closest_match["Threshold"],
+        closest_match["Ratio"],
+        threshold_data_df,
+    )
