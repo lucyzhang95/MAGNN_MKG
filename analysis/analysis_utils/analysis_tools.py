@@ -3,6 +3,7 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib_venn import venn2, venn3
 
 
 def load_data(in_f, colname1, colname2):
@@ -51,7 +52,7 @@ def filter_entity(df, colname, threshold: int | None):
         return entity_counts
 
 
-def plot_entity_distribution(
+def plot_entity_node_degree_distribution(
     entity_counts,
     entity_name1,
     entity_name2,
@@ -101,7 +102,7 @@ def plot_entity_distribution(
     plt.tight_layout()
 
     if save_path:
-        plt.savefig(save_path, format="png", dpi=300)
+        plt.savefig(save_path, format="png", dpi=300, transparent=True)
 
     plt.show()
 
@@ -162,3 +163,93 @@ def find_optimal_threshold(df, colname, desired_ratios=None):
         closest_match["Ratio"],
         threshold_data_df,
     )
+
+
+def plot_venn_diagram(data_sets, labels, venn_type="venn2", colors=None, fontsize=18, save_path=None):
+    plt.figure(figsize=(8, 8), dpi=300)
+    if venn_type == "venn2":
+        v = venn2(
+            subsets=data_sets,
+            set_labels=labels,
+            set_colors=colors if colors else ("#1f77b4", "#ff7f0e")
+        )
+    elif venn_type == "venn3":
+        v = venn3(
+            subsets=data_sets,
+            set_labels=labels,
+            set_colors=colors if colors else ("#1f77b4", "#ff7f0e", "#2ca02c"),
+        )
+
+    for text in v.set_labels:
+        text.set(fontsize=fontsize)
+    for text in v.subset_labels:
+        text.set_fontsize(fontsize)
+
+    if save_path:
+        plt.savefig(save_path, format="pdf", dpi=300, transparent=True)
+    plt.show()
+
+
+def get_common_entities(df1, df2, colname, labels):
+    common_entities = set(df1[colname].unique()).intersection(
+        set(df2[colname].unique())
+    )
+    print(f"There are {len(common_entities)} common {colname} entities between {labels}.")
+    return common_entities
+
+
+def calculate_common_node_degree(df1, df2, colname, common_entities):
+    common_node_degree = []
+    for entity in common_entities:
+        node_degree1 = df1[df1[colname] == entity].shape[0]
+        node_degree2 = df2[df2[colname] == entity].shape[0]
+        common_node_degree.append((entity, node_degree1, node_degree2))
+        common_node_degree.sort(key=lambda x: x[1] + x[2], reverse=True)
+    return common_node_degree
+
+
+def plot_common_entity_node_degree_distribution(
+        entity_counts,
+        entity_name1,
+        entity_name2,
+        color="blue",
+        save_path=None,
+):
+    # Unpack the node degrees
+    entities = [item[0] for item in entity_counts]
+    counts1 = [item[1] for item in entity_counts]  # Node degrees for the first dataset
+    counts2 = [item[2] for item in entity_counts]  # Node degrees for the second dataset
+
+    # Sort by the sum of node degrees in descending order
+    combined_counts = sorted(zip(entities, counts1, counts2), key=lambda x: x[1] + x[2], reverse=True)
+    sorted_entities, sorted_counts1, sorted_counts2 = zip(*combined_counts)
+
+    plt.figure(figsize=(12, 6), dpi=300)
+
+    # Plotting the bar charts for both sets of node degrees
+    x = range(len(sorted_entities))
+    plt.bar(
+        x, sorted_counts1,
+        color=color,
+        alpha=0.7,
+        label=f"{entity_name1}-{entity_name2} Node Degree"
+    )
+    plt.bar(
+        x, sorted_counts2,
+        color='green',
+        alpha=0.5,
+        label=f"{entity_name2}-{entity_name1} Node Degree"
+    )
+
+    plt.xlabel(f"{entity_name1.capitalize()} index ranges", fontsize=14)
+    plt.ylabel(f"Node degree of {entity_name1}", fontsize=14)
+    plt.xticks(ticks=range(0, len(sorted_entities), max(1, len(sorted_entities) // 10)), fontsize=12)
+    plt.xlim(0, len(sorted_entities))
+    plt.yticks(fontsize=12)
+    plt.legend(fontsize=14)
+    plt.tight_layout()
+
+    if save_path:
+        plt.savefig(save_path, format="png", dpi=300, transparent=True)
+
+    plt.show()
