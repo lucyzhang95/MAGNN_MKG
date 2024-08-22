@@ -3,6 +3,7 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from matplotlib_venn import venn2, venn3
 
 
@@ -271,6 +272,86 @@ def plot_common_entity_node_degree_distribution(
     plt.yticks(fontsize=12)
     plt.legend(fontsize=14)
     plt.tight_layout()
+
+    if save_path:
+        plt.savefig(save_path, format="png", dpi=300, transparent=True)
+
+    plt.show()
+
+
+def plot_violin_distribution(
+    entity_counts,
+    entity_name,
+    label1="Dataset 1",
+    label2="Dataset 2",
+    save_path=None,
+):
+    # Unpack the node degrees
+    data = {
+        "Entity": [item[0] for item in entity_counts],
+        label1: [
+            item[1] for item in entity_counts
+        ],  # Node degrees for the first dataset
+        label2: [
+            item[2] for item in entity_counts
+        ],  # Node degrees for the second dataset
+    }
+    df = pd.DataFrame(data)
+    df_melted = df.melt(
+        id_vars=["Entity"], var_name="Relationship", value_name="Node Degree"
+    )
+
+    plt.figure(figsize=(12, 6), dpi=300)
+    sns.violinplot(
+        x="Relationship",
+        y="Node Degree",
+        data=df_melted,
+        density_norm="width",
+        inner="quartile",
+    )
+    plt.ylim(0, None)
+    plt.title(
+        f"Distribution of Node Degrees in {entity_name.capitalize()} Relationships",
+        fontsize=16,
+    )
+    plt.xlabel("Relationship", fontsize=14)
+    plt.ylabel(f"Node Degree of {entity_name.capitalize()}", fontsize=14)
+
+    if save_path:
+        plt.savefig(save_path, format="png", dpi=300, transparent=True)
+
+    plt.show()
+
+
+def plot_density_distribution(
+    entity_counts,
+    entity_name,
+    label1="Dataset 1",
+    label2="Dataset 2",
+    save_path=None,
+):
+    # Unpack the node degrees
+    data = {
+        "Entity": [item[0] for item in entity_counts],
+        label1: [
+            item[1] for item in entity_counts
+        ],  # Node degrees for the first dataset
+        label2: [
+            item[2] for item in entity_counts
+        ],  # Node degrees for the second dataset
+    }
+    df = pd.DataFrame(data)
+
+    plt.figure(figsize=(12, 6), dpi=300)
+    sns.kdeplot(df[label1], fill=True, label=label1, color="blue", alpha=0.7)
+    sns.kdeplot(df[label2], fill=True, label=label2, color="green", alpha=0.7)
+    plt.title(
+        f"Density Plot of Node Degrees in {entity_name.capitalize()} Relationships",
+        fontsize=16,
+    )
+    plt.xlabel("Node Degree", fontsize=14)
+    plt.ylabel("Density", fontsize=14)
+    plt.legend(fontsize=14)
 
     if save_path:
         plt.savefig(save_path, format="png", dpi=300, transparent=True)

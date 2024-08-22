@@ -7,7 +7,9 @@ from .analysis_tools import (
     get_common_entities,
     plot_venn_diagram,
     calculate_common_node_degree,
-    plot_common_entity_node_degree_distribution
+    plot_common_entity_node_degree_distribution,
+    plot_violin_distribution,
+    plot_density_distribution
 )
 
 __all__ = [
@@ -19,5 +21,7 @@ __all__ = [
     'get_common_entities',
     'plot_venn_diagram',
     'calculate_common_node_degree',
-    'plot_common_entity_node_degree_distribution'
+    'plot_common_entity_node_degree_distribution',
+    'plot_violin_distribution',
+    'plot_density_distribution'
 ]
