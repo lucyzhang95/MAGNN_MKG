@@ -165,13 +165,20 @@ def find_optimal_threshold(df, colname, desired_ratios=None):
     )
 
 
-def plot_venn_diagram(data_sets, labels, venn_type="venn2", colors=None, fontsize=18, save_path=None):
+def plot_venn_diagram(
+    data_sets,
+    labels,
+    venn_type="venn2",
+    colors=None,
+    fontsize=18,
+    save_path=None,
+):
     plt.figure(figsize=(8, 8), dpi=300)
     if venn_type == "venn2":
         v = venn2(
             subsets=data_sets,
             set_labels=labels,
-            set_colors=colors if colors else ("#1f77b4", "#ff7f0e")
+            set_colors=colors if colors else ("#1f77b4", "#ff7f0e"),
         )
     elif venn_type == "venn3":
         v = venn3(
@@ -194,7 +201,9 @@ def get_common_entities(df1, df2, colname, labels):
     common_entities = set(df1[colname].unique()).intersection(
         set(df2[colname].unique())
     )
-    print(f"There are {len(common_entities)} common {colname} entities between {labels}.")
+    print(
+        f"There are {len(common_entities)} common {colname} entities between {labels}."
+    )
     return common_entities
 
 
@@ -209,41 +218,55 @@ def calculate_common_node_degree(df1, df2, colname, common_entities):
 
 
 def plot_common_entity_node_degree_distribution(
-        entity_counts,
-        entity_name1,
-        entity_name2,
-        color="blue",
-        save_path=None,
+    entity_counts,
+    entity_name,
+    color1="blue",
+    color2="green",
+    label1="Dataset 1",
+    label2="Dataset 2",
+    save_path=None,
 ):
     # Unpack the node degrees
     entities = [item[0] for item in entity_counts]
-    counts1 = [item[1] for item in entity_counts]  # Node degrees for the first dataset
-    counts2 = [item[2] for item in entity_counts]  # Node degrees for the second dataset
+    counts1 = [
+        item[1] for item in entity_counts
+    ]  # Node degrees for the first dataset
+    counts2 = [
+        item[2] for item in entity_counts
+    ]  # Node degrees for the second dataset
 
     # Sort by the sum of node degrees in descending order
-    combined_counts = sorted(zip(entities, counts1, counts2), key=lambda x: x[1] + x[2], reverse=True)
+    combined_counts = sorted(
+        zip(entities, counts1, counts2),
+        key=lambda x: x[1] + x[2],
+        reverse=True,
+    )
     sorted_entities, sorted_counts1, sorted_counts2 = zip(*combined_counts)
 
     plt.figure(figsize=(12, 6), dpi=300)
 
     # Plotting the bar charts for both sets of node degrees
     x = range(len(sorted_entities))
+    plt.bar(x, sorted_counts1, color=color1, alpha=0.7, label=label1)
     plt.bar(
-        x, sorted_counts1,
-        color=color,
+        x,
+        sorted_counts2,
+        bottom=sorted_counts1,  # Stacking the second bar on top of the first
+        color=color2,
         alpha=0.7,
-        label=f"{entity_name1}-{entity_name2} Node Degree"
-    )
-    plt.bar(
-        x, sorted_counts2,
-        color='green',
-        alpha=0.5,
-        label=f"{entity_name2}-{entity_name1} Node Degree"
+        label=label2,
     )
 
-    plt.xlabel(f"{entity_name1.capitalize()} index ranges", fontsize=14)
-    plt.ylabel(f"Node degree of {entity_name1}", fontsize=14)
-    plt.xticks(ticks=range(0, len(sorted_entities), max(1, len(sorted_entities) // 10)), fontsize=12)
+    plt.xlabel(f"{entity_name.capitalize()} index ranges", fontsize=14)
+    plt.ylabel(
+        f"Node degree of common {entity_name.capitalize()}s", fontsize=14
+    )
+    plt.xticks(
+        ticks=range(
+            0, len(sorted_entities), max(1, len(sorted_entities) // 10)
+        ),
+        fontsize=12,
+    )
     plt.xlim(0, len(sorted_entities))
     plt.yticks(fontsize=12)
     plt.legend(fontsize=14)
