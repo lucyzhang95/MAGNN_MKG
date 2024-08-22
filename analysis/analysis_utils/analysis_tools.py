@@ -61,6 +61,7 @@ def plot_entity_distribution(
     threshold_label=None,
     save_path=None,
 ):
+    sorted_entity_counts = entity_counts.sort_values(ascending=False)
     if len(entity_counts) < 1000:
         rounded_length = math.ceil(len(entity_counts) / 100) * 100
     else:
@@ -69,8 +70,8 @@ def plot_entity_distribution(
     plt.figure(figsize=(15, 8), dpi=300)
     plt.subplot(2, 1, subplot_position)
     plt.bar(
-        range(1, len(entity_counts) + 1),
-        entity_counts.values,
+        range(1, len(sorted_entity_counts) + 1),
+        sorted_entity_counts.values,
         color=color,
         alpha=0.7,
     )
@@ -84,7 +85,7 @@ def plot_entity_distribution(
         ticks=range(0, rounded_length + 1, max(1, rounded_length // 10)),
         fontsize=18,
     )
-    plt.xlim(1, len(entity_counts))
+    plt.xlim(1, len(sorted_entity_counts))
     plt.yticks(fontsize=18)
 
     if threshold is not None:
