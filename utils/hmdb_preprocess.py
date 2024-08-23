@@ -15,6 +15,7 @@ data = load_data(data_path)
 
 # Data preprocess for microbe-metabolite association data
 mm_data = [rec for rec in data if "associated_microbes" in rec]
+print("Total records of microbe-metabolite:", len(mm_data))
 
 # microbial names to map (118 unique)
 micro_names = [
