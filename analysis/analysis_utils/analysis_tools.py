@@ -357,3 +357,56 @@ def plot_density_distribution(
         plt.savefig(save_path, format="png", dpi=300, transparent=True)
 
     plt.show()
+
+
+def plot_common_entity_scatter_distribution(
+    entity_counts,
+    entity_name="Entity",
+    label1="Relationship 1",
+    label2="Relationship 2",
+    color1="blue",
+    color2="green",
+    dot_size=50,
+    save_path=None,
+):
+
+    df = pd.DataFrame(
+        entity_counts,
+        columns=[
+            entity_name,
+            f"{label1} Node Degree",
+            f"{label2} Node Degree",
+        ],
+    )
+
+    df["Index"] = range(1, len(df) + 1)
+
+    # Plot the scatter plot
+    plt.figure(figsize=(12, 6), dpi=300)
+    sns.scatterplot(
+        x="Index",
+        y=f"{label1} Node Degree",
+        data=df,
+        s=dot_size,
+        color=color1,
+        alpha=0.7,
+        label=label1,
+    )
+    sns.scatterplot(
+        x="Index",
+        y=f"{label2} Node Degree",
+        data=df,
+        s=dot_size,
+        color=color2,
+        alpha=0.7,
+        label=label2,
+    )
+
+    plt.xlabel(f"{entity_name.capitalize()} Index", fontsize=18)
+    plt.ylabel(f"{entity_name.capitalize()} Node Degree", fontsize=18)
+    plt.legend()
+
+    if save_path:
+        plt.savefig(save_path, format="png", dpi=300, transparent=True)
+
+    plt.show()
