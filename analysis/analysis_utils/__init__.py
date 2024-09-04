@@ -5,6 +5,8 @@ from .analysis_tools import (
     get_common_entities,
     load_data,
     merge_df,
+)
+from .visual_tools import (
     plot_common_entity_node_degree_distribution,
     plot_common_entity_scatter_distribution,
     plot_density_distribution,
