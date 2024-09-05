@@ -5,6 +5,7 @@ from .analysis_tools import (
     get_common_entities,
     load_data,
     merge_df,
+    nodes_with_m_nbrs,
 )
 from .visual_tools import (
     plot_common_entity_node_degree_distribution,
@@ -28,4 +29,5 @@ __all__ = [
     "plot_violin_distribution",
     "plot_density_distribution",
     "plot_common_entity_scatter_distribution",
+    "nodes_with_m_nbrs",
 ]

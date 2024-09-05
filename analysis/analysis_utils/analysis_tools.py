@@ -1,3 +1,4 @@
+import networkx as nx
 import numpy as np
 import pandas as pd
 
@@ -124,3 +125,12 @@ def calculate_common_node_degree(df1, df2, colname, common_entities):
         common_node_degree.append((entity, node_degree1, node_degree2))
         common_node_degree.sort(key=lambda x: x[1] + x[2], reverse=True)
     return common_node_degree
+
+
+def nodes_with_m_nbrs(graph, m: int):
+    nodes = set()
+    for node in graph.nodes():
+        if len(list(graph.neighbors(node))) == m:
+            nodes.add(node)
+    print(f"Number of nodes with {m} neighbor(s): {len(nodes)}")
+    return nodes
