@@ -4,6 +4,7 @@ from .analysis_tools import (
     find_optimal_threshold,
     get_common_entities,
     load_data,
+    maximal_cliques,
     merge_df,
     nodes_with_m_nbrs,
 )
@@ -30,4 +31,5 @@ __all__ = [
     "plot_density_distribution",
     "plot_common_entity_scatter_distribution",
     "nodes_with_m_nbrs",
+    "maximal_cliques",
 ]

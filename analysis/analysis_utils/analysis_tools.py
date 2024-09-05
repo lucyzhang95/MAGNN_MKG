@@ -134,3 +134,10 @@ def nodes_with_m_nbrs(graph, m: int):
             nodes.add(node)
     print(f"Number of nodes with {m} neighbor(s): {len(nodes)}")
     return nodes
+
+
+def maximal_cliques(graph, size):
+    cliques = list(nx.find_cliques(graph))
+    mcs = [clique for clique in cliques if len(clique) == size]
+    print(f"Number of maximal cliques with size {size}: {len(mcs)}")
+    return mcs
