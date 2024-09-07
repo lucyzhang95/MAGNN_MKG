@@ -7,6 +7,7 @@ from .analysis_tools import (
     maximal_cliques,
     merge_df,
     nodes_with_m_nbrs,
+    generate_subgraph,
 )
 from .visual_tools import (
     plot_common_entity_node_degree_distribution,
@@ -32,4 +33,5 @@ __all__ = [
     "plot_common_entity_scatter_distribution",
     "nodes_with_m_nbrs",
     "maximal_cliques",
+    "generate_subgraph",
 ]

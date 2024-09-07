@@ -1,3 +1,5 @@
+from collections import Counter
+
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -127,17 +129,36 @@ def calculate_common_node_degree(df1, df2, colname, common_entities):
     return common_node_degree
 
 
-def nodes_with_m_nbrs(graph, m: int):
+def nodes_with_m_nbrs(G, m: int):
     nodes = set()
-    for node in graph.nodes():
-        if len(list(graph.neighbors(node))) == m:
+    for node in G.nodes():
+        if len(list(G.neighbors(node))) == m:
             nodes.add(node)
     print(f"Number of nodes with {m} neighbor(s): {len(nodes)}")
     return nodes
 
 
-def maximal_cliques(graph, size):
-    cliques = list(nx.find_cliques(graph))
+def maximal_cliques(G, size):
+    cliques = list(nx.find_cliques(G))
     mcs = [clique for clique in cliques if len(clique) == size]
     print(f"Number of maximal cliques with size {size}: {len(mcs)}")
     return mcs
+
+
+def generate_subgraph(G, nodes: str | list):
+    if isinstance(nodes, str):
+        nodes = [nodes]
+
+    node_list = []
+    for n in list(nodes)[:3]:
+        node_list.append(n)
+        print(f"Node: {n}")
+        for nbr in G.neighbors(n):
+            node_list.append(nbr)
+    subgraph = G.subgraph(node_list)
+
+    type_ct = [subgraph.nodes[n]["type"] for n in subgraph.nodes()]
+    print(f"Node neighbor count: {Counter(type_ct)}")
+    print(f"Total number of nodes: {len(list(subgraph.nodes()))}")
+    print(f"Total number of edges: {len(list(subgraph.edges()))}")
+    return subgraph
