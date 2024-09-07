@@ -146,18 +146,23 @@ def maximal_cliques(G, size):
 
 
 def generate_subgraph(
-    G, nodes: str | list, node_attr: str, cutoff: float = None
+    G,
+    nodes: str | list,
+    node_attr1: str,
+    node_attr2: str,
+    cutoff: float | None,
 ):
     nodes = [nodes] if isinstance(nodes, str) else nodes
 
     node_set = set(nodes)
     for n in nodes:
-        print(f"Node(s): {n}")
+        print(f"Node: {n}")
         for nbr in G.neighbors(n):
-            if cutoff is None or G[n][nbr][node_attr] > cutoff:
+            if cutoff is None or G.nodes[nbr][node_attr2] > cutoff:
                 node_set.add(nbr)
+
     subgraph = G.subgraph(node_set)
-    type_ct = [subgraph.nodes[n][node_attr] for n in subgraph.nodes()]
+    type_ct = [subgraph.nodes[n][node_attr1] for n in subgraph.nodes()]
 
     print(f"Node neighbor count: {Counter(type_ct)}")
     print(f"Total number of nodes: {len(list(subgraph.nodes()))}")
