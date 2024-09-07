@@ -292,5 +292,11 @@ def plot_circos_subgraph(
     G, node_color_by="type", group_by="type", sort_by="centrality"
 ):
     plt.figure(figsize=(15, 15))
-    nv.circos(G, node_enc_kwargs={"radius": 1})
+    nv.circos(
+        G,
+        node_color_by=node_color_by,
+        group_by=group_by,
+        sort_by=sort_by,
+        node_enc_kwargs={"radius": 1},
+    )
     plt.show()
