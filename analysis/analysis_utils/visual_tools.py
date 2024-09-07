@@ -1,6 +1,7 @@
 import math
 
 import matplotlib.pyplot as plt
+import nxviz as nv
 import pandas as pd
 import seaborn as sns
 from matplotlib_venn import venn2, venn3
@@ -284,4 +285,12 @@ def plot_common_entity_scatter_distribution(
     if save_path:
         plt.savefig(save_path, format="png", dpi=300, transparent=True)
 
+    plt.show()
+
+
+def plot_circos_subgraph(
+    G, node_color_by="type", group_by="type", sort_by="centrality"
+):
+    plt.figure(figsize=(15, 15))
+    nv.circos(G, node_enc_kwargs={"radius": 1})
     plt.show()

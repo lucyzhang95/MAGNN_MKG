@@ -16,6 +16,8 @@ from .visual_tools import (
     plot_entity_node_degree_distribution,
     plot_venn_diagram,
     plot_violin_distribution,
+    plot_violin_distribution,
+    plot_circos_subgraph,
 )
 
 __all__ = [
@@ -34,4 +36,5 @@ __all__ = [
     "nodes_with_m_nbrs",
     "maximal_cliques",
     "generate_subgraph",
+    "plot_circos_subgraph",
 ]
