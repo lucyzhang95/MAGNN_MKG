@@ -8,6 +8,7 @@ from .analysis_tools import (
     merge_df,
     nodes_with_m_nbrs,
     generate_subgraph,
+    find_paths_with_cutoff
 )
 from .visual_tools import (
     plot_common_entity_node_degree_distribution,
@@ -37,4 +38,5 @@ __all__ = [
     "maximal_cliques",
     "generate_subgraph",
     "plot_circos_subgraph",
+    "find_paths_with_cutoff"
 ]

@@ -1,3 +1,4 @@
+import random
 from collections import Counter
 
 import networkx as nx
@@ -169,3 +170,60 @@ def generate_subgraph(
     print(f"Total number of edges: {len(list(subgraph.edges()))}")
 
     return subgraph
+
+
+def find_paths_with_cutoff(
+    G, source, cutoff, attr=None, neighbor_sample_size=None
+):
+    """
+    Depth-first search algorithm to find all simple paths with a specified cutoff length.
+    path length is +1 of the cutoff to include the source node
+    e.g., cutoff=3, path_length=4, output: A->B->C->D ([['microbe', 'metabolite', 'microbe', 'metabolite']])
+    Issue is that the function does not consider cyclic relationships.
+    e.g., A->B->C->A is not considered a path of length 4.
+    Another issue is that running time increases exponentially after cutoff=3, path_length=4.
+
+    :param G:
+    :param source:
+    :param cutoff:
+    :param attr:
+    :param neighbor_sample_size:
+    :return:
+    """
+    paths = []
+
+    # Recursive helper function to explore paths
+    def dfs(current_path, current_attr):
+        if len(current_path) == cutoff + 1:  # +1 includes the source node
+            paths.append(current_attr)
+            return
+
+        # Explore the last neighbors of the current path
+        neighbors = list(G.neighbors(current_path[-1]))
+
+        # if the path length is 4 and the cutoff is >= 4
+        # randomly sample the neighbors of the 4th node (about to explore 5th node)
+        if len(current_path) == 4 and cutoff >= 4:
+            neighbors = random.sample(
+                neighbors, min(len(neighbors), neighbor_sample_size)
+            )
+
+        # expand visited node into current path
+        # expand the node type attribute
+        for neighbor in neighbors:
+            if neighbor not in current_path:
+                if attr and attr in G.nodes[neighbor]:
+                    dfs(
+                        current_path + [neighbor],
+                        current_attr + [G.nodes[neighbor][attr]],
+                    )
+                else:
+                    dfs(current_path + [neighbor], current_attr + [None])
+
+    if attr and attr in G.nodes[source]:
+        dfs([source], [G.nodes[source][attr]])
+    else:
+        dfs([source], [None])
+
+    unique_paths = [list(x) for x in set(tuple(p) for p in paths)]
+    return sorted(unique_paths)
