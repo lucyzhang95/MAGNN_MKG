@@ -48,6 +48,19 @@ def export_index2dat(df, out_f):
 def split_date(
     data, train_ratio=0.7, val_ratio=0.2, test_ratio=0.1, random_state=42
 ):
+    """
+    Split data into train, validation, and test sets.
+    The resulting index will start from 0, which will result in off-by-one error
+    Need to be careful when using these sets for downstream application
+    e.g. index before splitting:[index  Microbe_idx Disease_idx], [445825  1049    307]
+    index after splitting:[index  Microbe_idx Disease_idx], [445824  1049    307]
+    :param data:
+    :param train_ratio:
+    :param val_ratio:
+    :param test_ratio:
+    :param random_state:
+    :return:
+    """
     if not np.isclose(train_ratio + val_ratio + test_ratio, 1.0):
         raise ValueError(
             "train_ratio, val_ratio, and test_ratio must sum to 1.0."
