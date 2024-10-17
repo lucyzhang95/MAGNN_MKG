@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import scipy.io
 import scipy.sparse
+from sklearn.model_selection import train_test_split
 
 
 def get_column(in_f, colname1, colname2, col="col1"):
@@ -42,3 +43,35 @@ def map_index_to_relation_file(
 
 def export_index2dat(df, out_f):
     df.to_csv(out_f, sep="\t", header=False, index=False)
+
+
+def split_date(
+    data, train_ratio=0.7, val_ratio=0.2, test_ratio=0.1, random_state=42
+):
+    if not np.isclose(train_ratio + val_ratio + test_ratio, 1.0):
+        raise ValueError(
+            "train_ratio, val_ratio, and test_ratio must sum to 1.0."
+        )
+
+    train_data, temp_data = train_test_split(
+        data, test_size=(1 - train_ratio), random_state=random_state
+    )
+
+    val_size = val_ratio / (val_ratio + test_ratio)
+
+    val_data, test_data = train_test_split(
+        temp_data, test_size=(1 - val_size), random_state=random_state
+    )
+    return (
+        train_data.index.to_numpy(),
+        val_data.index.to_numpy(),
+        test_data.index.to_numpy(),
+    )
+
+
+def save_split_data2npz(train_idx, val_idx, test_idx, out_f):
+    train_idx = np.asarray(train_idx)
+    val_idx = np.asarray(val_idx)
+    test_idx = np.asarray(test_idx)
+
+    np.savez(out_f, train=train_idx, val=val_idx, test=test_idx)
