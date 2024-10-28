@@ -4,8 +4,7 @@ import pickle
 import networkx as nx
 import numpy as np
 import pandas as pd
-import scipy.io
-import scipy.sparse
+import scipy
 from sklearn.model_selection import train_test_split
 
 
@@ -88,3 +87,26 @@ def save_split_data2npz(train_idx, val_idx, test_idx, out_f):
     test_idx = np.asarray(test_idx)
 
     np.savez(out_f, train=train_idx, val=val_idx, test=test_idx)
+
+
+def get_metapath_adjacency_matrix(adjM, type_mask, metapath):
+    """
+    :param M: the raw adjacency matrix
+    :param type_mask: an array of types of all node
+    :param metapath
+    :return: a list of metapath-based adjacency matrices
+    """
+    out_adjM = scipy.sparse.csr_matrix(
+        adjM[np.ix_(type_mask == metapath[0], type_mask == metapath[1])]
+    )
+    for i in range(1, len(metapath) - 1):
+        out_adjM = out_adjM.dot(
+            scipy.sparse.csr_matrix(
+                adjM[
+                    np.ix_(
+                        type_mask == metapath[i], type_mask == metapath[i + 1]
+                    )
+                ]
+            )
+        )
+    return out_adjM.toarray()
