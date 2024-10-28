@@ -99,12 +99,17 @@ def get_metapath_adjacency_matrix(adjM, type_mask, metapath):
     out_adjM = scipy.sparse.csr_matrix(
         adjM[np.ix_(type_mask == metapath[0], type_mask == metapath[1])]
     )
+
+    # multiplication of relational adjM x relational adjM
+    # e.g., metapath = [0, 1, 0], then get the index of 0 and 1, then 1 and 0
+    # adjM[0, 1] * adjM[1, 0]
     for i in range(1, len(metapath) - 1):
         out_adjM = out_adjM.dot(
             scipy.sparse.csr_matrix(
                 adjM[
                     np.ix_(
-                        type_mask == metapath[i], type_mask == metapath[i + 1]
+                        np.where(type_mask == metapath[i])[0],
+                        np.where(type_mask == metapath[i + 1])[0],
                     )
                 ]
             )
