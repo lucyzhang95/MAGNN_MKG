@@ -1,5 +1,4 @@
 import pathlib
-import pickle
 
 import networkx as nx
 import numpy as np
@@ -100,7 +99,7 @@ def get_metapath_adjacency_matrix(adjM, type_mask, metapath):
         adjM[np.ix_(type_mask == metapath[0], type_mask == metapath[1])]
     )
 
-    # multiplication of relational adjM x relational adjM
+    # multiplication of relational adjM x relational adjM (matrix multiplication)
     # e.g., metapath = [0, 1, 0], then get the index of 0 and 1, then 1 and 0
     # adjM[0, 1] * adjM[1, 0]
     for i in range(1, len(metapath) - 1):
@@ -115,3 +114,38 @@ def get_metapath_adjacency_matrix(adjM, type_mask, metapath):
             )
         )
     return out_adjM.toarray()
+
+
+def evaluate_metapath_adjacency_matrix(adjM, type_mask, possible_metapaths):
+    metapath_strengths_l = []
+
+    for metapath in possible_metapaths:
+        metapath_adjM = get_metapath_adjacency_matrix(
+            adjM, type_mask, metapath
+        )
+
+        metapath_adjM_sum = metapath_adjM.sum()
+        max_node_pair = metapath_adjM.max()
+        mean_node_pair = metapath_adjM.mean()
+        density_significance = np.count_nonzero(metapath_adjM) / (
+            metapath_adjM.shape[0] * metapath_adjM.shape[1]
+        )
+
+        non_zero_values = metapath_adjM[metapath_adjM > 0]
+        min_node_pair = non_zero_values.min()
+        non_zero_mean_strength = (
+            non_zero_values.mean() if non_zero_values.size > 0 else 0
+        )
+
+        metapath_strengths = {
+            "metapath": metapath,
+            "sum": metapath_adjM_sum,
+            "max": max_node_pair,
+            "min": min_node_pair,
+            "mean": mean_node_pair,
+            "density": density_significance,
+            "non_zero_mean": non_zero_mean_strength,
+        }
+        metapath_strengths_l.append(metapath_strengths)
+
+    return metapath_strengths_l
