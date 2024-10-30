@@ -1,4 +1,5 @@
 import pathlib
+from itertools import product
 
 import networkx as nx
 import numpy as np
@@ -86,6 +87,18 @@ def save_split_data2npz(train_idx, val_idx, test_idx, out_f):
     test_idx = np.asarray(test_idx)
 
     np.savez(out_f, train=train_idx, val=val_idx, test=test_idx)
+
+
+def generate_paths(length):
+    all_paths = product([0, 1, 2], repeat=length)
+
+    # filter out paths where adjacent numbers are the same
+    valid_paths = [
+        path
+        for path in all_paths
+        if all(path[i] != path[i + 1] for i in range(length - 1))
+    ]
+    return valid_paths
 
 
 def get_metapath_adjacency_matrix(adjM, type_mask, metapath):
