@@ -162,3 +162,49 @@ def evaluate_metapath_adjacency_matrix(adjM, type_mask, possible_metapaths):
         metapath_strengths_l.append(metapath_strengths)
 
     return metapath_strengths_l
+
+
+def validate_expected_metapaths(metapaths, expected_metapaths):
+    """
+    Validate if each sequence of three elements in 'metapaths' exists in 'expected_metapaths'.
+    Returns the original metapaths containing missing triples.
+
+    Parameters:
+    metapaths (list of lists): List of actual metapaths containing paths of length 3 and 5.
+    expected_metapaths (list of tuples): List of expected metapaths containing paths of length 3 and 5.
+
+    Returns:
+    list of lists: Original metapaths from 'metapaths' that contain missing triples.
+    """
+    expected_triple_paths = set()
+
+    for expected_metapath in expected_metapaths:
+        if len(expected_metapath) >= 3:
+            # For paths of length 3 and 5, extract triples
+            for i in range(len(expected_metapath) - 2):
+                expected_triple_paths.add(
+                    (
+                        expected_metapath[i],
+                        expected_metapath[i + 1],
+                        expected_metapath[i + 2],
+                    )
+                )
+
+    metapaths_with_missing_triples = []
+    for metapath in metapaths:
+        if len(metapath) < 3:
+            continue
+
+        triples = [
+            (metapath[i], metapath[i + 1], metapath[i + 2])
+            for i in range(len(metapath) - 2)
+        ]
+
+        # check if any triple in this metapath is missing from expected triples
+        if any(triple not in expected_triple_paths for triple in triples):
+            metapaths_with_missing_triples.append(metapath)
+
+    print(
+        f"Metapath types missing the expected triple combinations are: {metapaths_with_missing_triples}"
+    )
+    return metapaths_with_missing_triples
