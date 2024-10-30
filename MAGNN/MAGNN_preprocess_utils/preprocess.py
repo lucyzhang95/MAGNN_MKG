@@ -211,4 +211,3 @@ def validate_expected_metapaths(metapaths, expected_metapaths):
         return metapaths_with_missing_triples
     else:
         print("Metapath types have all expected triple combinations!")
-    return metapaths_with_missing_triples
