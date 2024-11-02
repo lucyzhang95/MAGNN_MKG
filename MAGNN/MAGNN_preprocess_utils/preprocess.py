@@ -211,3 +211,71 @@ def validate_expected_metapaths(metapaths, expected_metapaths):
         return metapaths_with_missing_triples
     else:
         print("Metapath types have all expected triple combinations!")
+
+
+def get_metapath_neighbor_pairs(M, type_mask, expected_metapaths):
+    """
+    :param M: the raw adjacency matrix
+    :param type_mask: an array of types of all node
+    :param expected_metapaths: a list of expected metapaths
+    :return: a list of python dictionaries, consisting of metapath-based neighbor pairs and intermediate paths
+    """
+    outs = []
+    for metapath in expected_metapaths:
+        # consider the edges of only half of the expected metapath
+        # e.g., for metapath [0, 1, 2], only considers connections between metapath[0] and metapath[1]
+        # e.g., for metapath [0, 1, 2], only considers metapath[0] and metapath[1], metapath[1] and metapath[2]
+        mask = np.zeros(M.shape, dtype=bool)
+        for i in range((len(metapath) - 1) // 2):
+            temp = np.zeros(M.shape, dtype=bool)
+            temp[
+                np.ix_(type_mask == metapath[i], type_mask == metapath[i + 1])
+            ] = True
+            temp[
+                np.ix_(type_mask == metapath[i + 1], type_mask == metapath[i])
+            ] = True
+            mask = np.logical_or(mask, temp)
+        partial_g_nx = nx.from_numpy_array((M * mask).astype(int))
+
+        # only need to consider the former half of the metapath
+        # the latter half is symmetric to the former half
+        # so targeting the neighbor pairs for the former half of the nodes are enough
+        metapath_to_target = {}
+        # e.g., in metapath [0, 1, 2, 1, 0] with type_mask=[0, 0, 1, 1, 1, 1, 2]
+        # source = type_mask[0], so position[0, 1] target = type_mask[2], so position[6]
+        # find all shortest single path from source to target with path length cutoff
+        for source in (type_mask == metapath[0]).nonzero()[0]:
+            for target in (
+                type_mask == metapath[(len(metapath) - 1) // 2]
+            ).nonzero()[0]:
+                # check if there is a possible valid path from source to target node
+                has_path = False
+                single_source_paths = nx.single_source_shortest_path(
+                    partial_g_nx, source, cutoff=(len(metapath) + 1) // 2 - 1
+                )
+                if target in single_source_paths:
+                    has_path = True
+
+                # if nx.has_path(partial_g_nx, source, target):
+                if has_path:
+                    shortests = [
+                        p
+                        for p in nx.all_shortest_paths(
+                            partial_g_nx, source, target
+                        )
+                        if len(p) == (len(metapath) + 1) // 2
+                    ]
+                    if len(shortests) > 0:
+                        metapath_to_target[target] = (
+                            metapath_to_target.get(target, []) + shortests
+                        )
+        metapath_neighbor_pairs = {}
+        for key, value in metapath_to_target.items():
+            for p1 in value:
+                for p2 in value:
+                    metapath_neighbor_pairs[(p1[0], p2[0])] = (
+                        metapath_neighbor_pairs.get((p1[0], p2[0]), [])
+                        + [p1 + p2[-2::-1]]
+                    )
+        outs.append(metapath_neighbor_pairs)
+    return outs
