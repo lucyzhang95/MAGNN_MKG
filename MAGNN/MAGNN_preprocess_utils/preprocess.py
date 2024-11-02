@@ -336,3 +336,37 @@ def get_asymmetric_metapath_neighbor_pairs(M, type_mask, expected_metapaths):
         outs.append(metapath_neighbor_pairs)
 
     return outs
+
+
+def get_networkx_graph(neighbor_pairs, type_mask, ctr_ntype):
+    indices = np.where(type_mask == ctr_ntype)[0]
+    idx_mapping = {}
+    for i, idx in enumerate(indices):
+        idx_mapping[idx] = i
+    G_list = []
+    for metapaths in neighbor_pairs:
+        edge_count = 0
+        sorted_metapaths = sorted(metapaths.items())
+        G = nx.MultiDiGraph()
+        G.add_nodes_from(range(len(indices)))
+        for (src, dst), paths in sorted_metapaths:
+            for _ in range(len(paths)):
+                G.add_edge(idx_mapping[src], idx_mapping[dst])
+                edge_count += 1
+        G_list.append(G)
+    return G_list
+
+
+def get_edge_metapath_idx_array(neighbor_pairs):
+    all_edge_metapath_idx_array = []
+    for metapath_neighbor_pairs in neighbor_pairs:
+        sorted_metapath_neighbor_pairs = sorted(
+            metapath_neighbor_pairs.items()
+        )
+        edge_metapath_idx_array = []
+        for _, paths in sorted_metapath_neighbor_pairs:
+            edge_metapath_idx_array.extend(paths)
+        edge_metapath_idx_array = np.array(edge_metapath_idx_array, dtype=int)
+        all_edge_metapath_idx_array.append(edge_metapath_idx_array)
+        print(edge_metapath_idx_array.shape)
+    return all_edge_metapath_idx_array
