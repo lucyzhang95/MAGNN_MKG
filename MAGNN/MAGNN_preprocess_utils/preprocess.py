@@ -213,8 +213,9 @@ def validate_expected_metapaths(metapaths, expected_metapaths):
         print("Metapath types have all expected triple combinations!")
 
 
-def get_metapath_neighbor_pairs(M, type_mask, expected_metapaths):
+def get_symmetric_metapath_neighbor_pairs(M, type_mask, expected_metapaths):
     """
+    Specifically designed to get immediate neighbor pairs of symmetrical metapath types
     :param M: the raw adjacency matrix
     :param type_mask: an array of types of all node
     :param expected_metapaths: a list of expected metapaths
@@ -243,7 +244,7 @@ def get_metapath_neighbor_pairs(M, type_mask, expected_metapaths):
         metapath_to_target = {}
         # e.g., in metapath [0, 1, 2, 1, 0] with type_mask=[0, 0, 1, 1, 1, 1, 2]
         # source = type_mask[0], so position[0, 1] target = type_mask[2], so position[6]
-        # find all shortest single path from source to target with path length cutoff
+        # find all shortest single path from source to target with path length cutoff (middle way of the path)
         for source in (type_mask == metapath[0]).nonzero()[0]:
             for target in (
                 type_mask == metapath[(len(metapath) - 1) // 2]
@@ -270,7 +271,7 @@ def get_metapath_neighbor_pairs(M, type_mask, expected_metapaths):
                             metapath_to_target.get(target, []) + shortests
                         )
         metapath_neighbor_pairs = {}
-        for key, value in metapath_to_target.items():
+        for _, value in metapath_to_target.items():
             for p1 in value:
                 for p2 in value:
                     metapath_neighbor_pairs[(p1[0], p2[0])] = (
@@ -278,4 +279,60 @@ def get_metapath_neighbor_pairs(M, type_mask, expected_metapaths):
                         + [p1 + p2[-2::-1]]
                     )
         outs.append(metapath_neighbor_pairs)
+    return outs
+
+
+def get_asymmetric_metapath_neighbor_pairs(M, type_mask, expected_metapaths):
+    """
+    :param M: the raw adjacency matrix
+    :param type_mask: an array of types of all nodes
+    :param expected_metapaths: list of metapath sequences to follow
+    :return: a list of dictionaries, each containing metapath-based neighbor pairs for each metapath
+    """
+    outs = []
+    for metapath in expected_metapaths:
+        mask = np.zeros(M.shape, dtype=bool)
+        for i in range(len(metapath) - 1):
+            temp = np.zeros(M.shape, dtype=bool)
+            temp[
+                np.ix_(type_mask == metapath[i], type_mask == metapath[i + 1])
+            ] = True
+            mask = np.logical_or(mask, temp)
+
+        # Construct partial graph from the masked adjacency matrix
+        partial_g_nx = nx.from_numpy_array((M * mask).astype(int))
+
+        metapath_to_target = {}
+        full_length = len(metapath) - 1
+
+        for source in (type_mask == metapath[0]).nonzero()[0]:
+            for target in (type_mask == metapath[-1]).nonzero()[0]:
+                valid_paths = []
+
+                # Find all paths from source to target with cutoff matching metapath length
+                for path in nx.all_simple_paths(
+                    partial_g_nx, source, target, cutoff=full_length
+                ):
+                    # Verify that the path matches the metapath sequence
+                    if len(path) == len(metapath) and all(
+                        type_mask[node] == metapath[i]
+                        for i, node in enumerate(path)
+                    ):
+                        valid_paths.append(path)
+
+                if valid_paths:
+                    metapath_to_target[target] = (
+                        metapath_to_target.get(target, []) + valid_paths
+                    )
+
+        metapath_neighbor_pairs = {}
+        for _, paths in metapath_to_target.items():
+            for p1 in paths:
+                for p2 in paths:
+                    metapath_neighbor_pairs[(p1[0], p2[0])] = (
+                        metapath_neighbor_pairs.get((p1[0], p2[0]), [])
+                        + [p1 + p2[-2::-1]]
+                    )
+        outs.append(metapath_neighbor_pairs)
+
     return outs
