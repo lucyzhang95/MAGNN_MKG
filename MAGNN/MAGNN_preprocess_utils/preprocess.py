@@ -1,6 +1,6 @@
 import pathlib
-from itertools import product
 import pickle
+from itertools import product
 
 import networkx as nx
 import numpy as np
@@ -373,7 +373,15 @@ def get_edge_metapath_idx_array(neighbor_pairs):
     return all_edge_metapath_idx_array
 
 
-def process_and_save_metapath_batches(metapath, edges, batch_size, sort_columns, target_idx_list, offset, save_dir):
+def process_and_save_metapath_batches(
+    metapath,
+    edges,
+    batch_size,
+    sort_columns,
+    target_idx_list,
+    offset,
+    save_dir,
+):
     """
     Processes and saves metapath edges in batches.
 
@@ -390,33 +398,54 @@ def process_and_save_metapath_batches(metapath, edges, batch_size, sort_columns,
 
     # iterate through the data in batches
     for i in range(0, len(edges), batch_size):
-        batch = edges[i:i + batch_size]
+        batch = edges[i : i + batch_size]
 
-        sorted_batch = batch[np.lexsort([batch[:, col] for col in reversed(sort_columns)])]
-        np.save(f"{save_dir}/{'-'.join(map(str, metapath))}_batch_{i // batch_size}.npy", sorted_batch)
+        sorted_batch = batch[
+            np.lexsort([batch[:, col] for col in reversed(sort_columns)])
+        ]
+        np.save(
+            f"{save_dir}/{'-'.join(map(str, metapath))}_batch_{i // batch_size}.npy",
+            sorted_batch,
+        )
 
         left = 0
         right = 0
         target_metapaths_mapping = {}
 
-        with open(f"{save_dir}/{'-'.join(map(str, metapath))}_batch_{i // batch_size}_idx.pickle", 'wb') as out_pickle:
+        with open(
+            f"{save_dir}/{'-'.join(map(str, metapath))}_batch_{i // batch_size}_idx.pickle",
+            "wb",
+        ) as out_pickle:
             for target_idx in target_idx_list:
-                while right < len(sorted_batch) and sorted_batch[right, 0] == target_idx + offset:
+                while (
+                    right < len(sorted_batch)
+                    and sorted_batch[right, 0] == target_idx + offset
+                ):
                     right += 1
-                target_metapaths_mapping[target_idx] = sorted_batch[left:right, ::-1]
+                target_metapaths_mapping[target_idx] = sorted_batch[
+                    left:right, ::-1
+                ]
                 left = right
             pickle.dump(target_metapaths_mapping, out_pickle)
 
-        with open(f"{save_dir}/{'-'.join(map(str, metapath))}_batch_{i // batch_size}.adjlist", 'w') as out_adjlist:
+        with open(
+            f"{save_dir}/{'-'.join(map(str, metapath))}_batch_{i // batch_size}.adjlist",
+            "w",
+        ) as out_adjlist:
             left = 0
             right = 0
             for target_idx in target_idx_list:
-                while right < len(sorted_batch) and sorted_batch[right, 0] == target_idx + offset:
+                while (
+                    right < len(sorted_batch)
+                    and sorted_batch[right, 0] == target_idx + offset
+                ):
                     right += 1
                 neighbors = sorted_batch[left:right, -1] - offset
                 neighbors = list(map(str, neighbors))
                 if neighbors:
-                    out_adjlist.write(f"{target_idx} " + ' '.join(neighbors) + '\n')
+                    out_adjlist.write(
+                        f"{target_idx} " + " ".join(neighbors) + "\n"
+                    )
                 else:
                     out_adjlist.write(f"{target_idx}\n")
                 left = right
