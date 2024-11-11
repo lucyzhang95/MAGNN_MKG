@@ -1,5 +1,6 @@
 import pathlib
 from itertools import product
+import pickle
 
 import networkx as nx
 import numpy as np
@@ -370,3 +371,54 @@ def get_edge_metapath_idx_array(neighbor_pairs):
         all_edge_metapath_idx_array.append(edge_metapath_idx_array)
         print(edge_metapath_idx_array.shape)
     return all_edge_metapath_idx_array
+
+
+def process_and_save_metapath_batches(metapath, edges, batch_size, sort_columns, target_idx_list, offset, save_dir):
+    """
+    Processes and saves metapath edges in batches.
+
+    :param metapath: The current metapath tuple.
+    :param edges: Numpy array of edges for the metapath.
+    :param batch_size: Size of each batch to process.
+    :param sort_columns: Tuple specifying column order for sorting.
+    :param target_idx_list: Target indices for this metapath type.
+    :param offset: Offset to adjust index in adjacency list.
+    :param save_dir: Directory where results will be saved.
+    """
+    # make sure the directory exists
+    pathlib.Path(save_dir).mkdir(parents=True, exist_ok=True)
+
+    # iterate through the data in batches
+    for i in range(0, len(edges), batch_size):
+        batch = edges[i:i + batch_size]
+
+        sorted_batch = batch[np.lexsort([batch[:, col] for col in reversed(sort_columns)])]
+        np.save(f"{save_dir}/{'-'.join(map(str, metapath))}_batch_{i // batch_size}.npy", sorted_batch)
+
+        left = 0
+        right = 0
+        target_metapaths_mapping = {}
+
+        with open(f"{save_dir}/{'-'.join(map(str, metapath))}_batch_{i // batch_size}_idx.pickle", 'wb') as out_pickle:
+            for target_idx in target_idx_list:
+                while right < len(sorted_batch) and sorted_batch[right, 0] == target_idx + offset:
+                    right += 1
+                target_metapaths_mapping[target_idx] = sorted_batch[left:right, ::-1]
+                left = right
+            pickle.dump(target_metapaths_mapping, out_pickle)
+
+        with open(f"{save_dir}/{'-'.join(map(str, metapath))}_batch_{i // batch_size}.adjlist", 'w') as out_adjlist:
+            left = 0
+            right = 0
+            for target_idx in target_idx_list:
+                while right < len(sorted_batch) and sorted_batch[right, 0] == target_idx + offset:
+                    right += 1
+                neighbors = sorted_batch[left:right, -1] - offset
+                neighbors = list(map(str, neighbors))
+                if neighbors:
+                    out_adjlist.write(f"{target_idx} " + ' '.join(neighbors) + '\n')
+                else:
+                    out_adjlist.write(f"{target_idx}\n")
+                left = right
+
+        del sorted_batch, batch
