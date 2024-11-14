@@ -1,6 +1,7 @@
 import numpy as np
 from memory_profiler import profile
 
+# generate random datasets for testing
 num_microbe = 70
 num_disease = 20
 num_metabolite = 10
