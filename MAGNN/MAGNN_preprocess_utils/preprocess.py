@@ -1,7 +1,9 @@
+import gc
 import pathlib
 import pickle
 from itertools import product
 
+import compress_pickle
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -479,81 +481,94 @@ def lexicographical_sort(array, sort_columns: list):
     return array[np.lexsort([array[:, col] for col in reversed(sort_columns)])]
 
 
-def process_and_save_metapath_batches(
+def process_single_metapath_in_batches_compressed(
+    save_prefix,
     metapath,
-    edges,
-    batch_size,
-    sort_columns,
+    metapath_idx_array,
     target_idx_list,
     offset,
-    save_dir,
+    batch_size,
 ):
     """
-    Processes and saves metapath edges in batches.
+    process and save a single metapath in batches using compressed pickle format.
 
-    :param metapath: The current metapath tuple.
-    :param edges: Numpy array of edges for the metapath.
-    :param batch_size: Size of each batch to process.
-    :param sort_columns: Tuple specifying column order for sorting.
-    :param target_idx_list: Target indices for this metapath type.
-    :param offset: Offset to adjust index in adjacency list.
-    :param save_dir: Directory where results will be saved.
+    - save_prefix: Directory prefix for saving the outputs.
+    - metapath: The current metapath tuple.
+    - metapath_idx_array: Array of indices corresponding to the metapath.
+    - target_idx_list: List of target indices for the current metapath.
+    - offset: Offset value for indexing adjustments.
+    - batch_size: Number of target indices to process per batch.
     """
-    # make sure the directory exists
-    pathlib.Path(save_dir).mkdir(parents=True, exist_ok=True)
+    # create directory for the metapath if it doesn't exist
+    pathlib.Path(save_prefix).mkdir(parents=True, exist_ok=True)
+    # file path for saving the output
+    file_name = save_prefix + "-".join(map(str, metapath)) + "_idx.gz"
 
-    # iterate through the data in batches
-    for i in range(0, len(edges), batch_size):
-        batch = edges[i : i + batch_size]
-
-        sorted_batch = batch[
-            np.lexsort([batch[:, col] for col in reversed(sort_columns)])
-        ]
-        np.save(
-            f"{save_dir}/{'-'.join(map(str, metapath))}_batch_{i // batch_size}.npy",
-            sorted_batch,
+    full_target_metapaths_mapping = {}
+    for batch_start in range(0, len(target_idx_list), batch_size):
+        batch_end = min(batch_start + batch_size, len(target_idx_list))
+        batch_target_idx_list = target_idx_list[batch_start:batch_end]
+        print(
+            f"Processing batch: {batch_start}-{batch_end} for metapath {metapath}"
         )
 
+        batch_mapping = {}
         left = 0
         right = 0
-        target_metapaths_mapping = {}
 
-        with open(
-            f"{save_dir}/{'-'.join(map(str, metapath))}_batch_{i // batch_size}_idx.pickle",
-            "wb",
-        ) as out_pickle:
-            for target_idx in target_idx_list:
-                while (
-                    right < len(sorted_batch)
-                    and sorted_batch[right, 0] == target_idx + offset
-                ):
-                    right += 1
-                target_metapaths_mapping[target_idx] = sorted_batch[
-                    left:right, ::-1
-                ]
-                left = right
-            pickle.dump(target_metapaths_mapping, out_pickle)
+        for target_idx in batch_target_idx_list:
+            while (
+                right < len(metapath_idx_array)
+                and metapath_idx_array[right, 0] == target_idx + offset
+            ):
+                right += 1
+            batch_mapping[target_idx] = metapath_idx_array[left:right, ::-1]
+            left = right
+        full_target_metapaths_mapping.update(batch_mapping)
 
-        with open(
-            f"{save_dir}/{'-'.join(map(str, metapath))}_batch_{i // batch_size}.adjlist",
-            "w",
-        ) as out_adjlist:
-            left = 0
-            right = 0
-            for target_idx in target_idx_list:
-                while (
-                    right < len(sorted_batch)
-                    and sorted_batch[right, 0] == target_idx + offset
-                ):
-                    right += 1
-                neighbors = sorted_batch[left:right, -1] - offset
-                neighbors = list(map(str, neighbors))
-                if neighbors:
-                    out_adjlist.write(
-                        f"{target_idx} " + " ".join(neighbors) + "\n"
-                    )
-                else:
-                    out_adjlist.write(f"{target_idx}\n")
-                left = right
+        del batch_mapping
+        gc.collect()
 
-        del sorted_batch, batch
+    compress_pickle.dump(
+        full_target_metapaths_mapping, file_name, compression="gzip"
+    )
+
+    del full_target_metapaths_mapping
+    gc.collect()
+
+
+def process_metapaths_with_compressed_batches(
+    save_prefix,
+    expected_metapaths,
+    metapath_indices_mapping,
+    target_idx_lists,
+    offset_list,
+    batch_size,
+):
+    """
+    Process all metapaths in batches and save using compressed pickle format.
+
+    - save_prefix: Directory prefix for saving the outputs.
+    - expected_metapaths: List of tuples representing metapath types.
+    - metapath_indices_mapping: Dictionary mapping metapath types to their corresponding data arrays.
+    - target_idx_lists: List of arrays containing target indices for each metapath type.
+    - offset_list: List of offset values for indexing adjustments.
+    - batch_size: Number of target indices to process per batch.
+    """
+    for i, metapaths in enumerate(expected_metapaths):
+        for metapath in [metapaths]:
+            print(f"Processing metapath: {metapath}")
+
+            metapath_idx_array = metapath_indices_mapping[metapath]
+            target_idx_list = target_idx_lists[i]
+            offset = offset_list[i]
+
+            process_single_metapath_in_batches_compressed(
+                save_prefix=save_prefix + "{}".format(i) + "/",
+                metapath=metapath,
+                metapath_idx_array=metapath_idx_array,
+                target_idx_list=target_idx_list,
+                offset=offset,
+                batch_size=batch_size,
+            )
+            print(f"Completed metapath: {metapath}")
