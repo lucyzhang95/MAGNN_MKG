@@ -373,6 +373,112 @@ def get_edge_metapath_idx_array(neighbor_pairs):
     return all_edge_metapath_idx_array
 
 
+def generate_triplet_array(relationship_dict, dtype=np.int16):
+    """
+    Generates a triplet array based on the relationship dictionary.
+    :param relationship_dict: A dictionary where keys represent the middle entity
+    e.g., disease, metabolite) and values are lists of entities related to the key (e.g., microbes, diseases)
+    :param dtype: The data type of the resulting numpy array. Default is np.int16.
+
+    :return np.ndarray: An array of triplets (entity1, key_entity, entity2).
+    """
+    return np.array(
+        [
+            (entity1, key_entity, entity2)
+            for key_entity, entity_list in relationship_dict.items()
+            for i, entity1 in enumerate(entity_list)
+            for entity2 in entity_list[i + 1 :]
+        ],
+        dtype=dtype,
+    )
+
+
+def generate_long_relationship_array(
+    relational_list: dict,
+    intermediate_triplet: list,
+    num_offset1=0,
+    num_offset2=0,
+    scaling_factor=0.2,
+    dtype=np.int16,
+):
+    """
+    Generalized function to generate arrays of relationships using a single relational list.
+
+    :param relational_list: Mapping of entities to their relationships.
+    :param intermediate_triplet: List of tuples representing intermediate triplets.
+    :param num_offset1: int offset for entities in the relational list. Default is 0.
+                        Offset is determined by interm_entity1 and 3 type mask. microbe entity has no offset.
+    :param num_offset2: int offset to apply when generating the second set of sampled indices. Default is 0.
+                        e.g., when f_entity and e_entity are not microbe, then need to apply offset.
+                        Offset is determined by f_entity and e_entity type mask. microbe entity has no offset.
+    :param scaling_factor: Proportion of relationships to sample.
+    :param dtype: Data type for the output array.
+
+    :return np.array: An array of relationships.
+    """
+    metapath_array = np.array(
+        [
+            (
+                f_entity,
+                interm_entity1,
+                interm_entity2,
+                interm_entity3,
+                e_entity,
+            )
+            for interm_entity1, interm_entity2, interm_entity3 in intermediate_triplet
+            if relational_list.get(interm_entity1 - num_offset1) is not None
+            and relational_list.get(interm_entity3 - num_offset1) is not None
+            if len(relational_list[interm_entity1 - num_offset1]) > 0
+            and len(relational_list[interm_entity3 - num_offset1]) > 0
+            for f_entity in (
+                relational_list[interm_entity1 - num_offset1][
+                    np.random.choice(
+                        len(relational_list[interm_entity1 - num_offset1]),
+                        int(
+                            scaling_factor
+                            * len(
+                                relational_list[interm_entity1 - num_offset1]
+                            )
+                        ),
+                        replace=False,
+                    )
+                ]
+                + num_offset2
+            )
+            for e_entity in (
+                relational_list[interm_entity3 - num_offset1][
+                    np.random.choice(
+                        len(relational_list[interm_entity3 - num_offset1]),
+                        int(
+                            scaling_factor
+                            * len(
+                                relational_list[interm_entity3 - num_offset1]
+                            )
+                        ),
+                        replace=False,
+                    )
+                ]
+                + num_offset2
+            )
+        ],
+        dtype=dtype,
+    )
+    return metapath_array
+
+
+def lexicographical_sort(array, sort_columns: list):
+    """
+    Lexicographically sorts a numpy array based on specified columns.
+
+    :param array: Input numpy array to be sorted.
+    :param sort_columns: List of column int indices to sort by in priority order.
+           Sorting is performed starting from the last column in the list.
+
+    :return np.ndarray: A lexicographically sorted array.
+    """
+    return array[np.lexsort([array[:, col] for col in reversed(sort_columns)])]
+
+
 def process_and_save_metapath_batches(
     metapath,
     edges,
@@ -451,107 +557,3 @@ def process_and_save_metapath_batches(
                 left = right
 
         del sorted_batch, batch
-
-
-def generate_triplet_array(relationship_dict, dtype=np.int16):
-    """
-    Generates a triplet array based on the relationship dictionary.
-    :param relationship_dict: A dictionary where keys represent the middle entity
-    e.g., disease, metabolite) and values are lists of entities related to the key (e.g., microbes, diseases)
-    :param dtype: The data type of the resulting numpy array. Default is np.int16.
-
-    :return np.ndarray: An array of triplets (entity1, key_entity, entity2).
-    """
-    return np.array(
-        [
-            (entity1, key_entity, entity2)
-            for key_entity, entity_list in relationship_dict.items()
-            for i, entity1 in enumerate(entity_list)
-            for entity2 in entity_list[i + 1 :]
-        ],
-        dtype=dtype,
-    )
-
-
-def generate_long_relationship_array(
-    relational_list: dict,
-    intermediate_triplet: list,
-    num_offset1=0,
-    num_offset2=0,
-    scaling_factor=0.2,
-    dtype=np.int16,
-):
-    """
-    Generalized function to generate arrays of relationships using a single relational list.
-
-    :param relational_list: Mapping of entities to their relationships.
-    :param intermediate_triplet: List of tuples representing intermediate triplets.
-    :param num_offset1: int offset for entities in the relational list. Default is 0.
-    :param num_offset2: int offset to apply when generating the second set of sampled indices. Default is 0.
-                        e.g., when f_entity and e_entity are not microbe, then need to apply offset.
-    :param scaling_factor: Proportion of relationships to sample.
-    :param dtype: Data type for the output array.
-
-    :return np.array: An array of relationships.
-    """
-    metapath_array = np.array(
-        [
-            (
-                f_entity,
-                interm_entity1,
-                interm_entity2,
-                interm_entity3,
-                e_entity,
-            )
-            for interm_entity1, interm_entity2, interm_entity3 in intermediate_triplet
-            if relational_list.get(interm_entity1 - num_offset1) is not None
-            and relational_list.get(interm_entity3 - num_offset1) is not None
-            if len(relational_list[interm_entity1 - num_offset1]) > 0
-            and len(relational_list[interm_entity3 - num_offset1]) > 0
-            for f_entity in (
-                relational_list[interm_entity1 - num_offset1][
-                    np.random.choice(
-                        len(relational_list[interm_entity1 - num_offset1]),
-                        int(
-                            scaling_factor
-                            * len(
-                                relational_list[interm_entity1 - num_offset1]
-                            )
-                        ),
-                        replace=False,
-                    )
-                ]
-                + num_offset2
-            )
-            for e_entity in (
-                relational_list[interm_entity3 - num_offset1][
-                    np.random.choice(
-                        len(relational_list[interm_entity3 - num_offset1]),
-                        int(
-                            scaling_factor
-                            * len(
-                                relational_list[interm_entity3 - num_offset1]
-                            )
-                        ),
-                        replace=False,
-                    )
-                ]
-                + num_offset2
-            )
-        ],
-        dtype=dtype,
-    )
-    return metapath_array
-
-
-def lexicographical_sort(array, sort_columns: list):
-    """
-    Lexicographically sorts a numpy array based on specified columns.
-
-    :param array: Input numpy array to be sorted.
-    :param sort_columns: List of column int indices to sort by in priority order.
-           Sorting is performed starting from the last column in the list.
-
-    :return np.ndarray: A lexicographically sorted array.
-    """
-    return array[np.lexsort([array[:, col] for col in reversed(sort_columns)])]
