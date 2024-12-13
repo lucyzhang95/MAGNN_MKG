@@ -530,3 +530,21 @@ def process_single_metapath_in_batches_to_single_file(
         cp.dump(metapaths_mapping, file_path, compression=compression)
 
         del batch_target_indices
+
+
+def load_compressed_pickle(file_path, compression="gzip"):
+    """
+    Load a compressed pickle file.
+
+    - file_path (str): Path to the compressed pickle file.
+    - compression (str): Compression type ('gzip', 'bz2', 'lzma'). Default is 'gzip'.
+
+    Returns:
+    - Loaded data from the pickle file.
+    """
+    try:
+        data = cp.load(file_path, compression=compression)
+        return data
+    except Exception as e:
+        print(f"Error loading file {file_path}: {e}")
+        return None
