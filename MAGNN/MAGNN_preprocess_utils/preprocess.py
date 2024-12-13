@@ -487,7 +487,7 @@ def process_single_metapath_in_batches_to_single_file(
     offset,
     save_prefix,
     group_index,
-    batch_size=100000,
+    batch_size=1000,
     compression="gzip",
 ):
     """
@@ -508,8 +508,10 @@ def process_single_metapath_in_batches_to_single_file(
     file_path = save_dir + "-".join(map(str, metapath_type)) + "_idx.pkl"
 
     if os.path.exists(file_path):
+        print(f"Loading existing file: {file_path}")
         metapaths_mapping = cp.load(file_path, compression=compression)
     else:
+        print(f"Initializing new file: {file_path}")
         metapaths_mapping = {}
 
     left = 0
@@ -517,18 +519,28 @@ def process_single_metapath_in_batches_to_single_file(
     for start_idx in range(0, len(target_idx_list), batch_size):
         end_idx = min(start_idx + batch_size, len(target_idx_list))
         batch_target_indices = target_idx_list[start_idx:end_idx]
+        print(f"Processing batch {start_idx} to {end_idx}...")
 
+        batch_mapping = {}
         for target_idx in batch_target_indices:
             while (
                 right < len(metapath_array)
                 and metapath_array[right, 0] == target_idx + offset
             ):
                 right += 1
-            metapaths_mapping[target_idx] = metapath_array[left:right, ::-1]
+            batch_mapping[target_idx] = metapath_array[left:right, ::-1]
             left = right
 
-        cp.dump(metapaths_mapping, file_path, compression=compression)
+        metapaths_mapping.update(batch_mapping)
+        try:
+            print(f"Saving updated mappings to {file_path}...")
+            cp.dump(metapaths_mapping, file_path, compression=compression)
+            print(f"Batch {start_idx}-{end_idx} saved successfully")
+        except Exception as e:
+            print(f"Failed to save batch {start_idx}-{end_idx}: {e}")
+            raise
 
+        del batch_mapping
         del batch_target_indices
 
 
