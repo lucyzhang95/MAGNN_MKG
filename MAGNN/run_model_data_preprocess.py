@@ -7,7 +7,8 @@ from MAGNN_preprocess_utils.preprocess import (
     generate_long_relationship_array,
     generate_triplet_array,
     lexicographical_sort,
-    process_and_save_metapath_idx_adjlist_in_batches,
+    process_and_save_adjlist_in_batches,
+    process_and_save_metapath_idx_in_batches,
     save_split_data2npz,
     split_date,
 )
@@ -161,7 +162,15 @@ microbe_disease_microbe = lexicographical_sort(
 )
 
 # save 0-1-0 in batches
-process_and_save_metapath_idx_adjlist_in_batches(
+process_and_save_metapath_idx_in_batches(
+    metapath_type=(0, 1, 0),
+    metapath_array=microbe_disease_microbe,
+    target_idx_list=np.arange(num_microbe),
+    offset=0,
+    save_prefix=save_prefix,
+    group_index=0,
+)
+process_and_save_adjlist_in_batches(
     metapath_type=(0, 1, 0),
     metapath_array=microbe_disease_microbe,
     target_idx_list=np.arange(num_microbe),
@@ -176,13 +185,20 @@ meta_micro_d_micro_meta = generate_long_relationship_array(
     intermediate_triplet=microbe_disease_microbe,
     num_offset2=(num_microbe + num_disease),
 )
-
 meta_micro_d_micro_meta = lexicographical_sort(
     meta_micro_d_micro_meta, [0, 2, 1, 3, 4]
 )
 
 # save 2-0-1-0-2 in batches
-process_and_save_metapath_idx_adjlist_in_batches(
+process_and_save_metapath_idx_in_batches(
+    metapath_type=(2, 0, 1, 0, 2),
+    metapath_array=meta_micro_d_micro_meta,
+    target_idx_list=np.arange(num_metabolite),
+    offset=num_microbe + num_disease,
+    save_prefix=save_prefix,
+    group_index=2,
+)
+process_and_save_adjlist_in_batches(
     metapath_type=(2, 0, 1, 0, 2),
     metapath_array=meta_micro_d_micro_meta,
     target_idx_list=np.arange(num_metabolite),
@@ -202,7 +218,15 @@ microbe_metabolite_microbe = lexicographical_sort(
 )
 
 # save 0-2-0 in batches
-process_and_save_metapath_idx_adjlist_in_batches(
+process_and_save_metapath_idx_in_batches(
+    metapath_type=(0, 2, 0),
+    metapath_array=microbe_metabolite_microbe,
+    target_idx_list=np.arange(num_microbe),
+    offset=0,
+    save_prefix=save_prefix,
+    group_index=0,
+)
+process_and_save_adjlist_in_batches(
     metapath_type=(0, 2, 0),
     metapath_array=microbe_metabolite_microbe,
     target_idx_list=np.arange(num_microbe),
@@ -217,13 +241,20 @@ d_micro_meta_micro_d = generate_long_relationship_array(
     intermediate_triplet=microbe_metabolite_microbe,
     num_offset2=num_microbe,
 )
-
 d_micro_meta_micro_d = lexicographical_sort(
     d_micro_meta_micro_d, [0, 2, 1, 3, 4]
 )
 
 # save 1-0-2-0-1 in batches
-process_and_save_metapath_idx_adjlist_in_batches(
+process_and_save_metapath_idx_in_batches(
+    metapath_type=(1, 0, 2, 0, 1),
+    metapath_array=d_micro_meta_micro_d,
+    target_idx_list=np.arange(num_disease),
+    offset=num_microbe,
+    save_prefix=save_prefix,
+    group_index=1,
+)
+process_and_save_adjlist_in_batches(
     metapath_type=(1, 0, 2, 0, 1),
     metapath_array=d_micro_meta_micro_d,
     target_idx_list=np.arange(num_disease),
@@ -244,7 +275,15 @@ disease_metabolite_disease = lexicographical_sort(
 )
 
 # save 1-2-1 in batches
-process_and_save_metapath_idx_adjlist_in_batches(
+process_and_save_metapath_idx_in_batches(
+    metapath_type=(1, 2, 1),
+    metapath_array=disease_metabolite_disease,
+    target_idx_list=np.arange(num_disease),
+    offset=num_microbe,
+    save_prefix=save_prefix,
+    group_index=1,
+)
+process_and_save_adjlist_in_batches(
     metapath_type=(1, 2, 1),
     metapath_array=disease_metabolite_disease,
     target_idx_list=np.arange(num_disease),
@@ -259,13 +298,20 @@ micro_d_meta_d_micro = generate_long_relationship_array(
     intermediate_triplet=disease_metabolite_disease,
     num_offset1=num_microbe,
 )
-
 micro_d_meta_d_micro = lexicographical_sort(
     micro_d_meta_d_micro, [0, 2, 1, 3, 4]
 )
 
 # save 0-1-2-1-0 in batches
-process_and_save_metapath_idx_adjlist_in_batches(
+process_and_save_metapath_idx_in_batches(
+    metapath_type=(0, 1, 2, 1, 0),
+    metapath_array=micro_d_meta_d_micro,
+    target_idx_list=np.arange(num_microbe),
+    offset=0,
+    save_prefix=save_prefix,
+    group_index=0,
+)
+process_and_save_adjlist_in_batches(
     metapath_type=(0, 1, 2, 1, 0),
     metapath_array=micro_d_meta_d_micro,
     target_idx_list=np.arange(num_microbe),
@@ -286,7 +332,15 @@ metabolite_disease_metabolite = lexicographical_sort(
 )
 
 # save 2-1-2 in batches
-process_and_save_metapath_idx_adjlist_in_batches(
+process_and_save_metapath_idx_in_batches(
+    metapath_type=(2, 1, 2),
+    metapath_array=metabolite_disease_metabolite,
+    target_idx_list=np.arange(num_metabolite),
+    offset=num_microbe + num_disease,
+    save_prefix=save_prefix,
+    group_index=2,
+)
+process_and_save_adjlist_in_batches(
     metapath_type=(2, 1, 2),
     metapath_array=metabolite_disease_metabolite,
     target_idx_list=np.arange(num_metabolite),
@@ -301,13 +355,20 @@ micro_meta_d_meta_micro = generate_long_relationship_array(
     intermediate_triplet=metabolite_disease_metabolite,
     num_offset1=(num_microbe + num_disease),
 )
-
 micro_meta_d_meta_micro = lexicographical_sort(
     micro_meta_d_meta_micro, [0, 2, 1, 3, 4]
 )
 
 # save 0-2-1-2-0 in batches
-process_and_save_metapath_idx_adjlist_in_batches(
+process_and_save_metapath_idx_in_batches(
+    metapath_type=(0, 2, 1, 2, 0),
+    metapath_array=micro_meta_d_meta_micro,
+    target_idx_list=np.arange(num_microbe),
+    offset=0,
+    save_prefix=save_prefix,
+    group_index=0,
+)
+process_and_save_adjlist_in_batches(
     metapath_type=(0, 2, 1, 2, 0),
     metapath_array=micro_meta_d_meta_micro,
     target_idx_list=np.arange(num_microbe),
@@ -327,7 +388,15 @@ disease_microbe_disease = lexicographical_sort(
 )
 
 # save 1-0-1 in batches
-process_and_save_metapath_idx_adjlist_in_batches(
+process_and_save_metapath_idx_in_batches(
+    metapath_type=(1, 0, 1),
+    metapath_array=disease_microbe_disease,
+    target_idx_list=np.arange(num_disease),
+    offset=num_microbe,
+    save_prefix=save_prefix,
+    group_index=1,
+)
+process_and_save_adjlist_in_batches(
     metapath_type=(1, 0, 1),
     metapath_array=disease_microbe_disease,
     target_idx_list=np.arange(num_disease),
@@ -343,13 +412,20 @@ meta_d_micro_d_meta = generate_long_relationship_array(
     num_offset1=num_microbe,
     num_offset2=(num_microbe + num_disease),
 )
-
 meta_d_micro_d_meta = lexicographical_sort(
     meta_d_micro_d_meta, [0, 2, 1, 3, 4]
 )
 
 # save 2-1-0-1-2 in batches
-process_and_save_metapath_idx_adjlist_in_batches(
+process_and_save_metapath_idx_in_batches(
+    metapath_type=(2, 1, 0, 1, 2),
+    metapath_array=meta_d_micro_d_meta,
+    target_idx_list=np.arange(num_metabolite),
+    offset=num_microbe + num_disease,
+    save_prefix=save_prefix,
+    group_index=2,
+)
+process_and_save_adjlist_in_batches(
     metapath_type=(2, 1, 0, 1, 2),
     metapath_array=meta_d_micro_d_meta,
     target_idx_list=np.arange(num_metabolite),
@@ -369,7 +445,15 @@ metabolite_microbe_metabolite = lexicographical_sort(
 )
 
 # save 2-0-2 in batches
-process_and_save_metapath_idx_adjlist_in_batches(
+process_and_save_metapath_idx_in_batches(
+    metapath_type=(2, 0, 2),
+    metapath_array=metabolite_microbe_metabolite,
+    target_idx_list=np.arange(num_metabolite),
+    offset=num_microbe + num_disease,
+    save_prefix=save_prefix,
+    group_index=2,
+)
+process_and_save_adjlist_in_batches(
     metapath_type=(2, 0, 2),
     metapath_array=metabolite_microbe_metabolite,
     target_idx_list=np.arange(num_metabolite),
@@ -385,13 +469,20 @@ d_meta_micro_meta_d = generate_long_relationship_array(
     num_offset1=(num_microbe + num_disease),
     num_offset2=num_microbe,
 )
-
 d_meta_micro_meta_d = lexicographical_sort(
     d_meta_micro_meta_d, [0, 2, 1, 3, 4]
 )
 
 # save 1-2-0-2-1 in batches
-process_and_save_metapath_idx_adjlist_in_batches(
+process_and_save_metapath_idx_in_batches(
+    metapath_type=(1, 2, 0, 2, 1),
+    metapath_array=d_meta_micro_meta_d,
+    target_idx_list=np.arange(num_disease),
+    offset=num_microbe,
+    save_prefix=save_prefix,
+    group_index=1,
+)
+process_and_save_adjlist_in_batches(
     metapath_type=(1, 2, 0, 2, 1),
     metapath_array=d_meta_micro_meta_d,
     target_idx_list=np.arange(num_disease),
