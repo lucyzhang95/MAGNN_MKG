@@ -480,7 +480,7 @@ def lexicographical_sort(array, sort_columns: list):
     return array[np.lexsort([array[:, col] for col in reversed(sort_columns)])]
 
 
-def process_and_save_metapath_idx_adjlist_in_batches(
+def process_and_save_metapath_idx_in_batches(
     metapath_type,
     metapath_array,
     target_idx_list,
@@ -489,11 +489,9 @@ def process_and_save_metapath_idx_adjlist_in_batches(
     group_index,
     batch_size=1000,
     compression="gzip",
-    process_idx=True,
-    process_adjlist=True,
 ):
     """
-    Process metapath into idx and adjlist files in batches, using pickle compression.
+    Process a single metapath type in batches, append mappings to a single compressed pickle file.
 
     :param metapath_type: tuple, the metapath type (e.g., (0, 1, 0)).
     :param metapath_array: numpy array, the pre-processed array representing the metapath edges.
@@ -503,33 +501,17 @@ def process_and_save_metapath_idx_adjlist_in_batches(
     :param group_index: int, index of the current metapath group for directory organization.
     :param batch_size: int, number of target indices to process in each batch.
     :param compression: str, compression method (e.g., 'gzip', 'bz2', 'lzma').
-    :param process_idx: bool, whether to process and save the idx file.
-    :param process_adjlist: bool, whether to process and save the adjlist file.
     """
     save_dir = save_prefix + "{}/".format(group_index)
     pathlib.Path(save_dir).mkdir(parents=True, exist_ok=True)
-    idx_file_path = save_dir + "-".join(map(str, metapath_type)) + "_idx.pkl"
-    adjlist_file_path = (
-        save_dir + "-".join(map(str, metapath_type)) + "_adjlist.pkl"
-    )
+    file_path = save_dir + "-".join(map(str, metapath_type)) + "_idx.pkl"
 
-    if process_idx:
-        if os.path.exists(idx_file_path):
-            print(f"Loading existing idx file: {idx_file_path}")
-            metapaths_mapping = cp.load(idx_file_path, compression=compression)
-        else:
-            print(f"Initializing new idx file: {idx_file_path}")
-            metapaths_mapping = {}
-
-    if process_adjlist:
-        if os.path.exists(adjlist_file_path):
-            print(f"Loading existing adjlist file: {adjlist_file_path}")
-            adjlist_mapping = cp.load(
-                adjlist_file_path, compression=compression
-            )
-        else:
-            print(f"Initializing new adjlist file: {adjlist_file_path}")
-            adjlist_mapping = {}
+    if os.path.exists(file_path):
+        print(f"Loading existing file: {file_path}")
+        metapaths_mapping = cp.load(file_path, compression=compression)
+    else:
+        print(f"Initializing new file: {file_path}")
+        metapaths_mapping = {}
 
     left = 0
     right = 0
@@ -538,65 +520,94 @@ def process_and_save_metapath_idx_adjlist_in_batches(
         batch_target_indices = target_idx_list[start_idx:end_idx]
         print(f"Processing batch {start_idx} to {end_idx}...")
 
-        if process_idx:
-            batch_mapping = {}
-            for target_idx in batch_target_indices:
-                while (
-                    right < len(metapath_array)
-                    and metapath_array[right, 0] == target_idx + offset
-                ):
-                    right += 1
-                batch_mapping[target_idx.astype(np.int16)] = metapath_array[
-                    left:right, ::-1
-                ]
-                left = right
+        batch_mapping = {}
+        for target_idx in batch_target_indices:
+            while (
+                right < len(metapath_array)
+                and metapath_array[right, 0] == target_idx + offset
+            ):
+                right += 1
+            batch_mapping[target_idx] = metapath_array[left:right, ::-1]
+            left = right
 
-            metapaths_mapping.update(batch_mapping)
-            try:
-                print(f"Saving updated idx mappings to {idx_file_path}...")
-                cp.dump(
-                    metapaths_mapping, idx_file_path, compression=compression
-                )
-                print(
-                    f"Batch {start_idx}-{end_idx} saved successfully for idx"
-                )
-            except Exception as e:
-                print(f"Failed to save idx batch {start_idx}-{end_idx}: {e}")
-                raise
+        metapaths_mapping.update(batch_mapping)
+        try:
+            print(f"Saving updated mappings to {file_path}...")
+            cp.dump(metapaths_mapping, file_path, compression=compression)
+            print(f"Batch {start_idx}-{end_idx} saved successfully")
+        except Exception as e:
+            print(f"Failed to save batch {start_idx}-{end_idx}: {e}")
+            raise
 
-            del batch_mapping
+        del batch_mapping
+        del batch_target_indices
 
-        if process_adjlist:
-            batch_adjlist = {}
-            for target_idx in batch_target_indices:
-                while (
-                    right < len(metapath_array)
-                    and metapath_array[right, 0] == target_idx + offset
-                ):
-                    right += 1
-                neighbors = metapath_array[left:right, -1] - offset
-                batch_adjlist[target_idx.astype(np.int16)] = neighbors.tolist()
-                left = right
 
-            adjlist_mapping.update(batch_adjlist)
-            try:
-                print(
-                    f"Saving updated adjlist mappings to {adjlist_file_path}..."
-                )
-                cp.dump(
-                    adjlist_mapping, adjlist_file_path, compression=compression
-                )
-                print(
-                    f"Batch {start_idx}-{end_idx} saved successfully for adjlist"
-                )
-            except Exception as e:
-                print(
-                    f"Failed to save adjlist batch {start_idx}-{end_idx}: {e}"
-                )
-                raise
+def process_and_save_adjlist_in_batches(
+    metapath_type,
+    metapath_array,
+    target_idx_list,
+    offset,
+    save_prefix,
+    group_index,
+    batch_size=1000,
+    compression="gzip",
+):
+    """
+    Process a single metapath type in batches, append adjacency list mappings to a single compressed pickle file.
 
-            del batch_adjlist
+    :param metapath_type: tuple, the metapath type (e.g., (0, 1, 0)).
+    :param metapath_array: numpy array, the pre-processed array representing the metapath edges.
+    :param target_idx_list: numpy array, the indices of the targets to process.
+    :param offset: int, the offset to add to the target indices.
+    :param save_prefix: str, path prefix for saving the output files.
+    :param group_index: int, index of the current metapath group for directory organization.
+    :param batch_size: int, number of target indices to process in each batch.
+    :param compression: str, compression method (e.g., 'gzip', 'bz2', 'lzma').
+    """
+    save_dir = save_prefix + "{}/".format(group_index)
+    pathlib.Path(save_dir).mkdir(parents=True, exist_ok=True)
+    file_path = save_dir + "-".join(map(str, metapath_type)) + "_adjlist.pkl"
 
+    if pathlib.Path(file_path).exists():
+        print(f"Loading existing adjlist file: {file_path}")
+        adjlist_mapping = cp.load(file_path, compression=compression)
+    else:
+        print(f"Initializing new adjlist file: {file_path}")
+        adjlist_mapping = {}
+
+    left = 0
+    right = 0
+    for start_idx in range(0, len(target_idx_list), batch_size):
+        end_idx = min(start_idx + batch_size, len(target_idx_list))
+        batch_target_indices = target_idx_list[start_idx:end_idx]
+        print(f"Processing batch {start_idx} to {end_idx}...")
+
+        batch_adjlist = {}
+        for target_idx in batch_target_indices:
+            while (
+                right < len(metapath_array)
+                and metapath_array[right, 0] == target_idx + offset
+            ):
+                right += 1
+
+            neighbors = metapath_array[left:right, -1] - offset
+            batch_adjlist[target_idx] = neighbors.tolist()
+
+            left = right
+
+        adjlist_mapping.update(batch_adjlist)
+        try:
+            print(f"Saving updated adjlist mappings to {file_path}...")
+            cp.dump(adjlist_mapping, file_path, compression=compression)
+            print(
+                f"Batch {start_idx}-{end_idx} saved successfully for adjlist"
+            )
+        except Exception as e:
+            print(f"Failed to save adjlist batch {start_idx}-{end_idx}: {e}")
+            raise
+
+        del batch_adjlist
         del batch_target_indices
 
 
