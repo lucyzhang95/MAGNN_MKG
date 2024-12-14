@@ -1,3 +1,4 @@
+import pathlib
 import time
 
 import numpy as np
@@ -6,7 +7,7 @@ from MAGNN_preprocess_utils.preprocess import (
     generate_long_relationship_array,
     generate_triplet_array,
     lexicographical_sort,
-    process_single_metapath_in_batches_to_single_file,
+    process_and_save_metapath_idx_adjlist_in_batches,
     save_split_data2npz,
     split_date,
 )
@@ -160,7 +161,7 @@ microbe_disease_microbe = lexicographical_sort(
 )
 
 # save 0-1-0 in batches
-process_single_metapath_in_batches_to_single_file(
+process_and_save_metapath_idx_adjlist_in_batches(
     metapath_type=(0, 1, 0),
     metapath_array=microbe_disease_microbe,
     target_idx_list=np.arange(num_microbe),
@@ -181,7 +182,7 @@ meta_micro_d_micro_meta = lexicographical_sort(
 )
 
 # save 2-0-1-0-2 in batches
-process_single_metapath_in_batches_to_single_file(
+process_and_save_metapath_idx_adjlist_in_batches(
     metapath_type=(2, 0, 1, 0, 2),
     metapath_array=meta_micro_d_micro_meta,
     target_idx_list=np.arange(num_metabolite),
@@ -201,7 +202,7 @@ microbe_metabolite_microbe = lexicographical_sort(
 )
 
 # save 0-2-0 in batches
-process_single_metapath_in_batches_to_single_file(
+process_and_save_metapath_idx_adjlist_in_batches(
     metapath_type=(0, 2, 0),
     metapath_array=microbe_metabolite_microbe,
     target_idx_list=np.arange(num_microbe),
@@ -222,7 +223,7 @@ d_micro_meta_micro_d = lexicographical_sort(
 )
 
 # save 1-0-2-0-1 in batches
-process_single_metapath_in_batches_to_single_file(
+process_and_save_metapath_idx_adjlist_in_batches(
     metapath_type=(1, 0, 2, 0, 1),
     metapath_array=d_micro_meta_micro_d,
     target_idx_list=np.arange(num_disease),
@@ -243,7 +244,7 @@ disease_metabolite_disease = lexicographical_sort(
 )
 
 # save 1-2-1 in batches
-process_single_metapath_in_batches_to_single_file(
+process_and_save_metapath_idx_adjlist_in_batches(
     metapath_type=(1, 2, 1),
     metapath_array=disease_metabolite_disease,
     target_idx_list=np.arange(num_disease),
@@ -264,7 +265,7 @@ micro_d_meta_d_micro = lexicographical_sort(
 )
 
 # save 0-1-2-1-0 in batches
-process_single_metapath_in_batches_to_single_file(
+process_and_save_metapath_idx_adjlist_in_batches(
     metapath_type=(0, 1, 2, 1, 0),
     metapath_array=micro_d_meta_d_micro,
     target_idx_list=np.arange(num_microbe),
@@ -285,7 +286,7 @@ metabolite_disease_metabolite = lexicographical_sort(
 )
 
 # save 2-1-2 in batches
-process_single_metapath_in_batches_to_single_file(
+process_and_save_metapath_idx_adjlist_in_batches(
     metapath_type=(2, 1, 2),
     metapath_array=metabolite_disease_metabolite,
     target_idx_list=np.arange(num_metabolite),
@@ -306,7 +307,7 @@ micro_meta_d_meta_micro = lexicographical_sort(
 )
 
 # save 0-2-1-2-0 in batches
-process_single_metapath_in_batches_to_single_file(
+process_and_save_metapath_idx_adjlist_in_batches(
     metapath_type=(0, 2, 1, 2, 0),
     metapath_array=micro_meta_d_meta_micro,
     target_idx_list=np.arange(num_microbe),
@@ -326,7 +327,7 @@ disease_microbe_disease = lexicographical_sort(
 )
 
 # save 1-0-1 in batches
-process_single_metapath_in_batches_to_single_file(
+process_and_save_metapath_idx_adjlist_in_batches(
     metapath_type=(1, 0, 1),
     metapath_array=disease_microbe_disease,
     target_idx_list=np.arange(num_disease),
@@ -348,7 +349,7 @@ meta_d_micro_d_meta = lexicographical_sort(
 )
 
 # save 2-1-0-1-2 in batches
-process_single_metapath_in_batches_to_single_file(
+process_and_save_metapath_idx_adjlist_in_batches(
     metapath_type=(2, 1, 0, 1, 2),
     metapath_array=meta_d_micro_d_meta,
     target_idx_list=np.arange(num_metabolite),
@@ -368,7 +369,7 @@ metabolite_microbe_metabolite = lexicographical_sort(
 )
 
 # save 2-0-2 in batches
-process_single_metapath_in_batches_to_single_file(
+process_and_save_metapath_idx_adjlist_in_batches(
     metapath_type=(2, 0, 2),
     metapath_array=metabolite_microbe_metabolite,
     target_idx_list=np.arange(num_metabolite),
@@ -390,7 +391,7 @@ d_meta_micro_meta_d = lexicographical_sort(
 )
 
 # save 1-2-0-2-1 in batches
-process_single_metapath_in_batches_to_single_file(
+process_and_save_metapath_idx_adjlist_in_batches(
     metapath_type=(1, 2, 0, 2, 1),
     metapath_array=d_meta_micro_meta_d,
     target_idx_list=np.arange(num_disease),
@@ -420,6 +421,8 @@ np.save(save_prefix + "microbe_disease.npy", microbe_disease)
 # output positive and negative samples for training, validation and testing
 np.random.seed(453289)
 save_prefix = "data/preprocessed/microbe_disease_neg_pos_processed/"
+pathlib.Path(save_prefix).mkdir(parents=True, exist_ok=True)
+
 num_microbe = 8202
 num_disease = 898
 microbe_disease = np.load("data/preprocessed/microbe_disease.npy")
