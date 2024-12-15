@@ -3,7 +3,7 @@ import time
 
 import numpy as np
 import pandas as pd
-from MAGNN_preprocess_utils.preprocess import (
+from MAGNN_utils.preprocess import (
     generate_long_relationship_array,
     generate_triplet_array,
     lexicographical_sort,
