@@ -109,69 +109,6 @@ def parse_adjlist(
     return edges, result_indices, len(nodes), mapping
 
 
-def parse_minibatch_LastFM(
-    adjlists_ua,
-    edge_metapath_indices_list_ua,
-    user_artist_batch,
-    device,
-    samples=None,
-    use_masks=None,
-    offset=None,
-):
-    g_lists = [[], []]
-    result_indices_lists = [[], []]
-    idx_batch_mapped_lists = [[], []]
-    for mode, (adjlists, edge_metapath_indices_list) in enumerate(
-        zip(adjlists_ua, edge_metapath_indices_list_ua)
-    ):
-        for adjlist, indices, use_mask in zip(
-            adjlists, edge_metapath_indices_list, use_masks[mode]
-        ):
-            if use_mask:
-                edges, result_indices, num_nodes, mapping = parse_adjlist(
-                    [adjlist[row[mode]] for row in user_artist_batch],
-                    [indices[row[mode]] for row in user_artist_batch],
-                    samples,
-                    user_artist_batch,
-                    offset,
-                    mode,
-                )
-            else:
-                edges, result_indices, num_nodes, mapping = parse_adjlist(
-                    [adjlist[row[mode]] for row in user_artist_batch],
-                    [indices[row[mode]] for row in user_artist_batch],
-                    samples,
-                    offset=offset,
-                    mode=mode,
-                )
-
-            g = dgl.DGLGraph(multigraph=True)
-            g.add_nodes(num_nodes)
-            if len(edges) > 0:
-                sorted_index = sorted(
-                    range(len(edges)), key=lambda i: edges[i]
-                )
-                g.add_edges(
-                    *list(
-                        zip(
-                            *[(edges[i][1], edges[i][0]) for i in sorted_index]
-                        )
-                    )
-                )
-                result_indices = torch.LongTensor(
-                    result_indices[sorted_index]
-                ).to(device)
-            else:
-                result_indices = torch.LongTensor(result_indices).to(device)
-            g_lists[mode].append(g)
-            result_indices_lists[mode].append(result_indices)
-            idx_batch_mapped_lists[mode].append(
-                np.array([mapping[row[mode]] for row in user_artist_batch])
-            )
-
-    return g_lists, result_indices_lists, idx_batch_mapped_lists
-
-
 def parse_minibatch(
     adjlists_ua,
     edge_metapath_indices_list_ua,

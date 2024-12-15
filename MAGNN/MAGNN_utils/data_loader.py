@@ -4,7 +4,7 @@ import numpy as np
 import scipy
 
 
-def load_LastFM_data(prefix="data/preprocessed/LastFM_processed"):
+def load_preprocessed_data(prefix="data/preprocessed/"):
     in_file = open(prefix + "/0/0-1-0.adjlist", "r")
     adjlist00 = [line.strip() for line in in_file]
     adjlist00 = adjlist00
