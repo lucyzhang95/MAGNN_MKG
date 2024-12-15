@@ -1,0 +1,1 @@
+from .MAGNN_lp import MAGNN_lp
