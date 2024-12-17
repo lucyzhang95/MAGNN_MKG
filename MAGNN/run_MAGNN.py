@@ -68,7 +68,10 @@ def run_model(
         train_val_test_pos_microbe_disease,
         train_val_test_neg_microbe_disease,
     ) = load_preprocessed_data()
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    # device setup
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     features_list = []
     in_dims = []
     if feats_type == 0:
@@ -89,6 +92,7 @@ def run_model(
             num_nodes = (type_mask == i).sum()
             in_dims.append(dim)
             features_list.append(torch.zeros((num_nodes, 10)).to(device))
+
     # TODO: after run the model, need to change the name of train_val_test_pos_microbe_disease["train_pos_user_artist"]
     train_pos_microbe_disease = train_val_test_pos_microbe_disease[
         "train_pos_user_artist"
@@ -115,6 +119,7 @@ def run_model(
 
     auc_list = []
     ap_list = []
+
     for _ in range(repeat):
         net = MAGNN_lp(
             [4, 4, 4],
@@ -128,7 +133,15 @@ def run_model(
             rnn_type,
             dropout_rate,
         )
+
+        # wrap the model for multi-GPU support
+        if torch.cuda.device_count() > 1:
+            print(f"Using {torch.cuda.device_count()} GPUs for training.")
+            net = torch.nn.DataParallel(net)
+        # move model to gpu
         net.to(device)
+
+        # use Adam optimizer
         optimizer = torch.optim.Adam(
             net.parameters(), lr=lr, weight_decay=weight_decay
         )
