@@ -51,7 +51,7 @@ def parse_adjlist(
                     neighbors = row_parsed[1:]
                     result_indices.append(indices)
             else:
-                # undersampling frequent neighbors
+                # under sampling frequent neighbors
                 unique, counts = np.unique(row_parsed[1:], return_counts=True)
                 p = []
                 for count in counts:
