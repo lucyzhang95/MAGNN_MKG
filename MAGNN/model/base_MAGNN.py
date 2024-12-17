@@ -50,6 +50,8 @@ class MAGNN_metapath_specific(nn.Module):
 
         # node-level attention
         # attention considers the center node embedding or not
+        # for symmetric edge types, ensure attention considers both directions equally
+        # TODO: can also try to use self-attention for each node type in the future
         if self.attn_switch:
             self.attn1 = nn.Linear(out_dim, num_heads, bias=False)
             self.attn2 = nn.Parameter(
