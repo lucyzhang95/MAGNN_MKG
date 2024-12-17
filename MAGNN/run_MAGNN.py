@@ -1,4 +1,5 @@
 import argparse
+import pathlib
 import time
 
 import numpy as np
@@ -15,14 +16,34 @@ num_ntype = 3
 dropout_rate = 0.5
 lr = 0.005
 weight_decay = 0.001
-etypes_lists = [[[0, 1], [0, 2, 3, 1], [None]], [[1, 0], [2, 3], [1, None, 0]]]
-use_masks = [[True, True, False], [True, False, True]]
+etypes_lists = [
+    [
+        [0, 1],
+        [0, 2, 3, 1],
+        [4, 5],
+        [4, 3, 2, 5],
+        [1, 0],
+        [1, 4, 5, 0],
+        [2, 5, 4, 3],
+        [2, 3],
+        [5, 4],
+        [5, 0, 1, 4],
+        [3, 1, 0, 2],
+        [3, 2],
+    ]
+]
+use_masks = [
+    [True, True, False, False],
+    [True, True, False, False],
+    [False, True, True, False],
+]
 no_masks = [[False] * 3, [False] * 3]
-num_user = 1892
-num_artist = 17632
+num_microbe = 8202
+num_disease = 898
 expected_metapaths = [
-    [(0, 1, 0), (0, 1, 2, 1, 0), (0, 0)],
-    [(1, 0, 1), (1, 2, 1), (1, 0, 0, 1)],
+    [(0, 1, 0), (0, 1, 2, 1, 0), (0, 2, 0), (0, 2, 1, 2, 0)],
+    [(1, 0, 1), (1, 0, 2, 0, 1), (1, 2, 0, 2, 1), (1, 2, 1)],
+    [(2, 0, 2), (2, 0, 1, 0, 2), (2, 1, 0, 1, 2), (2, 1, 2)],
 ]
 
 
@@ -40,12 +61,12 @@ def run_model(
     save_postfix,
 ):
     (
-        adjlists_ua,
-        edge_metapath_indices_list_ua,
+        adjlists_microdis,
+        edge_metapath_indices_list_microdis,
         _,
         type_mask,
-        train_val_test_pos_user_artist,
-        train_val_test_neg_user_artist,
+        train_val_test_pos_microbe_disease,
+        train_val_test_neg_microbe_disease,
     ) = load_preprocessed_data()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     features_list = []
@@ -58,7 +79,7 @@ def run_model(
             indices = torch.LongTensor(indices)
             values = torch.FloatTensor(np.ones(dim))
             features_list.append(
-                torch.sparse.FloatTensor(
+                torch.sparse_coo_tensor(
                     indices, values, torch.Size([dim, dim])
                 ).to(device)
             )
@@ -68,30 +89,36 @@ def run_model(
             num_nodes = (type_mask == i).sum()
             in_dims.append(dim)
             features_list.append(torch.zeros((num_nodes, 10)).to(device))
-    train_pos_user_artist = train_val_test_pos_user_artist[
+    # TODO: after run the model, need to change the name of train_val_test_pos_microbe_disease["train_pos_user_artist"]
+    train_pos_microbe_disease = train_val_test_pos_microbe_disease[
         "train_pos_user_artist"
     ]
-    val_pos_user_artist = train_val_test_pos_user_artist["val_pos_user_artist"]
-    test_pos_user_artist = train_val_test_pos_user_artist[
+    val_pos_microbe_disease = train_val_test_pos_microbe_disease[
+        "val_pos_user_artist"
+    ]
+    test_pos_microbe_disease = train_val_test_pos_microbe_disease[
         "test_pos_user_artist"
     ]
-    train_neg_user_artist = train_val_test_neg_user_artist[
+    train_neg_microbe_disease = train_val_test_neg_microbe_disease[
         "train_neg_user_artist"
     ]
-    val_neg_user_artist = train_val_test_neg_user_artist["val_neg_user_artist"]
-    test_neg_user_artist = train_val_test_neg_user_artist[
+    val_neg_microbe_disease = train_val_test_neg_microbe_disease[
+        "val_neg_user_artist"
+    ]
+    test_neg_microbe_disease = train_val_test_neg_microbe_disease[
         "test_neg_user_artist"
     ]
     y_true_test = np.array(
-        [1] * len(test_pos_user_artist) + [0] * len(test_neg_user_artist)
+        [1] * len(test_pos_microbe_disease)
+        + [0] * len(test_neg_microbe_disease)
     )
 
     auc_list = []
     ap_list = []
     for _ in range(repeat):
         net = MAGNN_lp(
-            [3, 3],
-            4,
+            [4, 4, 4],
+            6,
             etypes_lists,
             in_dims,
             hidden_dim,
@@ -108,24 +135,27 @@ def run_model(
 
         # training loop
         net.train()
+        pathlib.Path("checkpoint/").mkdir(parents=True, exist_ok=True)
+
         early_stopping = EarlyStopping(
             patience=patience,
             verbose=True,
             save_path="checkpoint/checkpoint_{}.pt".format(save_postfix),
         )
-        dur1 = []
-        dur2 = []
-        dur3 = []
+
+        dur1, dur2, dur3 = [], [], []
         train_pos_idx_generator = IndexGenerator(
-            batch_size=batch_size, num_data=len(train_pos_user_artist)
+            batch_size=batch_size, num_data=len(train_pos_microbe_disease)
         )
         val_idx_generator = IndexGenerator(
             batch_size=batch_size,
-            num_data=len(val_pos_user_artist),
+            num_data=len(val_pos_microbe_disease),
             shuffle=False,
         )
+
         for epoch in range(num_epochs):
             t_start = time.time()
+
             # training
             net.train()
             for iteration in range(train_pos_idx_generator.num_iterations()):
@@ -134,14 +164,14 @@ def run_model(
 
                 train_pos_idx_batch = train_pos_idx_generator.next()
                 train_pos_idx_batch.sort()
-                train_pos_user_artist_batch = train_pos_user_artist[
+                train_pos_microbe_disease_batch = train_pos_microbe_disease[
                     train_pos_idx_batch
                 ].tolist()
                 train_neg_idx_batch = np.random.choice(
-                    len(train_neg_user_artist), len(train_pos_idx_batch)
+                    len(train_neg_microbe_disease), len(train_pos_idx_batch)
                 )
                 train_neg_idx_batch.sort()
-                train_neg_user_artist_batch = train_neg_user_artist[
+                train_neg_microbe_disease_batch = train_neg_microbe_disease[
                     train_neg_idx_batch
                 ].tolist()
 
@@ -150,32 +180,35 @@ def run_model(
                     train_pos_indices_lists,
                     train_pos_idx_batch_mapped_lists,
                 ) = parse_minibatch(
-                    adjlists_ua,
-                    edge_metapath_indices_list_ua,
-                    train_pos_user_artist_batch,
+                    adjlists_microdis,
+                    edge_metapath_indices_list_microdis,
+                    train_pos_microbe_disease_batch,
                     device,
                     neighbor_samples,
                     use_masks,
-                    num_user,
+                    num_microbe,
                 )
                 (
                     train_neg_g_lists,
                     train_neg_indices_lists,
                     train_neg_idx_batch_mapped_lists,
                 ) = parse_minibatch(
-                    adjlists_ua,
-                    edge_metapath_indices_list_ua,
-                    train_neg_user_artist_batch,
+                    adjlists_microdis,
+                    edge_metapath_indices_list_microdis,
+                    train_neg_microbe_disease_batch,
                     device,
                     neighbor_samples,
                     no_masks,
-                    num_user,
+                    num_microbe,
                 )
 
                 t1 = time.time()
                 dur1.append(t1 - t0)
 
-                [pos_embedding_user, pos_embedding_artist], _ = net(
+                # embedding extraction for pos and neg samples
+                # with bilinear matching and loss computation
+                # using binary cross-entropy loss with logits
+                [pos_embedding_microbe, pos_embedding_disease], _ = net(
                     (
                         train_pos_g_lists,
                         features_list,
@@ -184,7 +217,7 @@ def run_model(
                         train_pos_idx_batch_mapped_lists,
                     )
                 )
-                [neg_embedding_user, neg_embedding_artist], _ = net(
+                [neg_embedding_microbe, neg_embedding_disease], _ = net(
                     (
                         train_neg_g_lists,
                         features_list,
@@ -193,20 +226,27 @@ def run_model(
                         train_neg_idx_batch_mapped_lists,
                     )
                 )
-                pos_embedding_user = pos_embedding_user.view(
-                    -1, 1, pos_embedding_user.shape[1]
+
+                pos_embedding_microbe = pos_embedding_microbe.view(
+                    -1, 1, pos_embedding_microbe.shape[1]
                 )
-                pos_embedding_artist = pos_embedding_artist.view(
-                    -1, pos_embedding_artist.shape[1], 1
+                pos_embedding_disease = pos_embedding_disease.view(
+                    -1, pos_embedding_disease.shape[1], 1
                 )
-                neg_embedding_user = neg_embedding_user.view(
-                    -1, 1, neg_embedding_user.shape[1]
+                neg_embedding_microbe = neg_embedding_microbe.view(
+                    -1, 1, neg_embedding_microbe.shape[1]
                 )
-                neg_embedding_artist = neg_embedding_artist.view(
-                    -1, neg_embedding_artist.shape[1], 1
+                neg_embedding_disease = neg_embedding_disease.view(
+                    -1, neg_embedding_disease.shape[1], 1
                 )
-                pos_out = torch.bmm(pos_embedding_user, pos_embedding_artist)
-                neg_out = -torch.bmm(neg_embedding_user, neg_embedding_artist)
+
+                pos_out = torch.bmm(
+                    pos_embedding_microbe, pos_embedding_disease
+                )
+                neg_out = -torch.bmm(
+                    neg_embedding_microbe, neg_embedding_disease
+                )
+
                 train_loss = -torch.mean(
                     F.logsigmoid(pos_out) + F.logsigmoid(neg_out)
                 )
@@ -225,7 +265,7 @@ def run_model(
                 # print training info
                 if iteration % 100 == 0:
                     print(
-                        "Epoch {:05d} | Iteration {:05d} | Train_Loss {:.4f} | Time1(s) {:.4f} | Time2(s) {:.4f} | Time3(s) {:.4f}".format(
+                        "*Training: Epoch {:05d} | Iteration {:05d} | Train_Loss {:.4f} | Time1(s) {:.4f} | Time2(s) {:.4f} | Time3(s) {:.4f}".format(
                             epoch,
                             iteration,
                             train_loss.item(),
@@ -234,6 +274,7 @@ def run_model(
                             np.mean(dur3),
                         )
                     )
+
             # validation
             net.eval()
             val_loss = []
@@ -241,40 +282,41 @@ def run_model(
                 for iteration in range(val_idx_generator.num_iterations()):
                     # forward
                     val_idx_batch = val_idx_generator.next()
-                    val_pos_user_artist_batch = val_pos_user_artist[
+                    val_pos_microbe_disease_batch = val_pos_microbe_disease[
                         val_idx_batch
                     ].tolist()
-                    val_neg_user_artist_batch = val_neg_user_artist[
+                    val_neg_microbe_disease_batch = val_neg_microbe_disease[
                         val_idx_batch
                     ].tolist()
+
                     (
                         val_pos_g_lists,
                         val_pos_indices_lists,
                         val_pos_idx_batch_mapped_lists,
                     ) = parse_minibatch(
-                        adjlists_ua,
-                        edge_metapath_indices_list_ua,
-                        val_pos_user_artist_batch,
+                        adjlists_microdis,
+                        edge_metapath_indices_list_microdis,
+                        val_pos_microbe_disease_batch,
                         device,
                         neighbor_samples,
                         no_masks,
-                        num_user,
+                        num_microbe,
                     )
                     (
                         val_neg_g_lists,
                         val_neg_indices_lists,
                         val_neg_idx_batch_mapped_lists,
                     ) = parse_minibatch(
-                        adjlists_ua,
-                        edge_metapath_indices_list_ua,
-                        val_neg_user_artist_batch,
+                        adjlists_microdis,
+                        edge_metapath_indices_list_microdis,
+                        val_neg_microbe_disease_batch,
                         device,
                         neighbor_samples,
                         no_masks,
-                        num_user,
+                        num_microbe,
                     )
 
-                    [pos_embedding_user, pos_embedding_artist], _ = net(
+                    [pos_embedding_microbe, pos_embedding_disease], _ = net(
                         (
                             val_pos_g_lists,
                             features_list,
@@ -283,7 +325,7 @@ def run_model(
                             val_pos_idx_batch_mapped_lists,
                         )
                     )
-                    [neg_embedding_user, neg_embedding_artist], _ = net(
+                    [neg_embedding_microbe, neg_embedding_disease], _ = net(
                         (
                             val_neg_g_lists,
                             features_list,
@@ -292,38 +334,43 @@ def run_model(
                             val_neg_idx_batch_mapped_lists,
                         )
                     )
-                    pos_embedding_user = pos_embedding_user.view(
-                        -1, 1, pos_embedding_user.shape[1]
+
+                    pos_embedding_microbe = pos_embedding_microbe.view(
+                        -1, 1, pos_embedding_microbe.shape[1]
                     )
-                    pos_embedding_artist = pos_embedding_artist.view(
-                        -1, pos_embedding_artist.shape[1], 1
+                    pos_embedding_disease = pos_embedding_disease.view(
+                        -1, pos_embedding_disease.shape[1], 1
                     )
-                    neg_embedding_user = neg_embedding_user.view(
-                        -1, 1, neg_embedding_user.shape[1]
+                    neg_embedding_microbe = neg_embedding_microbe.view(
+                        -1, 1, neg_embedding_microbe.shape[1]
                     )
-                    neg_embedding_artist = neg_embedding_artist.view(
-                        -1, neg_embedding_artist.shape[1], 1
+                    neg_embedding_disease = neg_embedding_disease.view(
+                        -1, neg_embedding_disease.shape[1], 1
                     )
 
                     pos_out = torch.bmm(
-                        pos_embedding_user, pos_embedding_artist
+                        pos_embedding_microbe, pos_embedding_disease
                     )
                     neg_out = -torch.bmm(
-                        neg_embedding_user, neg_embedding_artist
+                        neg_embedding_microbe, neg_embedding_disease
                     )
+
                     val_loss.append(
                         -torch.mean(
                             F.logsigmoid(pos_out) + F.logsigmoid(neg_out)
                         )
                     )
                 val_loss = torch.mean(torch.tensor(val_loss))
+
             t_end = time.time()
+
             # print validation info
             print(
-                "Epoch {:05d} | Val_Loss {:.4f} | Time(s) {:.4f}".format(
+                "#Validation: Epoch {:05d} | Val_Loss {:.4f} | Time(s) {:.4f}".format(
                     epoch, val_loss.item(), t_end - t_start
                 )
             )
+
             # early stopping
             early_stopping(val_loss, net)
             if early_stopping.early_stop:
@@ -332,7 +379,7 @@ def run_model(
 
         test_idx_generator = IndexGenerator(
             batch_size=batch_size,
-            num_data=len(test_pos_user_artist),
+            num_data=len(test_pos_microbe_disease),
             shuffle=False,
         )
         net.load_state_dict(
@@ -345,40 +392,42 @@ def run_model(
             for iteration in range(test_idx_generator.num_iterations()):
                 # forward
                 test_idx_batch = test_idx_generator.next()
-                test_pos_user_artist_batch = test_pos_user_artist[
+                test_pos_user_artist_batch = test_pos_microbe_disease[
                     test_idx_batch
                 ].tolist()
-                test_neg_user_artist_batch = test_neg_user_artist[
+                test_neg_user_artist_batch = test_neg_microbe_disease[
                     test_idx_batch
                 ].tolist()
+
                 (
                     test_pos_g_lists,
                     test_pos_indices_lists,
                     test_pos_idx_batch_mapped_lists,
                 ) = parse_minibatch(
-                    adjlists_ua,
-                    edge_metapath_indices_list_ua,
+                    adjlists_microdis,
+                    edge_metapath_indices_list_microdis,
                     test_pos_user_artist_batch,
                     device,
                     neighbor_samples,
                     no_masks,
-                    num_user,
+                    num_microbe,
                 )
+
                 (
                     test_neg_g_lists,
                     test_neg_indices_lists,
                     test_neg_idx_batch_mapped_lists,
                 ) = parse_minibatch(
-                    adjlists_ua,
-                    edge_metapath_indices_list_ua,
+                    adjlists_microdis,
+                    edge_metapath_indices_list_microdis,
                     test_neg_user_artist_batch,
                     device,
                     neighbor_samples,
                     no_masks,
-                    num_user,
+                    num_microbe,
                 )
 
-                [pos_embedding_user, pos_embedding_artist], _ = net(
+                [pos_embedding_microbe, pos_embedding_disease], _ = net(
                     (
                         test_pos_g_lists,
                         features_list,
@@ -387,7 +436,8 @@ def run_model(
                         test_pos_idx_batch_mapped_lists,
                     )
                 )
-                [neg_embedding_user, neg_embedding_artist], _ = net(
+
+                [neg_embedding_microbe, neg_embedding_disease], _ = net(
                     (
                         test_neg_g_lists,
                         features_list,
@@ -396,27 +446,31 @@ def run_model(
                         test_neg_idx_batch_mapped_lists,
                     )
                 )
-                pos_embedding_user = pos_embedding_user.view(
-                    -1, 1, pos_embedding_user.shape[1]
+
+                pos_embedding_microbe = pos_embedding_microbe.view(
+                    -1, 1, pos_embedding_microbe.shape[1]
                 )
-                pos_embedding_artist = pos_embedding_artist.view(
-                    -1, pos_embedding_artist.shape[1], 1
+                pos_embedding_disease = pos_embedding_disease.view(
+                    -1, pos_embedding_disease.shape[1], 1
                 )
-                neg_embedding_user = neg_embedding_user.view(
-                    -1, 1, neg_embedding_user.shape[1]
+
+                neg_embedding_microbe = neg_embedding_microbe.view(
+                    -1, 1, neg_embedding_microbe.shape[1]
                 )
-                neg_embedding_artist = neg_embedding_artist.view(
-                    -1, neg_embedding_artist.shape[1], 1
+                neg_embedding_disease = neg_embedding_disease.view(
+                    -1, neg_embedding_disease.shape[1], 1
                 )
 
                 pos_out = torch.bmm(
-                    pos_embedding_user, pos_embedding_artist
+                    pos_embedding_microbe, pos_embedding_disease
                 ).flatten()
                 neg_out = torch.bmm(
-                    neg_embedding_user, neg_embedding_artist
+                    neg_embedding_microbe, neg_embedding_disease
                 ).flatten()
+
                 pos_proba_list.append(torch.sigmoid(pos_out))
                 neg_proba_list.append(torch.sigmoid(neg_out))
+
             y_proba_test = torch.cat(pos_proba_list + neg_proba_list)
             y_proba_test = y_proba_test.cpu().numpy()
         auc = roc_auc_score(y_true_test, y_proba_test)
@@ -500,8 +554,8 @@ if __name__ == "__main__":
     )
     ap.add_argument(
         "--save-postfix",
-        default="LastFM",
-        help="Postfix for the saved model and result. Default is LastFM.",
+        default="MKG_MicroD",
+        help="Postfix for the saved model and result. Default is MKG_MicroD.",
     )
 
     args = ap.parse_args()
