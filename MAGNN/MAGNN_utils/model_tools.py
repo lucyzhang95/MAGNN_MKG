@@ -15,7 +15,7 @@ def parse_adjlist(
     nodes = set()
     result_indices = []
     for row, indices in zip(adjlist, edge_metapath_indices):
-        row_parsed = list(map(np.int16, row.split(" ")))
+        row_parsed = list(map(np.int16, row))
         nodes.add(row_parsed[0])
         if len(row_parsed) > 1:
             # sampling neighbors
@@ -122,9 +122,9 @@ def parse_minibatch(
     use_masks=None,
     offset=None,
 ):
-    g_lists = [[], []]
-    result_indices_lists = [[], []]
-    idx_batch_mapped_lists = [[], []]
+    g_lists = [[], []]  # list of graphs for two modes
+    result_indices_lists = [[], []]  # edge indices for each mode
+    idx_batch_mapped_lists = [[], []]  # mapped indices for nodes
     for mode, (adjlists, edge_metapath_indices_list) in enumerate(
         zip(adjlists_microdis, edge_metapath_indices_list_microdis)
     ):
