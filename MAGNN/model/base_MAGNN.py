@@ -96,6 +96,8 @@ class MAGNN_metapath_specific(nn.Module):
         edata = F.embedding(edge_metapath_indices, features)
 
         # apply rnn to metapath-based feature sequence
+        # TODO: can also try to use GAT for each node type in the future
+        # TODO: can also try to use separate RNN for each node type in the future
         if self.rnn_type == "gru":
             _, hidden = self.rnn(edata.permute(1, 0, 2))
         elif self.rnn_type == "lstm":
@@ -153,46 +155,46 @@ class MAGNN_metapath_specific(nn.Module):
                 r_vec = r_vec.reshape(
                     self.r_vec.shape[0] * 2, self.r_vec.shape[1], 2
                 )  # etypes x out_dim/2 x 2
+
             edata = edata.reshape(
                 edata.shape[0], edata.shape[1], edata.shape[2] // 2, 2
             )
             final_r_vec = torch.zeros(
                 [edata.shape[1], self.out_dim // 2, 2], device=edata.device
             )
+
+            # set the last rotation vector to [1, 0] (identity rotation)
             final_r_vec[-1, :, 0] = 1
+            # compute rotational embeddings in reverse order
             for i in range(final_r_vec.shape[0] - 2, -1, -1):
                 # consider None edge (symmetric relation)
                 if self.etypes[i] is not None:
-                    final_r_vec[i, :, 0] = (
-                        final_r_vec[i + 1, :, 0].clone()
-                        * r_vec[self.etypes[i], :, 0]
-                        - final_r_vec[i + 1, :, 1].clone()
-                        * r_vec[self.etypes[i], :, 1]
-                    )
-                    final_r_vec[i, :, 1] = (
-                        final_r_vec[i + 1, :, 0].clone()
-                        * r_vec[self.etypes[i], :, 1]
-                        + final_r_vec[i + 1, :, 1].clone()
-                        * r_vec[self.etypes[i], :, 0]
-                    )
+                    r_real = r_vec[self.etypes[i], :, 0]
+                    r_imag = r_vec[self.etypes[i], :, 1]
+                    final_r_vec[i, :, 0] = final_r_vec[i + 1, :, 0] * r_real - final_r_vec[i + 1, :, 1] * r_imag
+                    final_r_vec[i, :, 1] = final_r_vec[i + 1, :, 0] * r_imag + final_r_vec[i + 1, :, 1] * r_real
                 else:
-                    final_r_vec[i, :, 0] = final_r_vec[i + 1, :, 0].clone()
-                    final_r_vec[i, :, 1] = final_r_vec[i + 1, :, 1].clone()
+                    final_r_vec[i] = final_r_vec[i + 1]
+
+            # apply rotations to edge data
             for i in range(edata.shape[1] - 1):
-                temp1 = (
-                    edata[:, i, :, 0].clone() * final_r_vec[i, :, 0]
-                    - edata[:, i, :, 1].clone() * final_r_vec[i, :, 1]
-                )
-                temp2 = (
-                    edata[:, i, :, 0].clone() * final_r_vec[i, :, 1]
-                    + edata[:, i, :, 1].clone() * final_r_vec[i, :, 0]
-                )
-                edata[:, i, :, 0] = temp1
-                edata[:, i, :, 1] = temp2
+                real_part = edata[:, i, :, 0]
+                imag_part = edata[:, i, :, 1]
+                r_real = final_r_vec[i, :, 0]
+                r_imag = final_r_vec[i, :, 1]
+
+                edata[:, i, :, 0] = real_part * r_real - imag_part * r_imag
+                edata[:, i, :, 1] = real_part * r_imag + imag_part * r_real
+
+            # mean pooling
             edata = edata.reshape(edata.shape[0], edata.shape[1], -1)
             hidden = torch.mean(edata, dim=1)
-            hidden = torch.cat([hidden] * self.num_heads, dim=1)
+
+            # TODO: can be memory-intensive for large graphs
+            # replicate hidden states for multiple heads
+            hidden = hidden.unsqueeze(1).repeat(1, self.num_heads, 1).reshape(hidden.shape[0], -1)
             hidden = hidden.unsqueeze(dim=0)
+
         elif self.rnn_type == "neighbor":
             hidden = edata[:, 0]
             hidden = torch.cat([hidden] * self.num_heads, dim=1)
