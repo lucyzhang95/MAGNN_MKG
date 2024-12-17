@@ -1,9 +1,26 @@
 import os
 
+import compress_pickle as cp
 import numpy as np
 import scipy
 
-from MAGNN.MAGNN_utils.preprocess import load_compressed_pickle
+
+def load_compressed_pickle(file_path, compression="gzip"):
+    """
+    Load a compressed pickle file.
+
+    - file_path (str): Path to the compressed pickle file.
+    - compression (str): Compression type ('gzip', 'bz2', 'lzma'). Default is 'gzip'.
+
+    Returns:
+    - Loaded data from the pickle file.
+    """
+    try:
+        data = cp.load(file_path, compression=compression)
+        return data
+    except Exception as e:
+        print(f"Error loading file {file_path}: {e}")
+        return None
 
 
 def load_preprocessed_data(prefix="data/preprocessed/"):
