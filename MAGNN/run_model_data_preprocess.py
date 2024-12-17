@@ -563,15 +563,15 @@ train_neg_candidates = np.array(train_neg_candidates)
 
 np.savez(
     save_prefix + "train_val_test_neg_microbe_disease.npz",
-    train_neg_user_artist=train_neg_candidates,
-    val_neg_user_artist=val_neg_candidates,
-    test_neg_user_artist=test_neg_candidates,
+    train_neg_micro_dis=train_neg_candidates,
+    val_neg_micro_dis=val_neg_candidates,
+    test_neg_micro_dis=test_neg_candidates,
 )
 np.savez(
     save_prefix + "train_val_test_pos_microbe_disease.npz",
-    train_pos_user_artist=microbe_disease[train_idx],
-    val_pos_user_artist=microbe_disease[val_idx],
-    test_pos_user_artist=microbe_disease[test_idx],
+    train_pos_micro_dis=microbe_disease[train_idx],
+    val_pos_micro_dis=microbe_disease[val_idx],
+    test_pos_micro_dis=microbe_disease[test_idx],
 )
 
 end_time = time.time()
