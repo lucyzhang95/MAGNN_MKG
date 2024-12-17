@@ -15,7 +15,7 @@ def parse_adjlist(
     nodes = set()
     result_indices = []
     for row, indices in zip(adjlist, edge_metapath_indices):
-        row_parsed = list(map(int, row.split(" ")))
+        row_parsed = list(map(np.int16, row.split(" ")))
         nodes.add(row_parsed[0])
         if len(row_parsed) > 1:
             # sampling neighbors
@@ -25,21 +25,25 @@ def parse_adjlist(
                         mask = [
                             (
                                 False
-                                if [u1, a1 - offset] in exclude
-                                or [u2, a2 - offset] in exclude
+                                if [micro1, disease1 - offset] in exclude
+                                or [micro2, disease2 - offset] in exclude
                                 else True
                             )
-                            for u1, a1, u2, a2 in indices[:, [0, 1, -1, -2]]
+                            for micro1, disease1, micro2, disease2 in indices[
+                                :, [0, 1, -1, -2]
+                            ]
                         ]
                     else:
                         mask = [
                             (
                                 False
-                                if [u1, a1 - offset] in exclude
-                                or [u2, a2 - offset] in exclude
+                                if [micro1, disease1 - offset] in exclude
+                                or [micro2, disease2 - offset] in exclude
                                 else True
                             )
-                            for a1, u1, a2, u2 in indices[:, [0, 1, -1, -2]]
+                            for disease1, micro1, disease2, micro2 in indices[
+                                :, [0, 1, -1, -2]
+                            ]
                         ]
                     neighbors = np.array(row_parsed[1:])[mask]
                     result_indices.append(indices[mask])
@@ -65,25 +69,25 @@ def parse_adjlist(
                         mask = [
                             (
                                 False
-                                if [u1, a1 - offset] in exclude
-                                or [u2, a2 - offset] in exclude
+                                if [micro1, disease1 - offset] in exclude
+                                or [micro2, disease2 - offset] in exclude
                                 else True
                             )
-                            for u1, a1, u2, a2 in indices[sampled_idx][
-                                :, [0, 1, -1, -2]
-                            ]
+                            for micro1, disease1, micro2, disease2 in indices[
+                                sampled_idx
+                            ][:, [0, 1, -1, -2]]
                         ]
                     else:
                         mask = [
                             (
                                 False
-                                if [u1, a1 - offset] in exclude
-                                or [u2, a2 - offset] in exclude
+                                if [micro1, disease1 - offset] in exclude
+                                or [micro2, disease2 - offset] in exclude
                                 else True
                             )
-                            for a1, u1, a2, u2 in indices[sampled_idx][
-                                :, [0, 1, -1, -2]
-                            ]
+                            for disease1, micro1, disease2, micro2 in indices[
+                                sampled_idx
+                            ][:, [0, 1, -1, -2]]
                         ]
                     neighbors = np.array(
                         [row_parsed[i + 1] for i in sampled_idx]
@@ -110,9 +114,9 @@ def parse_adjlist(
 
 
 def parse_minibatch(
-    adjlists_ua,
-    edge_metapath_indices_list_ua,
-    user_artist_batch,
+    adjlists_microdis,
+    edge_metapath_indices_list_microdis,
+    microbe_disease_batch,
     device,
     samples=None,
     use_masks=None,
@@ -122,24 +126,24 @@ def parse_minibatch(
     result_indices_lists = [[], []]
     idx_batch_mapped_lists = [[], []]
     for mode, (adjlists, edge_metapath_indices_list) in enumerate(
-        zip(adjlists_ua, edge_metapath_indices_list_ua)
+        zip(adjlists_microdis, edge_metapath_indices_list_microdis)
     ):
         for adjlist, indices, use_mask in zip(
             adjlists, edge_metapath_indices_list, use_masks[mode]
         ):
             if use_mask:
                 edges, result_indices, num_nodes, mapping = parse_adjlist(
-                    [adjlist[row[mode]] for row in user_artist_batch],
-                    [indices[row[mode]] for row in user_artist_batch],
+                    [adjlist[row[mode]] for row in microbe_disease_batch],
+                    [indices[row[mode]] for row in microbe_disease_batch],
                     samples,
-                    user_artist_batch,
+                    microbe_disease_batch,
                     offset,
                     mode,
                 )
             else:
                 edges, result_indices, num_nodes, mapping = parse_adjlist(
-                    [adjlist[row[mode]] for row in user_artist_batch],
-                    [indices[row[mode]] for row in user_artist_batch],
+                    [adjlist[row[mode]] for row in microbe_disease_batch],
+                    [indices[row[mode]] for row in microbe_disease_batch],
                     samples,
                     offset=offset,
                     mode=mode,
@@ -166,7 +170,7 @@ def parse_minibatch(
             g_lists[mode].append(g)
             result_indices_lists[mode].append(result_indices)
             idx_batch_mapped_lists[mode].append(
-                np.array([mapping[row[mode]] for row in user_artist_batch])
+                np.array([mapping[row[mode]] for row in microbe_disease_batch])
             )
 
     return g_lists, result_indices_lists, idx_batch_mapped_lists
