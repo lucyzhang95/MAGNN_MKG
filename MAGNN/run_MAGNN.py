@@ -27,7 +27,7 @@ use_masks = [
     [True, True, False, False],
     [False, True, True, False],
 ]
-no_masks = [[False] * 3, [False] * 3]
+no_masks = [[False] * 3, [False] * 3, [False] * 3]
 num_microbe = 8202
 num_disease = 898
 expected_metapaths = [
