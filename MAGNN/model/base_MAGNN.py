@@ -168,35 +168,44 @@ class MAGNN_metapath_specific(nn.Module):
             # compute rotational embeddings in reverse order
             for i in range(final_r_vec.shape[0] - 2, -1, -1):
                 # consider None edge (symmetric relation)
+                # TODO: can write cleaner codes/more-memory efficient
                 if self.etypes[i] is not None:
-                    r_real = r_vec[self.etypes[i], :, 0]
-                    r_imag = r_vec[self.etypes[i], :, 1]
-                    final_r_vec[i, :, 0] = final_r_vec[i + 1, :, 0] * r_real - final_r_vec[i + 1, :, 1] * r_imag
-                    final_r_vec[i, :, 1] = final_r_vec[i + 1, :, 0] * r_imag + final_r_vec[i + 1, :, 1] * r_real
+                    final_r_vec[i, :, 0] = (
+                        final_r_vec[i + 1, :, 0].clone()
+                        * r_vec[self.etypes[i], :, 0]
+                        - final_r_vec[i + 1, :, 1].clone()
+                        * r_vec[self.etypes[i], :, 1]
+                    )
+                    final_r_vec[i, :, 1] = (
+                        final_r_vec[i + 1, :, 0].clone()
+                        * r_vec[self.etypes[i], :, 1]
+                        + final_r_vec[i + 1, :, 1].clone()
+                        * r_vec[self.etypes[i], :, 0]
+                    )
                 else:
-                    final_r_vec[i] = final_r_vec[i + 1]
-
-            # apply rotations to edge data
+                    final_r_vec[i, :, 0] = final_r_vec[i + 1, :, 0].clone()
+                    final_r_vec[i, :, 1] = final_r_vec[i + 1, :, 1].clone()
             for i in range(edata.shape[1] - 1):
-                real_part = edata[:, i, :, 0]
-                imag_part = edata[:, i, :, 1]
-                r_real = final_r_vec[i, :, 0]
-                r_imag = final_r_vec[i, :, 1]
+                temp1 = (
+                    edata[:, i, :, 0].clone() * final_r_vec[i, :, 0]
+                    - edata[:, i, :, 1].clone() * final_r_vec[i, :, 1]
+                )
+                temp2 = (
+                    edata[:, i, :, 0].clone() * final_r_vec[i, :, 1]
+                    + edata[:, i, :, 1].clone() * final_r_vec[i, :, 0]
+                )
+                edata[:, i, :, 0] = temp1
+                edata[:, i, :, 1] = temp2
 
-                edata[:, i, :, 0] = real_part * r_real - imag_part * r_imag
-                edata[:, i, :, 1] = real_part * r_imag + imag_part * r_real
-
-            # mean pooling
+            # TODO: torch.cat can be memory intensive
             edata = edata.reshape(edata.shape[0], edata.shape[1], -1)
             hidden = torch.mean(edata, dim=1)
-
-            # TODO: can be memory-intensive for large graphs
-            # replicate hidden states for multiple heads
-            hidden = hidden.unsqueeze(1).repeat(1, self.num_heads, 1).reshape(hidden.shape[0], -1)
+            hidden = torch.cat([hidden] * self.num_heads, dim=1)
             hidden = hidden.unsqueeze(dim=0)
 
         elif self.rnn_type == "neighbor":
             hidden = edata[:, 0]
+            # TODO: torch.cat can be memory intensive
             hidden = torch.cat([hidden] * self.num_heads, dim=1)
             hidden = hidden.unsqueeze(dim=0)
         elif self.rnn_type == "neighbor-linear":
@@ -210,15 +219,20 @@ class MAGNN_metapath_specific(nn.Module):
             center_node_feat = F.embedding(
                 edge_metapath_indices[:, -1], features
             )  # E x out_dim
+            # node-based attention
             a1 = self.attn1(center_node_feat)  # E x num_heads
+            # edge-based attention
             a2 = (eft * self.attn2).sum(dim=-1)  # E x num_heads
+            # final attention
             a = (a1 + a2).unsqueeze(dim=-1)  # E x num_heads x 1
         else:
+            # without attention switch
             a = (
                 (eft * self.attn).sum(dim=-1).unsqueeze(dim=-1)
             )  # E x num_heads x 1
         a = self.leaky_relu(a)
         g.edata.update({"eft": eft, "a": a})
+        print("Attention scores before softmax:", a)
         # compute softmax normalized attention values
         self.edge_softmax(g)
         # compute the aggregated node features scaled by the dropped,
@@ -268,7 +282,10 @@ class MAGNN_ctr_ntype_specific(nn.Module):
         # metapath-level attention
         # note that the acutal input dimension should consider the number of heads
         # as multiple head outputs are concatenated together
+        # TODO: can use separate attention layer for each node type in the future
+        # fc1 projects concatenated metapath features into an intermediate dimension
         self.fc1 = nn.Linear(out_dim * num_heads, attn_vec_dim, bias=True)
+        # fc2 computes scalar attention scores
         self.fc2 = nn.Linear(attn_vec_dim, 1, bias=False)
 
         # weight initialization
