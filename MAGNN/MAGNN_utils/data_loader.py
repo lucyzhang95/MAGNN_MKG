@@ -129,7 +129,6 @@ def load_preprocessed_data(prefix="data/preprocessed/"):
     )
 
 
-
 def load_preprocessed_data2(prefix="data/preprocessed/"):
     def load_adjlists(file_names, folder):
         adjlists = []
