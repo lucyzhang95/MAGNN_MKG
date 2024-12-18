@@ -149,7 +149,7 @@ def parse_minibatch(
                     mode=mode,
                 )
 
-            g = dgl.DGLGraph(multigraph=True)
+            g = dgl.graph(([], []))
             g.add_nodes(num_nodes)
             if len(edges) > 0:
                 sorted_index = sorted(
