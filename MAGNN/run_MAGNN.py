@@ -60,7 +60,8 @@ def run_model(
     ) = load_preprocessed_data()
 
     # device setup
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
     features_list = []
     in_dims = []
@@ -125,9 +126,9 @@ def run_model(
         )
 
         # wrap the model for multi-GPU support
-        if torch.cuda.device_count() > 1:
-            print(f"Using {torch.cuda.device_count()} GPUs for training.")
-            net = torch.nn.DataParallel(net)
+        # if torch.cuda.device_count() > 1:
+        #     print(f"Using {torch.cuda.device_count()} GPUs for training.")
+        #     net = torch.nn.DataParallel(net)
         # move model to gpu
         net.to(device)
 
