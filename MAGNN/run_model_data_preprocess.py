@@ -7,7 +7,7 @@ from MAGNN_utils.preprocess import (
     generate_long_relationship_array,
     generate_triplet_array,
     lexicographical_sort,
-    process_and_save_adjlist_in_batches,
+    process_and_save_adjlist_in_batches_no_compression,
     process_and_save_metapath_idx_in_batches,
     save_split_data2npz,
     split_date,
@@ -170,7 +170,7 @@ process_and_save_metapath_idx_in_batches(
     save_prefix=save_prefix,
     group_index=0,
 )
-process_and_save_adjlist_in_batches(
+process_and_save_adjlist_in_batches_no_compression(
     metapath_type=(0, 1, 0),
     metapath_array=microbe_disease_microbe,
     target_idx_list=np.arange(num_microbe),
@@ -198,7 +198,7 @@ process_and_save_metapath_idx_in_batches(
     save_prefix=save_prefix,
     group_index=2,
 )
-process_and_save_adjlist_in_batches(
+process_and_save_adjlist_in_batches_no_compression(
     metapath_type=(2, 0, 1, 0, 2),
     metapath_array=meta_micro_d_micro_meta,
     target_idx_list=np.arange(num_metabolite),
@@ -226,7 +226,7 @@ process_and_save_metapath_idx_in_batches(
     save_prefix=save_prefix,
     group_index=0,
 )
-process_and_save_adjlist_in_batches(
+process_and_save_adjlist_in_batches_no_compression(
     metapath_type=(0, 2, 0),
     metapath_array=microbe_metabolite_microbe,
     target_idx_list=np.arange(num_microbe),
@@ -254,7 +254,7 @@ process_and_save_metapath_idx_in_batches(
     save_prefix=save_prefix,
     group_index=1,
 )
-process_and_save_adjlist_in_batches(
+process_and_save_adjlist_in_batches_no_compression(
     metapath_type=(1, 0, 2, 0, 1),
     metapath_array=d_micro_meta_micro_d,
     target_idx_list=np.arange(num_disease),
@@ -283,7 +283,7 @@ process_and_save_metapath_idx_in_batches(
     save_prefix=save_prefix,
     group_index=1,
 )
-process_and_save_adjlist_in_batches(
+process_and_save_adjlist_in_batches_no_compression(
     metapath_type=(1, 2, 1),
     metapath_array=disease_metabolite_disease,
     target_idx_list=np.arange(num_disease),
@@ -311,7 +311,7 @@ process_and_save_metapath_idx_in_batches(
     save_prefix=save_prefix,
     group_index=0,
 )
-process_and_save_adjlist_in_batches(
+process_and_save_adjlist_in_batches_no_compression(
     metapath_type=(0, 1, 2, 1, 0),
     metapath_array=micro_d_meta_d_micro,
     target_idx_list=np.arange(num_microbe),
@@ -340,7 +340,7 @@ process_and_save_metapath_idx_in_batches(
     save_prefix=save_prefix,
     group_index=2,
 )
-process_and_save_adjlist_in_batches(
+process_and_save_adjlist_in_batches_no_compression(
     metapath_type=(2, 1, 2),
     metapath_array=metabolite_disease_metabolite,
     target_idx_list=np.arange(num_metabolite),
@@ -368,7 +368,7 @@ process_and_save_metapath_idx_in_batches(
     save_prefix=save_prefix,
     group_index=0,
 )
-process_and_save_adjlist_in_batches(
+process_and_save_adjlist_in_batches_no_compression(
     metapath_type=(0, 2, 1, 2, 0),
     metapath_array=micro_meta_d_meta_micro,
     target_idx_list=np.arange(num_microbe),
@@ -396,7 +396,7 @@ process_and_save_metapath_idx_in_batches(
     save_prefix=save_prefix,
     group_index=1,
 )
-process_and_save_adjlist_in_batches(
+process_and_save_adjlist_in_batches_no_compression(
     metapath_type=(1, 0, 1),
     metapath_array=disease_microbe_disease,
     target_idx_list=np.arange(num_disease),
@@ -425,7 +425,7 @@ process_and_save_metapath_idx_in_batches(
     save_prefix=save_prefix,
     group_index=2,
 )
-process_and_save_adjlist_in_batches(
+process_and_save_adjlist_in_batches_no_compression(
     metapath_type=(2, 1, 0, 1, 2),
     metapath_array=meta_d_micro_d_meta,
     target_idx_list=np.arange(num_metabolite),
@@ -453,7 +453,7 @@ process_and_save_metapath_idx_in_batches(
     save_prefix=save_prefix,
     group_index=2,
 )
-process_and_save_adjlist_in_batches(
+process_and_save_adjlist_in_batches_no_compression(
     metapath_type=(2, 0, 2),
     metapath_array=metabolite_microbe_metabolite,
     target_idx_list=np.arange(num_metabolite),
@@ -482,7 +482,7 @@ process_and_save_metapath_idx_in_batches(
     save_prefix=save_prefix,
     group_index=1,
 )
-process_and_save_adjlist_in_batches(
+process_and_save_adjlist_in_batches_no_compression(
     metapath_type=(1, 2, 0, 2, 1),
     metapath_array=d_meta_micro_meta_d,
     target_idx_list=np.arange(num_disease),
