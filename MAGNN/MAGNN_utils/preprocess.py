@@ -609,3 +609,61 @@ def process_and_save_adjlist_in_batches(
 
         del batch_adjlist
         del batch_target_indices
+
+
+def process_and_save_adjlist_in_batches_no_compression(
+    metapath_type,
+    metapath_array,
+    target_idx_list,
+    offset,
+    save_prefix,
+    group_index,
+    batch_size=1000,
+):
+    """
+    Process a single metapath type in batches and write adjacency lists to a .adjlist file.
+
+    :param metapath_type: tuple, the metapath type (e.g., (0, 1, 0)).
+    :param metapath_array: numpy array, the pre-processed array representing the metapath edges.
+    :param target_idx_list: numpy array, the indices of the targets to process.
+    :param offset: int, the offset to add to the target indices.
+    :param save_prefix: str, path prefix for saving the output files.
+    :param group_index: int, index of the current metapath group for directory organization.
+    :param batch_size: int, number of target indices to process in each batch.
+    """
+    save_dir = save_prefix + "{}/".format(group_index)
+    pathlib.Path(save_dir).mkdir(parents=True, exist_ok=True)
+    file_path = save_dir + "-".join(map(str, metapath_type)) + ".adjlist"
+
+    with open(file_path, "w") as out_file:
+        left = 0
+        right = 0
+
+        for start_idx in range(0, len(target_idx_list), batch_size):
+            end_idx = min(start_idx + batch_size, len(target_idx_list))
+            batch_target_indices = target_idx_list[start_idx:end_idx]
+            print(f"Processing batch {start_idx} to {end_idx}...")
+
+            for target_idx in batch_target_indices:
+                while (
+                    right < len(metapath_array)
+                    and metapath_array[right, 0] == target_idx + offset
+                ):
+                    right += 1
+
+                neighbors = metapath_array[left:right, -1] - offset
+                neighbors_str = list(map(str, neighbors))
+
+                if len(neighbors_str) > 0:
+                    out_file.write(
+                        "{} {}\n".format(target_idx, " ".join(neighbors_str))
+                    )
+                else:
+                    out_file.write("{}\n".format(target_idx))
+
+                # update left pointer
+                left = right
+
+            del batch_target_indices
+
+    print(f"Adjacency list successfully saved to {file_path}")
