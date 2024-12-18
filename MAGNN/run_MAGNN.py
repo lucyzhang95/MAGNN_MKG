@@ -12,22 +12,25 @@ from model import MAGNN_lp
 from sklearn.metrics import average_precision_score, roc_auc_score
 
 # Params
-num_ntype = 3
+num_ntype = 3  # microbe, disease, metabolite = 3
 dropout_rate = 0.5
 lr = 0.005
 weight_decay = 0.001
+
+# [0, 1, 0]: ([0, 1] is 0 and [1, 0] is 1 = [0, 1])
 etypes_lists = [
     [[0, 1], [0, 2, 3, 1], [4, 5], [4, 3, 2, 5]],
     [[1, 0], [1, 4, 5, 0], [2, 5, 4, 3], [2, 3]],
     [[5, 4], [5, 0, 1, 4], [3, 1, 0, 2], [3, 2]],
 ]
 
+# any direct relationship between microbe and disease counts as 1
 use_masks = [
     [True, True, False, False],
     [True, True, False, False],
     [False, True, True, False],
 ]
-no_masks = [[False] * 3, [False] * 3, [False] * 3]
+no_masks = [[False] * 4, [False] * 4, [False] * 4]
 num_microbe = 8202
 num_disease = 898
 expected_metapaths = [
