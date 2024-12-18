@@ -15,7 +15,7 @@ def parse_adjlist(
     nodes = set()
     result_indices = []
     for row, indices in zip(adjlist, edge_metapath_indices):
-        row_parsed = list(map(np.int16, neighbor) for neighbor in row)
+        row_parsed = list(map(np.int16, row.split(" ")))
         nodes.add(row_parsed[0])
         if len(row_parsed) > 1:
             # sampling neighbors
