@@ -14,9 +14,12 @@ def parse_adjlist(
     edges = []
     nodes = set()
     result_indices = []
+
     for row, indices in zip(adjlist, edge_metapath_indices):
         row_parsed = list(map(np.int16, row.split(" ")))
+        # add first node of first list 0/ (e.g., microbe)
         nodes.add(row_parsed[0])
+        # if node has neighbors
         if len(row_parsed) > 1:
             # sampling neighbors
             if samples is None:
@@ -33,7 +36,7 @@ def parse_adjlist(
                                 :, [0, 1, -1, -2]
                             ]
                         ]
-                    else:
+                    elif mode == 1:
                         mask = [
                             (
                                 False
@@ -45,19 +48,37 @@ def parse_adjlist(
                                 :, [0, 1, -1, -2]
                             ]
                         ]
+                    else:
+                        mask = [
+                            (
+                                False
+                                if [micro1, disease1 - offset] in exclude
+                                or [disease1 - offset, micro1] in exclude
+                                or [micro2, disease2 - offset] in exclude
+                                or [disease2 - offset, micro2] in exclude
+                                else True
+                            )
+                            # TODO: issue with this is that it is wrong for (2, 1, 0, 1, 2)
+                            for micro1, disease1, micro2, disease2 in indices[
+                                :, [1, 2, -2, -3]
+                            ]
+                        ]
                     neighbors = np.array(row_parsed[1:])[mask]
                     result_indices.append(indices[mask])
+                # if exclude is None, include all neighbors
                 else:
                     neighbors = row_parsed[1:]
                     result_indices.append(indices)
             else:
-                # under sampling frequent neighbors
+                # under sampling frequent neighbors, if samples is not None
                 unique, counts = np.unique(row_parsed[1:], return_counts=True)
                 p = []
                 for count in counts:
-                    p += [(count ** (3 / 4)) / count] * count
+                    p += [
+                        (count ** (3 / 4)) / count
+                    ] * count  # calculate sampling probability
                 p = np.array(p)
-                p = p / p.sum()
+                p = p / p.sum()  # normalize probability
                 samples = min(samples, len(row_parsed) - 1)
                 sampled_idx = np.sort(
                     np.random.choice(
@@ -77,7 +98,7 @@ def parse_adjlist(
                                 sampled_idx
                             ][:, [0, 1, -1, -2]]
                         ]
-                    else:
+                    elif mode == 1:
                         mask = [
                             (
                                 False
@@ -88,6 +109,18 @@ def parse_adjlist(
                             for disease1, micro1, disease2, micro2 in indices[
                                 sampled_idx
                             ][:, [0, 1, -1, -2]]
+                        ]
+                    else:
+                        mask = [
+                            (
+                                False
+                                if [micro1, disease1 - offset] in exclude
+                                or [micro2, disease2 - offset] in exclude
+                                else True
+                            )
+                            for micro1, disease1, micro2, disease2 in indices[
+                                sampled_idx
+                            ][:, [1, 2, -2, -3]]
                         ]
                     neighbors = np.array(
                         [row_parsed[i + 1] for i in sampled_idx]
