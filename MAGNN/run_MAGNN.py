@@ -85,22 +85,22 @@ def run_model(
 
     # TODO: after run the model, need to change the name of train_val_test_pos_microbe_disease["train_pos_user_artist"]
     train_pos_microbe_disease = train_val_test_pos_microbe_disease[
-        "train_pos_user_artist"
+        "train_pos_micro_dis"
     ]
     val_pos_microbe_disease = train_val_test_pos_microbe_disease[
-        "val_pos_user_artist"
+        "val_pos_micro_dis"
     ]
     test_pos_microbe_disease = train_val_test_pos_microbe_disease[
-        "test_pos_user_artist"
+        "test_pos_micro_dis"
     ]
     train_neg_microbe_disease = train_val_test_neg_microbe_disease[
-        "train_neg_user_artist"
+        "train_neg_micro_dis"
     ]
     val_neg_microbe_disease = train_val_test_neg_microbe_disease[
-        "val_neg_user_artist"
+        "val_neg_micro_dis"
     ]
     test_neg_microbe_disease = train_val_test_neg_microbe_disease[
-        "test_neg_user_artist"
+        "test_neg_micro_dis"
     ]
     y_true_test = np.array(
         [1] * len(test_pos_microbe_disease)
