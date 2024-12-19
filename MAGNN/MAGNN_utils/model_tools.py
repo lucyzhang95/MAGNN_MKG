@@ -5,17 +5,23 @@ import torch
 
 def parse_adjlist(adjlist, edge_metapath_indices, samples=None, exclude=None, offset=None, mode=None):
     """
-            Parse adjacency list and filter edges based on mode, sampling, and exclusions.
+                Parse adjacency list and filter edges based on mode, sampling, and exclusions.
 
-            :param adjlist: (list), Adjacency list where each row is a space-separated string of node indices.
-            :param edge_metapath_indices : (dict), Mapping of node indices to their metapaths.
-            :param samples: (int, optional), Number of neighbors to sample.
-            :param exclude: (list, optional), List of edges to exclude.
-            :param offset: (int, optional), Offset for disease indices.
-            :param mode: (int or list, optional), Parsing mode(s) (0, 1, or 2).
+                :param adjlist: (list), Adjacency list where each row is a space-separated string of node indices.
+                :param edge_metapath_indices : (dict), Mapping of node indices to their metapaths.
+                :param samples: (int, optional), Number of neighbors to sample.
+                :param exclude: (list, optional), List of edges to exclude.
+                :param offset: (int, optional), Offset for disease indices.
+                :param mode: (int or list, optional), Parsing mode(s) (0, 1, or 2).
 
-            :return tuple: Parsed edges, result indices, total nodes, and mapping.
+                :return tuple: Parsed edges, result indices, total nodes, and mapping.
     """
+    use_masks = [
+        [True, True, False, False],
+        [True, True, False, False],
+        [False, True, True, False],
+    ]
+
     edges = []
     nodes = set()
     result_indices = []
@@ -33,7 +39,11 @@ def parse_adjlist(adjlist, edge_metapath_indices, samples=None, exclude=None, of
                         mask = [False if [d1 - offset, micro1] in exclude or [d2 - offset, micro2] in exclude else True for d1, micro1, d2, micro2 in indices[:, [0, 1, -1, -2]]]
                     else: # mode == 2
                         # TODO: Problem with (2, 1, 0, 1, 2)
-                        mask = [False if [micro1, d1 - offset] in exclude or [micro2, d2 - offset] in exclude else True for micro1, d1, micro2, d2 in indices[:, [0, 1, -2, -3]]]
+                        mask = [
+                            False if ([d1 - offset, micro1] in exclude or [d2 - offset, micro2] in exclude)
+                            else use_masks[2][2]  # third True in use_masks[2]
+                            for micro1, d1, micro2, d2 in indices[:, [0, 1, -2, -3]]
+                        ]
                     neighbors = np.array(row_parsed[1:])[mask] if mode == 0 or mode == 1 else np.array(row_parsed[0:1] + row_parsed[2:])[mask]
                     result_indices.append(indices[mask])
                 else:
@@ -56,7 +66,11 @@ def parse_adjlist(adjlist, edge_metapath_indices, samples=None, exclude=None, of
                         mask = [False if [d1 - offset, micro1] in exclude or [d2 - offset, micro2] in exclude else True for d1, micro1, d2, micro2 in indices[sampled_idx][:, [0, 1, -1, -2]]]
                     else: # mode == 2
                         # TODO: Problem with (2, 1, 0, 1, 2)
-                        mask = [False if [micro1, d1 - offset] in exclude or [micro2, d2 - offset] in exclude else True for micro1, d1, micro2, d2 in indices[sampled_idx][:, [0, 1, -2, -3]]]
+                        mask = [
+                            False if ([d1 - offset, micro1] in exclude or [d2 - offset, micro2] in exclude)
+                            else use_masks[2][2]  # Third True in use_masks[2]
+                            for micro1, d1, micro2, d2 in indices[:, [0, 1, -2, -3]]
+                        ]
                     neighbors = np.array([row_parsed[i + 1] for i in sampled_idx]) if mode == 0 or mode == 1 else np.array([row_parsed[i] for i in sampled_idx if i != 1])[mask]
                     result_indices.append(indices[sampled_idx][mask])
                 else:
