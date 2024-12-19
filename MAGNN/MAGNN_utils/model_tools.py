@@ -3,18 +3,25 @@ import numpy as np
 import torch
 
 
-def parse_adjlist(adjlist, edge_metapath_indices, samples=None, exclude=None, offset=None, mode=None):
+def parse_adjlist(
+    adjlist,
+    edge_metapath_indices,
+    samples=None,
+    exclude=None,
+    offset=None,
+    mode=None,
+):
     """
-                Parse adjacency list and filter edges based on mode, sampling, and exclusions.
+    Parse adjacency list and filter edges based on mode, sampling, and exclusions.
 
-                :param adjlist: (list), Adjacency list where each row is a space-separated string of node indices.
-                :param edge_metapath_indices : (dict), Mapping of node indices to their metapaths.
-                :param samples: (int, optional), Number of neighbors to sample.
-                :param exclude: (list, optional), List of edges to exclude.
-                :param offset: (int, optional), Offset for disease indices.
-                :param mode: (int or list, optional), Parsing mode(s) (0, 1, or 2).
+    :param adjlist: (list), Adjacency list where each row is a space-separated string of node indices.
+    :param edge_metapath_indices : (dict), Mapping of node indices to their metapaths.
+    :param samples: (int, optional), Number of neighbors to sample.
+    :param exclude: (list, optional), List of edges to exclude.
+    :param offset: (int, optional), Offset for disease indices.
+    :param mode: (int or list, optional), Parsing mode(s) (0, 1, or 2).
 
-                :return tuple: Parsed edges, result indices, total nodes, and mapping.
+    :return tuple: Parsed edges, result indices, total nodes, and mapping.
     """
     use_masks = [
         [True, True, False, False],
@@ -27,64 +34,192 @@ def parse_adjlist(adjlist, edge_metapath_indices, samples=None, exclude=None, of
     result_indices = []
 
     for row, indices in zip(adjlist, edge_metapath_indices):
-        row_parsed = list(map(int, row.split(' ')))
-        nodes.add(row_parsed[0]) if mode == 0 or mode == 1 else nodes.add(row_parsed[1])
+        row_parsed = list(map(int, row.split(" ")))
+        (
+            nodes.add(row_parsed[0])
+            if mode == 0 or mode == 1
+            else nodes.add(row_parsed[1])
+        )
 
         if len(row_parsed) > 1:
             if samples is None:
                 if exclude is not None:
                     if mode == 0:
-                        mask = [False if [micro1, d1 - offset] in exclude or [micro2, d2 - offset] in exclude else True for micro1, d1, micro2, d2 in indices[:, [0, 1, -1, -2]]]
-                    elif mode == 1:
-                        mask = [False if [d1 - offset, micro1] in exclude or [d2 - offset, micro2] in exclude else True for d1, micro1, d2, micro2 in indices[:, [0, 1, -1, -2]]]
-                    else: # mode == 2
-                        # TODO: Problem with (2, 1, 0, 1, 2)
                         mask = [
-                            False if ([d1 - offset, micro1] in exclude or [d2 - offset, micro2] in exclude)
-                            else use_masks[2][2]  # third True in use_masks[2]
-                            for micro1, d1, micro2, d2 in indices[:, [0, 1, -2, -3]]
+                            (
+                                False
+                                if [micro1, d1 - offset] in exclude
+                                or [micro2, d2 - offset] in exclude
+                                else True
+                            )
+                            for micro1, d1, micro2, d2 in indices[
+                                :, [0, 1, -1, -2]
+                            ]
                         ]
-                    neighbors = np.array(row_parsed[1:])[mask] if mode == 0 or mode == 1 else np.array(row_parsed[0:1] + row_parsed[2:])[mask]
+                    elif mode == 1:
+                        mask = [
+                            (
+                                False
+                                if [d1 - offset, micro1] in exclude
+                                or [d2 - offset, micro2] in exclude
+                                else True
+                            )
+                            for d1, micro1, d2, micro2 in indices[
+                                :, [0, 1, -1, -2]
+                            ]
+                        ]
+                    else:  # mode == 2
+                        # TODO: Problem with (2, 1, 0, 1, 2)
+                        if use_masks[2][2]:
+                            mask = [
+                                (
+                                    False
+                                    if (
+                                        [d1 - offset, micro1] in exclude
+                                        or [d2 - offset, micro2] in exclude
+                                    )
+                                    else True
+                                )
+                                for d1, micro1, d2, micro2 in indices[
+                                    :, [0, 1, -2, -3]
+                                ]
+                            ]
+                        else:
+                            mask = [
+                                (
+                                    False
+                                    if (
+                                        [micro1, d1 - offset] in exclude
+                                        or [micro2, d2 - offset] in exclude
+                                    )
+                                    else True
+                                )
+                                for micro1, d1, micro2, d2 in indices[
+                                    :, [0, 1, -2, -3]
+                                ]
+                            ]
+                    neighbors = (
+                        np.array(row_parsed[1:])[mask]
+                        if mode == 0 or mode == 1
+                        else np.array(row_parsed[0:1] + row_parsed[2:])[mask]
+                    )
                     result_indices.append(indices[mask])
                 else:
-                    neighbors = row_parsed[1:] if mode == 0 or mode == 1 else row_parsed[0:1] + row_parsed[2:]
+                    neighbors = (
+                        row_parsed[1:]
+                        if mode == 0 or mode == 1
+                        else row_parsed[0:1] + row_parsed[2:]
+                    )
                     result_indices.append(indices)
             else:
                 # undersampling frequent neighbors
-                unique, counts = np.unique(row_parsed[1:], return_counts=True) if mode == 0 or mode == 1 else np.unique(row_parsed[0:1] + row_parsed[2:], return_counts=True)
+                unique, counts = (
+                    np.unique(row_parsed[1:], return_counts=True)
+                    if mode == 0 or mode == 1
+                    else np.unique(
+                        row_parsed[0:1] + row_parsed[2:], return_counts=True
+                    )
+                )
                 p = []
                 for count in counts:
                     p += [(count ** (3 / 4)) / count] * count
                 p = np.array(p)
                 p = p / p.sum()
                 samples = min(samples, len(row_parsed) - 1)
-                sampled_idx = np.sort(np.random.choice(len(row_parsed) - 1, samples, replace=False, p=p))
+                sampled_idx = np.sort(
+                    np.random.choice(
+                        len(row_parsed) - 1, samples, replace=False, p=p
+                    )
+                )
                 if exclude is not None:
                     if mode == 0:
-                        mask = [False if [micro1, d1 - offset] in exclude or [micro2, d2 - offset] in exclude else True for micro1, d1, micro2, d2 in indices[sampled_idx][:, [0, 1, -1, -2]]]
-                    elif mode == 1:
-                        mask = [False if [d1 - offset, micro1] in exclude or [d2 - offset, micro2] in exclude else True for d1, micro1, d2, micro2 in indices[sampled_idx][:, [0, 1, -1, -2]]]
-                    else: # mode == 2
-                        # TODO: Problem with (2, 1, 0, 1, 2)
                         mask = [
-                            False if ([d1 - offset, micro1] in exclude or [d2 - offset, micro2] in exclude)
-                            else use_masks[2][2]  # Third True in use_masks[2]
-                            for micro1, d1, micro2, d2 in indices[:, [0, 1, -2, -3]]
+                            (
+                                False
+                                if [micro1, d1 - offset] in exclude
+                                or [micro2, d2 - offset] in exclude
+                                else True
+                            )
+                            for micro1, d1, micro2, d2 in indices[sampled_idx][
+                                :, [0, 1, -1, -2]
+                            ]
                         ]
-                    neighbors = np.array([row_parsed[i + 1] for i in sampled_idx]) if mode == 0 or mode == 1 else np.array([row_parsed[i] for i in sampled_idx if i != 1])[mask]
+                    elif mode == 1:
+                        mask = [
+                            (
+                                False
+                                if [d1 - offset, micro1] in exclude
+                                or [d2 - offset, micro2] in exclude
+                                else True
+                            )
+                            for d1, micro1, d2, micro2 in indices[sampled_idx][
+                                :, [0, 1, -1, -2]
+                            ]
+                        ]
+                    else:  # mode == 2
+                        # TODO: Problem with (2, 1, 0, 1, 2)
+                        if use_masks[2][2]:
+                            mask = [
+                                (
+                                    False
+                                    if (
+                                        [d1 - offset, micro1] in exclude
+                                        or [d2 - offset, micro2] in exclude
+                                    )
+                                    else True
+                                )
+                                for d1, micro1, d2, micro2 in indices[
+                                    :, [0, 1, -2, -3]
+                                ]
+                            ]
+                        else:
+                            mask = [
+                                (
+                                    False
+                                    if (
+                                        [micro1, d1 - offset] in exclude
+                                        or [micro2, d2 - offset] in exclude
+                                    )
+                                    else True
+                                )
+                                for micro1, d1, micro2, d2 in indices[
+                                    :, [0, 1, -2, -3]
+                                ]
+                            ]
+                    neighbors = (
+                        np.array([row_parsed[i + 1] for i in sampled_idx])
+                        if mode == 0 or mode == 1
+                        else np.array(
+                            [row_parsed[i] for i in sampled_idx if i != 1]
+                        )[mask]
+                    )
                     result_indices.append(indices[sampled_idx][mask])
                 else:
-                    neighbors = [row_parsed[i + 1] for i in sampled_idx] if mode == 0 or mode == 1 else [row_parsed[i] for i in sampled_idx if i != 1]
+                    neighbors = (
+                        [row_parsed[i + 1] for i in sampled_idx]
+                        if mode == 0 or mode == 1
+                        else [row_parsed[i] for i in sampled_idx if i != 1]
+                    )
                     result_indices.append(indices[sampled_idx])
         else:
-            neighbors = [row_parsed[0]] if mode == 0 or mode == 1 else [row_parsed[1]]
-            indices += offset[0] if mode == 1 else offset[1] if mode == 2 else None
+            neighbors = (
+                [row_parsed[0]] if mode == 0 or mode == 1 else [row_parsed[1]]
+            )
+            indices += (
+                offset[0] if mode == 1 else offset[1] if mode == 2 else None
+            )
             result_indices.append(indices)
         for dst in neighbors:
             nodes.add(dst)
-            edges.append((row_parsed[0], dst)) if mode == 0 or mode == 1 else edges.append((row_parsed[1], dst))
+            (
+                edges.append((row_parsed[0], dst))
+                if mode == 0 or mode == 1
+                else edges.append((row_parsed[1], dst))
+            )
 
-    mapping = {map_from: map_to for map_to, map_from in enumerate(sorted(nodes))}
+    mapping = {
+        map_from: map_to for map_to, map_from in enumerate(sorted(nodes))
+    }
     edges = list(map(lambda tup: (mapping[tup[0]], mapping[tup[1]]), edges))
     result_indices = np.vstack(result_indices)
     return edges, result_indices, len(nodes), mapping
