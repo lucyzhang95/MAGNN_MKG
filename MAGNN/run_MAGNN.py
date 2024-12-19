@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from MAGNN_utils.data_loader import load_preprocessed_data
 from MAGNN_utils.model_tools import IndexGenerator, parse_minibatch
 from MAGNN_utils.pytorchtools import EarlyStopping
-from model import MAGNN_lp
+from model import MAGNN_lp  # TODO: if want to run it, need to put it in __init__.py
 from sklearn.metrics import average_precision_score, roc_auc_score
 
 # Params

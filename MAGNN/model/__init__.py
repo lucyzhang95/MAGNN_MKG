@@ -1,1 +1,1 @@
-from .MAGNN_lp import MAGNN_lp
+from .MAGNN_lp_2metapath import MAGNN_lp_2metapaths
