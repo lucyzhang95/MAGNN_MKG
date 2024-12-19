@@ -24,7 +24,7 @@ etypes_lists = [
     [[5, 4], [5, 0, 1, 4], [3, 1, 0, 2], [3, 2]],
 ]
 
-# any direct relationship between microbe and disease counts as 1
+# any direct relationship between microbe and disease counts as True
 use_masks = [
     [True, True, False, False],
     [True, True, False, False],
@@ -193,7 +193,7 @@ def run_model(
                     device,
                     neighbor_samples,
                     use_masks,
-                    num_microbe,
+                    [num_microbe, num_microbe + num_disease],
                 )
                 (
                     train_neg_g_lists,
@@ -206,7 +206,7 @@ def run_model(
                     device,
                     neighbor_samples,
                     no_masks,
-                    num_microbe,
+                   [num_microbe , num_microbe + num_disease],
                 )
 
                 t1 = time.time()
@@ -307,7 +307,7 @@ def run_model(
                         device,
                         neighbor_samples,
                         no_masks,
-                        num_microbe,
+                        [num_microbe, num_microbe + num_disease],
                     )
                     (
                         val_neg_g_lists,
@@ -320,7 +320,7 @@ def run_model(
                         device,
                         neighbor_samples,
                         no_masks,
-                        num_microbe,
+                        [num_microbe, num_microbe + num_disease],
                     )
 
                     [pos_embedding_microbe, pos_embedding_disease], _ = net(
@@ -417,7 +417,7 @@ def run_model(
                     device,
                     neighbor_samples,
                     no_masks,
-                    num_microbe,
+                    [num_microbe, num_microbe + num_disease],
                 )
 
                 (
@@ -431,7 +431,7 @@ def run_model(
                     device,
                     neighbor_samples,
                     no_masks,
-                    num_microbe,
+                    [num_microbe, num_microbe + num_disease],
                 )
 
                 [pos_embedding_microbe, pos_embedding_disease], _ = net(
