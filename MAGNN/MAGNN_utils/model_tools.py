@@ -3,6 +3,116 @@ import numpy as np
 import torch
 
 
+def parse_adjlist_2metapaths(
+    adjlist,
+    edge_metapath_indices,
+    samples=None,
+    exclude=None,
+    offset=None,
+    mode=None,
+):
+    edges = []
+    nodes = set()
+    result_indices = []
+    for row, indices in zip(adjlist, edge_metapath_indices):
+        row_parsed = list(map(int, row.split(" ")))
+        nodes.add(row_parsed[0])
+        if len(row_parsed) > 1:
+            # sampling neighbors
+            if samples is None:
+                if exclude is not None:
+                    if mode == 0:
+                        mask = [
+                            (
+                                False
+                                if [micro1, d1 - offset] in exclude
+                                or [micro2, d2 - offset] in exclude
+                                else True
+                            )
+                            for micro1, d1, micro2, d2 in indices[
+                                :, [0, 1, -1, -2]
+                            ]
+                        ]
+                    else:
+                        mask = [
+                            (
+                                False
+                                if [micro1, d1 - offset] in exclude
+                                or [micro2, d2 - offset] in exclude
+                                else True
+                            )
+                            for d1, micro1, d2, micro2 in indices[
+                                :, [0, 1, -1, -2]
+                            ]
+                        ]
+                    neighbors = np.array(row_parsed[1:])[mask]
+                    result_indices.append(indices[mask])
+                else:
+                    neighbors = row_parsed[1:]
+                    result_indices.append(indices)
+            else:
+                # undersampling frequent neighbors
+                unique, counts = np.unique(row_parsed[1:], return_counts=True)
+                p = []
+                for count in counts:
+                    p += [(count ** (3 / 4)) / count] * count
+                p = np.array(p)
+                p = p / p.sum()
+                samples = min(samples, len(row_parsed) - 1)
+                sampled_idx = np.sort(
+                    np.random.choice(
+                        len(row_parsed) - 1, samples, replace=False, p=p
+                    )
+                )
+                if exclude is not None:
+                    if mode == 0:
+                        mask = [
+                            (
+                                False
+                                if [micro1, d1 - offset] in exclude
+                                or [micro2, d2 - offset] in exclude
+                                else True
+                            )
+                            for micro1, d1, micro2, d2 in indices[sampled_idx][
+                                :, [0, 1, -1, -2]
+                            ]
+                        ]
+                    else:
+                        mask = [
+                            (
+                                False
+                                if [micro1, d1 - offset] in exclude
+                                or [micro2, d2 - offset] in exclude
+                                else True
+                            )
+                            for d1, micro1, d2, micro2 in indices[sampled_idx][
+                                :, [0, 1, -1, -2]
+                            ]
+                        ]
+                    neighbors = np.array(
+                        [row_parsed[i + 1] for i in sampled_idx]
+                    )[mask]
+                    result_indices.append(indices[sampled_idx][mask])
+                else:
+                    neighbors = [row_parsed[i + 1] for i in sampled_idx]
+                    result_indices.append(indices[sampled_idx])
+        else:
+            neighbors = [row_parsed[0]]
+            indices = np.array([[row_parsed[0]] * indices.shape[1]])
+            if mode == 1:
+                indices += offset
+            result_indices.append(indices)
+        for dst in neighbors:
+            nodes.add(dst)
+            edges.append((row_parsed[0], dst))
+    mapping = {
+        map_from: map_to for map_to, map_from in enumerate(sorted(nodes))
+    }
+    edges = list(map(lambda tup: (mapping[tup[0]], mapping[tup[1]]), edges))
+    result_indices = np.vstack(result_indices)
+    return edges, result_indices, len(nodes), mapping
+
+
 def parse_adjlist(
     adjlist,
     edge_metapath_indices,
@@ -131,6 +241,7 @@ def parse_adjlist(
                         len(row_parsed) - 1, samples, replace=False, p=p
                     )
                 )
+
                 if exclude is not None:
                     if mode == 0:
                         mask = [
@@ -187,7 +298,9 @@ def parse_adjlist(
                                 ]
                             ]
                     neighbors = (
-                        np.array([row_parsed[i + 1] for i in sampled_idx])
+                        np.array([row_parsed[i + 1] for i in sampled_idx])[
+                            mask
+                        ]
                         if mode == 0 or mode == 1
                         else np.array(
                             [row_parsed[i] for i in sampled_idx if i != 1]
