@@ -89,6 +89,10 @@ class MAGNN_metapath_specific(nn.Module):
         else:
             g, features, type_mask, edge_metapath_indices = inputs
 
+        # move graph to GPU ("cuda:0")
+        device = features.device
+        g = g.to(device)
+
         # Embedding layer
         # use torch.nn.functional.embedding or torch.embedding here
         # do not use torch.nn.embedding
