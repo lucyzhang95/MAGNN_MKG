@@ -17,61 +17,119 @@ def parse_adjlist(
 
     for row, indices in zip(adjlist, edge_metapath_indices):
         row_parsed = list(map(np.int16, row.split(" ")))
-        # add first node of first list 0/ (e.g., microbe)
-        nodes.add(row_parsed[0])
-        # if node has neighbors
-        if len(row_parsed) > 1:
-            # sampling neighbors
-            if samples is None:
+
+        if mode == 0 or mode == 1:
+            starting_node = row_parsed[0]
+        else:
+            starting_node = row_parsed[1]
+        nodes.add(starting_node)
+
+        if len(row_parsed) > 1:  # if the node has neighbors
+            if samples is None:  # use all neighbors
+
                 if exclude is not None:
                     if mode == 0:
-                        mask = [
-                            (
-                                False
-                                if [micro1, disease1 - offset] in exclude
-                                or [micro2, disease2 - offset] in exclude
-                                else True
-                            )
-                            for micro1, disease1, micro2, disease2 in indices[
-                                :, [0, 1, -1, -2]
+                        for micro1, disease1, micro2, disease2 in indices[
+                            :, [0, 1, -1, -2]
+                        ]:
+                            mask = [
+                                (
+                                    False
+                                    if [micro1, disease1 - offset] in exclude
+                                    or [micro2, disease2 - offset] in exclude
+                                    else True
+                                )
                             ]
-                        ]
+                            neighbors = np.array(row_parsed[1:])[mask]
+                            result_indices.append(indices[mask])
                     elif mode == 1:
-                        mask = [
-                            (
-                                False
-                                if [micro1, disease1 - offset] in exclude
-                                or [micro2, disease2 - offset] in exclude
-                                else True
-                            )
-                            for disease1, micro1, disease2, micro2 in indices[
-                                :, [0, 1, -1, -2]
+                        for disease1, micro1, disease2, micro2 in indices[
+                            :, [0, 1, -1, -2]
+                        ]:
+                            mask = [
+                                (
+                                    False
+                                    if [disease1 - offset, micro1] in exclude
+                                    or [disease2 - offset, micro2] in exclude
+                                    else True
+                                )
                             ]
-                        ]
+                            neighbors = np.array(row_parsed[1:])[mask]
+                            result_indices.append(indices[mask])
                     else:
-                        mask = [
-                            (
-                                False
-                                if [micro1, disease1 - offset] in exclude
-                                or [disease1 - offset, micro1] in exclude
-                                or [micro2, disease2 - offset] in exclude
-                                or [disease2 - offset, micro2] in exclude
-                                else True
-                            )
-                            # TODO: issue with this is that it is wrong for (2, 1, 0, 1, 2)
-                            for micro1, disease1, micro2, disease2 in indices[
-                                :, [1, 2, -2, -3]
-                            ]
-                        ]
-                    neighbors = np.array(row_parsed[1:])[mask]
-                    result_indices.append(indices[mask])
-                # if exclude is None, include all neighbors
+                        for sub_mode in mode:  # Handle sub-modes 2[1] and 2[2]
+                            if sub_mode == 1:
+                                for (
+                                    micro1,
+                                    disease1,
+                                    micro2,
+                                    disease2,
+                                ) in indices[:, [1, 2, -2, -3]]:
+                                    mask = [
+                                        (
+                                            False
+                                            if [micro1, disease1 - offset]
+                                            in exclude
+                                            or [micro2, disease2 - offset]
+                                            in exclude
+                                            else True
+                                        )
+                                    ]
+                                    neighbors = np.array(
+                                        [
+                                            row_parsed[i]
+                                            for i in range(len(row_parsed))
+                                            if i != 1
+                                        ]
+                                    )[mask]
+                                    result_indices.append(indices[mask])
+                            elif sub_mode == 2:
+                                for (
+                                    disease1,
+                                    micro1,
+                                    disease2,
+                                    micro2,
+                                ) in indices[:, [1, 2, -2, -3]]:
+                                    mask = [
+                                        (
+                                            False
+                                            if [disease1 - offset, micro1]
+                                            in exclude
+                                            or [disease2 - offset, micro2]
+                                            in exclude
+                                            else True
+                                        )
+                                    ]
+                                    neighbors = np.array(
+                                        [
+                                            row_parsed[i]
+                                            for i in range(len(row_parsed))
+                                            if i != 1
+                                        ]
+                                    )[mask]
+                                    result_indices.append(indices[mask])
+
                 else:
-                    neighbors = row_parsed[1:]
-                    result_indices.append(indices)
+                    neighbors = (
+                        row_parsed[1:]
+                        if mode == 0 or mode == 1
+                        else [row_parsed[0]] + row_parsed[2:]
+                    )
+                    result_indices.append(
+                        indices[1:]
+                        if mode == 0 or mode == 1
+                        else indices[0:1] + indices[2:]
+                    )
+
             else:
                 # under sampling frequent neighbors, if samples is not None
-                unique, counts = np.unique(row_parsed[1:], return_counts=True)
+                node_neighbors = (
+                    row_parsed[1:]
+                    if mode == 0 or mode == 1
+                    else [row_parsed[0]] + row_parsed[2:]
+                )
+                unique, counts = np.unique(node_neighbors, return_counts=True)
+
                 p = []
                 for count in counts:
                     p += [
@@ -79,65 +137,138 @@ def parse_adjlist(
                     ] * count  # calculate sampling probability
                 p = np.array(p)
                 p = p / p.sum()  # normalize probability
-                samples = min(samples, len(row_parsed) - 1)
+                samples = min(samples, len(node_neighbors))
                 sampled_idx = np.sort(
                     np.random.choice(
-                        len(row_parsed) - 1, samples, replace=False, p=p
+                        len(node_neighbors), samples, replace=False, p=p
                     )
                 )
+
                 if exclude is not None:
                     if mode == 0:
-                        mask = [
-                            (
-                                False
-                                if [micro1, disease1 - offset] in exclude
-                                or [micro2, disease2 - offset] in exclude
-                                else True
-                            )
-                            for micro1, disease1, micro2, disease2 in indices[
-                                sampled_idx
-                            ][:, [0, 1, -1, -2]]
-                        ]
+                        for micro1, disease1, micro2, disease2 in indices[
+                            :, [0, 1, -1, -2]
+                        ]:
+                            mask = [
+                                (
+                                    False
+                                    if [micro1, disease1 - offset] in exclude
+                                    or [micro2, disease2 - offset] in exclude
+                                    else True
+                                )
+                            ]
+                            neighbors = np.array(
+                                [row_parsed[i + 1] for i in sampled_idx]
+                            )[mask]
+                            result_indices.append(indices[sampled_idx][mask])
+
                     elif mode == 1:
-                        mask = [
-                            (
-                                False
-                                if [micro1, disease1 - offset] in exclude
-                                or [micro2, disease2 - offset] in exclude
-                                else True
-                            )
-                            for disease1, micro1, disease2, micro2 in indices[
-                                sampled_idx
-                            ][:, [0, 1, -1, -2]]
-                        ]
+                        for disease1, micro1, disease2, micro2 in indices[
+                            :, [0, 1, -1, -2]
+                        ]:
+                            mask = [
+                                (
+                                    False
+                                    if [disease1 - offset, micro1] in exclude
+                                    or [disease2 - offset, micro2] in exclude
+                                    else True
+                                )
+                            ]
+                            neighbors = np.array(
+                                [row_parsed[i + 1] for i in sampled_idx]
+                            )[mask]
+                            result_indices.append(indices[sampled_idx][mask])
                     else:
-                        mask = [
-                            (
-                                False
-                                if [micro1, disease1 - offset] in exclude
-                                or [micro2, disease2 - offset] in exclude
-                                else True
-                            )
-                            for micro1, disease1, micro2, disease2 in indices[
-                                sampled_idx
-                            ][:, [1, 2, -2, -3]]
-                        ]
-                    neighbors = np.array(
-                        [row_parsed[i + 1] for i in sampled_idx]
-                    )[mask]
-                    result_indices.append(indices[sampled_idx][mask])
+                        for sub_mode in mode:  # Handle sub-modes 2[1] and 2[2]
+                            if sub_mode == 1:
+                                for (
+                                    micro1,
+                                    disease1,
+                                    micro2,
+                                    disease2,
+                                ) in indices[:, [1, 2, -2, -3]]:
+                                    mask = [
+                                        (
+                                            False
+                                            if [micro1, disease1 - offset]
+                                            in exclude
+                                            or [micro2, disease2 - offset]
+                                            in exclude
+                                            else True
+                                        )
+                                    ]
+                                    neighbors = np.array(
+                                        [
+                                            row_parsed[i]
+                                            for i in sampled_idx
+                                            if i != 1
+                                        ]
+                                    )[mask]
+                                    result_indices.append(
+                                        indices[sampled_idx][mask]
+                                    )
+                            elif sub_mode == 2:
+                                for (
+                                    disease1,
+                                    micro1,
+                                    disease2,
+                                    micro2,
+                                ) in indices[:, [1, 2, -2, -3]]:
+                                    mask = [
+                                        (
+                                            False
+                                            if [disease1 - offset, micro1]
+                                            in exclude
+                                            or [disease2 - offset, micro2]
+                                            in exclude
+                                            else True
+                                        )
+                                    ]
+                                    neighbors = np.array(
+                                        [
+                                            row_parsed[i]
+                                            for i in sampled_idx
+                                            if i != 1
+                                        ]
+                                    )[mask]
+                                    result_indices.append(
+                                        indices[sampled_idx][mask]
+                                    )
+
                 else:
-                    neighbors = [row_parsed[i + 1] for i in sampled_idx]
-                    result_indices.append(indices[sampled_idx])
+                    if mode == 0 or mode == 1:
+                        neighbors = [row_parsed[i + 1] for i in sampled_idx]
+                        result_indices.append(indices[sampled_idx])
+                    else:
+                        neighbors = [
+                            row_parsed[i] for i in sampled_idx if i != 1
+                        ]
+                        result_indices.append(indices[sampled_idx])
+
         else:
-            neighbors = [row_parsed[0]]
-            indices = np.array([[row_parsed[0]] * indices.shape[1]])
-            if mode == 1:
-                indices += offset
-            result_indices.append(indices)
+            if mode == 0 or mode == 1:  # Microbe ↔ Disease (Mode 0 and 1)
+                neighbors = [row_parsed[0]]
+                indices = np.array([[row_parsed[0]] * indices.shape[1]])
+                if mode == 1:
+                    indices += offset
+                result_indices.append(indices)
+            elif (
+                mode == 2
+            ):  # Microbe ↔ Disease, starting from metabolite (Mode 2)
+                neighbors = [row_parsed[1]]
+                indices = np.array([[row_parsed[1]] * indices.shape[1]])
+                for sub_mode in mode:
+                    if sub_mode == 2:
+                        indices += offset
+                result_indices.append(indices)
+
         for dst in neighbors:
             nodes.add(dst)
-            edges.append((row_parsed[0], dst))
+            if mode in [0, 1]:
+                edges.append((row_parsed[0], dst))
+            elif mode in [2, 3]:
+                edges.append((row_parsed[1], dst))
+
     mapping = {
         map_from: map_to for map_to, map_from in enumerate(sorted(nodes))
     }
