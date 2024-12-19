@@ -11,6 +11,18 @@ def parse_adjlist(
     offset=None,
     mode=None,
 ):
+    """
+        Parse adjacency list and filter edges based on mode, sampling, and exclusions.
+
+        :param adjlist: (list), Adjacency list where each row is a space-separated string of node indices.
+        :param edge_metapath_indices : (dict), Mapping of node indices to their metapaths.
+        :param samples: (int, optional), Number of neighbors to sample.
+        :param exclude: (list, optional), List of edges to exclude.
+        :param offset: (int, optional), Offset for disease indices.
+        :param mode: (int or list, optional), Parsing mode(s) (0, 1, or 2).
+
+        :return tuple: Parsed edges, result indices, total nodes, and mapping.
+    """
     edges = []
     nodes = set()
     result_indices = []
@@ -252,9 +264,7 @@ def parse_adjlist(
                 if mode == 1:
                     indices += offset
                 result_indices.append(indices)
-            elif (
-                mode == 2
-            ):  # Microbe ↔ Disease, starting from metabolite (Mode 2)
+            else:  # Microbe ↔ Disease, starting from metabolite (Mode 2)
                 neighbors = [row_parsed[1]]
                 indices = np.array([[row_parsed[1]] * indices.shape[1]])
                 for sub_mode in mode:
@@ -264,9 +274,9 @@ def parse_adjlist(
 
         for dst in neighbors:
             nodes.add(dst)
-            if mode in [0, 1]:
+            if mode == 0 or mode ==1:
                 edges.append((row_parsed[0], dst))
-            elif mode in [2, 3]:
+            else:
                 edges.append((row_parsed[1], dst))
 
     mapping = {
