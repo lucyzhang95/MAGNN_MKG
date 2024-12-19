@@ -44,7 +44,7 @@ md_train, md_val, md_test = split_date(
     microbe_disease, train_ratio=0.7, val_ratio=0.2, test_ratio=0.1
 )
 save_split_data2npz(
-    md_train, md_val, md_test, "data/micro_disease_train_val_test_idx.npz"
+    md_train, md_val, md_test, "data/raw/micro_disease_train_val_test_idx.npz"
 )
 
 # training: 70%, validation: 20%, testing: 10%
