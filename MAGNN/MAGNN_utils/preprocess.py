@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import scipy
 from sklearn.model_selection import train_test_split
+from torch.onnx.symbolic_opset18 import col2im
 
 
 def get_column(in_f, colname1, colname2, col="col1"):
@@ -44,6 +45,42 @@ def map_index_to_relation_file(
 
 def export_index2dat(df, out_f):
     df.to_csv(out_f, sep="\t", header=False, index=False)
+
+
+def sample_edges(
+    file_path,
+    fraction,
+    output_path=None,
+    random_state=None,
+    delimiter="\t",
+    column_names=None,
+):
+    """
+    Randomly samples a fraction of edges from a relational dataset.
+    In case of large datasets for downstream metapaths generation
+
+    :param file_path: str, Path to the input dataset file.
+    :param fraction: float, Fraction of rows to sample (e.g., 0.1 for 10%).
+    :param output_path: (str, optional), Path to save the sampled dataset. If None, the sampled dataset is not saved.
+    :param random_state: (int, optional), Seed for random number generator to ensure reproducibility.
+    :param delimiter: (str, optional), Delimiter used in the input file. Default is '\t'.
+    :param column_names: (list, optional), List of column names for the input dataset.
+
+    :returns: sampled_df (pd.DataFrame): DataFrame containing the sampled rows.
+    """
+    df = pd.read_csv(
+        file_path, encoding="utf-8", delimiter=delimiter, names=column_names
+    )
+    # sample the dataset
+    sampled_df = df.sample(frac=fraction, random_state=random_state)
+
+    if output_path:
+        sampled_df.to_csv(
+            output_path, index=False, sep=delimiter, encoding="utf-8"
+        )
+        print(f"Sampled dataset saved to {output_path}")
+
+    return sampled_df
 
 
 def split_date(
