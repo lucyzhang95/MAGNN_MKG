@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 import scipy
 from sklearn.model_selection import train_test_split
-from torch.onnx.symbolic_opset18 import col2im
 
 
 def get_column(in_f, colname1, colname2, col="col1"):
@@ -24,6 +23,27 @@ def assign_index(cols: list):
     unique_cols = unique_cols.drop_duplicates().reset_index(drop=True)
     unique_cols["index"] = unique_cols.index
     return unique_cols
+
+
+def assign_array_index(arrays, col_name=None, index_name="Index"):
+    """
+    Combines multiple arrays, assigns a unique index to each unique element,
+    and returns a DataFrame with named columns.
+
+    :param arrays: list of numpy.ndarray objects to combine and assign indices.
+    :param col_name: str, Name for the column of unique elements. Default is None.
+    :param index_name: str, Name for the column of indices. Default is "Index".
+    :return: pandas.DataFrame with two columns: unique elements and their indices.
+    """
+    combined = pd.concat(
+        [pd.Series(array) for array in arrays], ignore_index=True
+    )
+    unique_values = combined.drop_duplicates().reset_index(drop=True)
+    result_df = pd.DataFrame(
+        {col_name: unique_values, index_name: unique_values.index}
+    )
+
+    return result_df
 
 
 def map_index_to_relation_file(
@@ -43,36 +63,101 @@ def map_index_to_relation_file(
     return df
 
 
+def map_indices_to_dataframe(
+    input_df,
+    col1,
+    col2,
+    index_df1,
+    index_col1,
+    index_col1_idx,
+    index_df2,
+    index_col2,
+    index_col2_idx,
+):
+    """
+    Maps indices from two index DataFrames to an original DataFrame based on specified columns.
+
+    :param input_df: pd.DataFrame, The original DataFrame with the columns to map.
+    :param col1: str, Column name in the original DataFrame to map using index_df1.
+    :param col2: str, Column name in the original DataFrame to map using index_df2.
+    :param index_df1: pd.DataFrame, The first index DataFrame (e.g., for Microbe indices).
+    :param index_col1: str, Column name in index_df1 that matches col1 in original_df.
+    :param index_col1_idx: str, Column name in index_df1 for the corresponding indices.
+    :param index_df2: pd.DataFrame, The second index DataFrame (e.g., for Disease indices).
+    :param index_col2: str, Column name in index_df2 that matches col2 in original_df.
+    :param index_col2_idx: str, Column name in index_df2 for the corresponding indices.
+
+    :return: pd.DataFrame, A DataFrame with only the mapped index columns.
+    """
+    input_df["Index1"] = input_df[col1].map(
+        index_df1.set_index(index_col1)[index_col1_idx]
+    )
+    input_df["Index2"] = input_df[col2].map(
+        index_df2.set_index(index_col2)[index_col2_idx]
+    )
+    result_df = input_df[["Index1", "Index2"]]
+
+    return result_df
+
+
 def export_index2dat(df, out_f):
     df.to_csv(out_f, sep="\t", header=False, index=False)
 
 
+def load_and_concat_files(
+    file_paths, delimiter="\t", column_names=None, output_path=None
+):
+    """
+    Loads and concatenates multiple relational .dat files into a single DataFrame.
+
+    :param file_paths: list of str, List of file paths to load.
+    :param delimiter: str, Delimiter used in the .dat files. Default is tab ('\t').
+    :param column_names: list of str, Column names for the DataFrame. Default is None.
+    :param output_path: str, Path to save the concatenated DataFrame as a file. Default is None.
+    :return: pd.DataFrame, Concatenated DataFrame from all input files.
+    """
+    dfs = []
+    for file_path in file_paths:
+        df = pd.read_csv(
+            file_path,
+            sep=delimiter,
+            encoding="utf-8",
+            header=None,
+            names=column_names,
+        )
+        dfs.append(df)
+
+    concatenated_df = pd.concat(dfs, ignore_index=True)
+
+    if output_path:
+        concatenated_df.to_csv(output_path, index=False, sep=delimiter)
+        print(f"Concatenated DataFrame saved to {output_path}")
+
+    return concatenated_df
+
+
 def sample_edges(
-    file_path,
+    dataset,
     fraction,
     output_path=None,
     random_state=None,
     delimiter="\t",
-    column_names=None,
 ):
     """
     Randomly samples a fraction of edges from a relational dataset.
     In case of large datasets for downstream metapaths generation
 
-    :param file_path: str, Path to the input dataset file.
+    :param dataset: pandas dataframe of relational dataset.
     :param fraction: float, Fraction of rows to sample (e.g., 0.1 for 10%).
     :param output_path: (str, optional), Path to save the sampled dataset. If None, the sampled dataset is not saved.
     :param random_state: (int, optional), Seed for random number generator to ensure reproducibility.
     :param delimiter: (str, optional), Delimiter used in the input file. Default is '\t'.
-    :param column_names: (list, optional), List of column names for the input dataset.
 
     :returns: sampled_df (pd.DataFrame): DataFrame containing the sampled rows.
     """
-    df = pd.read_csv(
-        file_path, encoding="utf-8", delimiter=delimiter, names=column_names
-    )
     # sample the dataset
-    sampled_df = df.sample(frac=fraction, random_state=random_state)
+    sampled_df = dataset.sample(frac=fraction, random_state=random_state)
+    sampled_df = sampled_df.reset_index(drop=True)
 
     if output_path:
         sampled_df.to_csv(
