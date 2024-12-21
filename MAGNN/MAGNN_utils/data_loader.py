@@ -101,14 +101,10 @@ def load_preprocessed_data(prefix="data/preprocessed/"):
     adjM = scipy.sparse.load_npz(prefix + "/adjM.npz")
     type_mask = np.load(prefix + "/node_types.npy")
     train_val_test_pos_microbe_disease = np.load(
-        prefix
-        + "/microbe_disease_neg_pos_processed"
-        + "/train_val_test_pos_microbe_disease.npz"
+        prefix + "/microbe_disease_neg_pos_processed" + "/train_val_test_pos_microbe_disease.npz"
     )
     train_val_test_neg_microbe_disease = np.load(
-        prefix
-        + "/microbe_disease_neg_pos_processed"
-        + "/train_val_test_neg_microbe_disease.npz"
+        prefix + "/microbe_disease_neg_pos_processed" + "/train_val_test_neg_microbe_disease.npz"
     )
 
     return (
@@ -129,7 +125,7 @@ def load_preprocessed_data(prefix="data/preprocessed/"):
     )
 
 
-def load_preprocessed_data_2metapaths(prefix="data/preprocessed/"):
+def load_preprocessed_data_2metapaths(prefix="data/sampled/preprocessed"):
     in_file = open(prefix + "/0/0-1-0.adjlist", "r")
     adjlist00 = [line.strip() for line in in_file]
     adjlist00 = adjlist00
@@ -182,16 +178,8 @@ def load_preprocessed_data_2metapaths(prefix="data/preprocessed/"):
 
     adjM = scipy.sparse.load_npz(prefix + "/adjM.npz")
     type_mask = np.load(prefix + "/node_types.npy")
-    train_val_test_pos_microbe_disease = np.load(
-        prefix
-        + "/microbe_disease_neg_pos_processed"
-        + "/train_val_test_pos_microbe_disease.npz"
-    )
-    train_val_test_neg_microbe_disease = np.load(
-        prefix
-        + "/microbe_disease_neg_pos_processed"
-        + "/train_val_test_neg_microbe_disease.npz"
-    )
+    train_val_test_pos_microbe_disease = np.load(prefix + "/train_val_test_pos_microbe_disease.npz")
+    train_val_test_neg_microbe_disease = np.load(prefix + "/train_val_test_neg_microbe_disease.npz")
 
     return (
         [
@@ -216,10 +204,7 @@ def load_preprocessed_data2(prefix="data/preprocessed"):
             file_path = os.path.join(prefix, folder, f"{file_name}_adjlist.gz")
             adjlist = load_compressed_pickle(file_path)
             adjlist = [
-                adjlist_idx
-                for _, value in adjlist.items()
-                if value
-                for adjlist_idx in value
+                adjlist_idx for _, value in adjlist.items() if value for adjlist_idx in value
             ]
             adjlists.append(adjlist)
         return adjlists
@@ -247,14 +232,10 @@ def load_preprocessed_data2(prefix="data/preprocessed"):
     adjM = scipy.sparse.load_npz(prefix + "/adjM.npz")
     type_mask = np.load(prefix + "/node_types.npy")
     train_val_test_pos_microbe_disease = np.load(
-        prefix
-        + "/microbe_disease_neg_pos_processed"
-        + "/train_val_test_pos_microbe_disease.npz"
+        prefix + "/microbe_disease_neg_pos_processed" + "/train_val_test_pos_microbe_disease.npz"
     )
     train_val_test_neg_microbe_disease = np.load(
-        prefix
-        + "/microbe_disease_neg_pos_processed"
-        + "/train_val_test_neg_microbe_disease.npz"
+        prefix + "/microbe_disease_neg_pos_processed" + "/train_val_test_neg_microbe_disease.npz"
     )
 
     return (
