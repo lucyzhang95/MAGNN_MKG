@@ -35,23 +35,16 @@ def assign_array_index(arrays, col_name=None, index_name="Index"):
     :param index_name: str, Name for the column of indices. Default is "Index".
     :return: pandas.DataFrame with two columns: unique elements and their indices.
     """
-    combined = pd.concat(
-        [pd.Series(array) for array in arrays], ignore_index=True
-    )
+    combined = pd.concat([pd.Series(array) for array in arrays], ignore_index=True)
     unique_values = combined.drop_duplicates().reset_index(drop=True)
-    result_df = pd.DataFrame(
-        {col_name: unique_values, index_name: unique_values.index}
-    )
+    result_df = pd.DataFrame({col_name: unique_values, index_name: unique_values.index})
 
     return result_df
 
 
-def map_index_to_relation_file(
-    in_files, colname1, colname2, index_map1, index_map2
-):
+def map_index_to_relation_file(in_files, colname1, colname2, index_map1, index_map2):
     df_list = [
-        pd.read_csv(file, sep="\t", header=None, names=[colname1, colname2])
-        for file in in_files
+        pd.read_csv(file, sep="\t", header=None, names=[colname1, colname2]) for file in in_files
     ]
     df = pd.concat(df_list, ignore_index=True)
 
@@ -89,12 +82,8 @@ def map_indices_to_dataframe(
 
     :return: pd.DataFrame, A DataFrame with only the mapped index columns.
     """
-    input_df["Index1"] = input_df[col1].map(
-        index_df1.set_index(index_col1)[index_col1_idx]
-    )
-    input_df["Index2"] = input_df[col2].map(
-        index_df2.set_index(index_col2)[index_col2_idx]
-    )
+    input_df["Index1"] = input_df[col1].map(index_df1.set_index(index_col1)[index_col1_idx])
+    input_df["Index2"] = input_df[col2].map(index_df2.set_index(index_col2)[index_col2_idx])
     result_df = input_df[["Index1", "Index2"]]
 
     return result_df
@@ -104,9 +93,7 @@ def export_index2dat(df, out_f):
     df.to_csv(out_f, sep="\t", header=False, index=False)
 
 
-def load_and_concat_files(
-    file_paths, delimiter="\t", column_names=None, output_path=None
-):
+def load_and_concat_files(file_paths, delimiter="\t", column_names=None, output_path=None):
     """
     Loads and concatenates multiple relational .dat files into a single DataFrame.
 
@@ -160,17 +147,13 @@ def sample_edges(
     sampled_df = sampled_df.reset_index(drop=True)
 
     if output_path:
-        sampled_df.to_csv(
-            output_path, index=False, sep=delimiter, encoding="utf-8"
-        )
+        sampled_df.to_csv(output_path, index=False, sep=delimiter, encoding="utf-8")
         print(f"Sampled dataset saved to {output_path}")
 
     return sampled_df
 
 
-def split_date(
-    data, train_ratio=0.7, val_ratio=0.2, test_ratio=0.1, random_state=42
-):
+def split_date(data, train_ratio=0.7, val_ratio=0.2, test_ratio=0.1, random_state=42):
     """
     Split data into train, validation, and test sets.
     The resulting index will start from 0, which will result in off-by-one error
@@ -185,9 +168,7 @@ def split_date(
     :return:
     """
     if not np.isclose(train_ratio + val_ratio + test_ratio, 1.0):
-        raise ValueError(
-            "train_ratio, val_ratio, and test_ratio must sum to 1.0."
-        )
+        raise ValueError("train_ratio, val_ratio, and test_ratio must sum to 1.0.")
 
     train_data, temp_data = train_test_split(
         data, test_size=(1 - train_ratio), random_state=random_state
@@ -218,9 +199,7 @@ def generate_paths(length):
 
     # filter out paths where adjacent numbers are the same
     valid_paths = [
-        path
-        for path in all_paths
-        if all(path[i] != path[i + 1] for i in range(length - 1))
+        path for path in all_paths if all(path[i] != path[i + 1] for i in range(length - 1))
     ]
     return valid_paths
 
@@ -257,9 +236,7 @@ def evaluate_metapath_adjacency_matrix(adjM, type_mask, possible_metapaths):
     metapath_strengths_l = []
 
     for metapath in possible_metapaths:
-        metapath_adjM = get_metapath_adjacency_matrix(
-            adjM, type_mask, metapath
-        )
+        metapath_adjM = get_metapath_adjacency_matrix(adjM, type_mask, metapath)
 
         metapath_adjM_sum = metapath_adjM.sum()
         max_node_pair = metapath_adjM.max()
@@ -270,9 +247,7 @@ def evaluate_metapath_adjacency_matrix(adjM, type_mask, possible_metapaths):
 
         non_zero_values = metapath_adjM[metapath_adjM > 0]
         min_node_pair = non_zero_values.min()
-        non_zero_mean_strength = (
-            non_zero_values.mean() if non_zero_values.size > 0 else 0
-        )
+        non_zero_mean_strength = non_zero_values.mean() if non_zero_values.size > 0 else 0
 
         metapath_strengths = {
             "metapath": metapath,
@@ -320,8 +295,7 @@ def validate_expected_metapaths(metapaths, expected_metapaths):
             continue
 
         triples = [
-            (metapath[i], metapath[i + 1], metapath[i + 2])
-            for i in range(len(metapath) - 2)
+            (metapath[i], metapath[i + 1], metapath[i + 2]) for i in range(len(metapath) - 2)
         ]
 
         # check if any triple in this metapath is missing from expected triples
@@ -353,12 +327,8 @@ def get_symmetric_metapath_neighbor_pairs(M, type_mask, expected_metapaths):
         mask = np.zeros(M.shape, dtype=bool)
         for i in range((len(metapath) - 1) // 2):
             temp = np.zeros(M.shape, dtype=bool)
-            temp[
-                np.ix_(type_mask == metapath[i], type_mask == metapath[i + 1])
-            ] = True
-            temp[
-                np.ix_(type_mask == metapath[i + 1], type_mask == metapath[i])
-            ] = True
+            temp[np.ix_(type_mask == metapath[i], type_mask == metapath[i + 1])] = True
+            temp[np.ix_(type_mask == metapath[i + 1], type_mask == metapath[i])] = True
             mask = np.logical_or(mask, temp)
         partial_g_nx = nx.from_numpy_array((M * mask).astype(int))
 
@@ -370,9 +340,7 @@ def get_symmetric_metapath_neighbor_pairs(M, type_mask, expected_metapaths):
         # source = type_mask[0], so position[0, 1] target = type_mask[2], so position[6]
         # find all shortest single path from source to target with path length cutoff (middle way of the path)
         for source in (type_mask == metapath[0]).nonzero()[0]:
-            for target in (
-                type_mask == metapath[(len(metapath) - 1) // 2]
-            ).nonzero()[0]:
+            for target in (type_mask == metapath[(len(metapath) - 1) // 2]).nonzero()[0]:
                 # check if there is a possible valid path from source to target node
                 has_path = False
                 single_source_paths = nx.single_source_shortest_path(
@@ -385,23 +353,18 @@ def get_symmetric_metapath_neighbor_pairs(M, type_mask, expected_metapaths):
                 if has_path:
                     shortests = [
                         p
-                        for p in nx.all_shortest_paths(
-                            partial_g_nx, source, target
-                        )
+                        for p in nx.all_shortest_paths(partial_g_nx, source, target)
                         if len(p) == (len(metapath) + 1) // 2
                     ]
                     if len(shortests) > 0:
-                        metapath_to_target[target] = (
-                            metapath_to_target.get(target, []) + shortests
-                        )
+                        metapath_to_target[target] = metapath_to_target.get(target, []) + shortests
         metapath_neighbor_pairs = {}
         for _, value in metapath_to_target.items():
             for p1 in value:
                 for p2 in value:
-                    metapath_neighbor_pairs[(p1[0], p2[0])] = (
-                        metapath_neighbor_pairs.get((p1[0], p2[0]), [])
-                        + [p1 + p2[-2::-1]]
-                    )
+                    metapath_neighbor_pairs[(p1[0], p2[0])] = metapath_neighbor_pairs.get(
+                        (p1[0], p2[0]), []
+                    ) + [p1 + p2[-2::-1]]
         outs.append(metapath_neighbor_pairs)
     return outs
 
@@ -418,9 +381,7 @@ def get_asymmetric_metapath_neighbor_pairs(M, type_mask, expected_metapaths):
         mask = np.zeros(M.shape, dtype=bool)
         for i in range(len(metapath) - 1):
             temp = np.zeros(M.shape, dtype=bool)
-            temp[
-                np.ix_(type_mask == metapath[i], type_mask == metapath[i + 1])
-            ] = True
+            temp[np.ix_(type_mask == metapath[i], type_mask == metapath[i + 1])] = True
             mask = np.logical_or(mask, temp)
 
         # Construct partial graph from the masked adjacency matrix
@@ -434,29 +395,23 @@ def get_asymmetric_metapath_neighbor_pairs(M, type_mask, expected_metapaths):
                 valid_paths = []
 
                 # Find all paths from source to target with cutoff matching metapath length
-                for path in nx.all_simple_paths(
-                    partial_g_nx, source, target, cutoff=full_length
-                ):
+                for path in nx.all_simple_paths(partial_g_nx, source, target, cutoff=full_length):
                     # Verify that the path matches the metapath sequence
                     if len(path) == len(metapath) and all(
-                        type_mask[node] == metapath[i]
-                        for i, node in enumerate(path)
+                        type_mask[node] == metapath[i] for i, node in enumerate(path)
                     ):
                         valid_paths.append(path)
 
                 if valid_paths:
-                    metapath_to_target[target] = (
-                        metapath_to_target.get(target, []) + valid_paths
-                    )
+                    metapath_to_target[target] = metapath_to_target.get(target, []) + valid_paths
 
         metapath_neighbor_pairs = {}
         for _, paths in metapath_to_target.items():
             for p1 in paths:
                 for p2 in paths:
-                    metapath_neighbor_pairs[(p1[0], p2[0])] = (
-                        metapath_neighbor_pairs.get((p1[0], p2[0]), [])
-                        + [p1 + p2[-2::-1]]
-                    )
+                    metapath_neighbor_pairs[(p1[0], p2[0])] = metapath_neighbor_pairs.get(
+                        (p1[0], p2[0]), []
+                    ) + [p1 + p2[-2::-1]]
         outs.append(metapath_neighbor_pairs)
 
     return outs
@@ -484,9 +439,7 @@ def get_networkx_graph(neighbor_pairs, type_mask, ctr_ntype):
 def get_edge_metapath_idx_array(neighbor_pairs):
     all_edge_metapath_idx_array = []
     for metapath_neighbor_pairs in neighbor_pairs:
-        sorted_metapath_neighbor_pairs = sorted(
-            metapath_neighbor_pairs.items()
-        )
+        sorted_metapath_neighbor_pairs = sorted(metapath_neighbor_pairs.items())
         edge_metapath_idx_array = []
         for _, paths in sorted_metapath_neighbor_pairs:
             edge_metapath_idx_array.extend(paths)
@@ -557,12 +510,7 @@ def generate_long_relationship_array(
                 relational_list[interm_entity1 - num_offset1][
                     np.random.choice(
                         len(relational_list[interm_entity1 - num_offset1]),
-                        int(
-                            scaling_factor
-                            * len(
-                                relational_list[interm_entity1 - num_offset1]
-                            )
-                        ),
+                        int(scaling_factor * len(relational_list[interm_entity1 - num_offset1])),
                         replace=False,
                     )
                 ]
@@ -572,12 +520,7 @@ def generate_long_relationship_array(
                 relational_list[interm_entity3 - num_offset1][
                     np.random.choice(
                         len(relational_list[interm_entity3 - num_offset1]),
-                        int(
-                            scaling_factor
-                            * len(
-                                relational_list[interm_entity3 - num_offset1]
-                            )
-                        ),
+                        int(scaling_factor * len(relational_list[interm_entity3 - num_offset1])),
                         replace=False,
                     )
                 ]
@@ -644,10 +587,7 @@ def process_and_save_metapath_idx_in_batches(
 
         batch_mapping = {}
         for target_idx in batch_target_indices:
-            while (
-                right < len(metapath_array)
-                and metapath_array[right, 0] == target_idx + offset
-            ):
+            while right < len(metapath_array) and metapath_array[right, 0] == target_idx + offset:
                 right += 1
             batch_mapping[target_idx] = metapath_array[left:right, ::-1]
             left = right
@@ -707,10 +647,7 @@ def process_and_save_adjlist_in_batches(
 
         batch_adjlist = {}
         for target_idx in batch_target_indices:
-            while (
-                right < len(metapath_array)
-                and metapath_array[right, 0] == target_idx + offset
-            ):
+            while right < len(metapath_array) and metapath_array[right, 0] == target_idx + offset:
                 right += 1
 
             neighbors = metapath_array[left:right, -1] - offset
@@ -722,9 +659,7 @@ def process_and_save_adjlist_in_batches(
         try:
             print(f"Saving updated adjlist mappings to {file_path}...")
             cp.dump(adjlist_mapping, file_path, compression=compression)
-            print(
-                f"Batch {start_idx}-{end_idx} saved successfully for adjlist"
-            )
+            print(f"Batch {start_idx}-{end_idx} saved successfully for adjlist")
         except Exception as e:
             print(f"Failed to save adjlist batch {start_idx}-{end_idx}: {e}")
             raise
@@ -768,8 +703,7 @@ def process_and_save_adjlist_in_batches_no_compression(
 
             for target_idx in batch_target_indices:
                 while (
-                    right < len(metapath_array)
-                    and metapath_array[right, 0] == target_idx + offset
+                    right < len(metapath_array) and metapath_array[right, 0] == target_idx + offset
                 ):
                     right += 1
 
@@ -777,9 +711,7 @@ def process_and_save_adjlist_in_batches_no_compression(
                 neighbors_str = list(map(str, neighbors))
 
                 if len(neighbors_str) > 0:
-                    out_file.write(
-                        "{} {}\n".format(target_idx, " ".join(neighbors_str))
-                    )
+                    out_file.write("{} {}\n".format(target_idx, " ".join(neighbors_str)))
                 else:
                     out_file.write("{}\n".format(target_idx))
 
