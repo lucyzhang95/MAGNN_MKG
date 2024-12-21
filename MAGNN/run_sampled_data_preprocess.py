@@ -123,7 +123,7 @@ md_train, md_val, md_test = split_date(microd, train_ratio=0.7, val_ratio=0.2, t
 save_split_data2npz(md_train, md_val, md_test, "data/sampled/micro_disease_train_val_test_idx.npz")
 
 # training: 70%, validation: 20%, testing: 10%
-train_val_test_idx = np.load("data/sampled/micro_disease_train_val_test_idx.npz")
+train_val_test_idx = np.load("data/sampled/preprocessed/micro_disease_train_val_test_idx.npz")
 train_idx = train_val_test_idx["train"]
 val_idx = train_val_test_idx["val"]
 test_idx = train_val_test_idx["test"]
@@ -370,7 +370,7 @@ save_prefix = "data/sampled/preprocessed/"
 num_microbe = 7180
 num_disease = 771
 microbe_disease = np.load("data/sampled/preprocessed/microbe_disease.npy")
-train_val_test_idx = np.load("data/sampled/micro_disease_train_val_test_idx.npz")
+train_val_test_idx = np.load("data/sampled/preprocessed/micro_disease_train_val_test_idx.npz")
 train_idx = train_val_test_idx["train"]
 val_idx = train_val_test_idx["val"]
 test_idx = train_val_test_idx["test"]
@@ -407,13 +407,13 @@ for i in range(num_microbe):
 train_neg_candidates = np.array(train_neg_candidates)
 
 np.savez(
-    save_prefix + "train_val_test_neg_user_artist.npz",
+    save_prefix + "train_val_test_neg_microbe_disease.npz",
     train_neg_micro_dis=train_neg_candidates,
     val_neg_micro_dis=val_neg_candidates,
     test_neg_micro_dis=test_neg_candidates,
 )
 np.savez(
-    save_prefix + "train_val_test_pos_user_artist.npz",
+    save_prefix + "train_val_test_pos_user_microbe_disease.npz",
     train_pos_micro_dis=microbe_disease[train_idx],
     val_pos_micro_dis=microbe_disease[val_idx],
     test_pos_micro_dis=microbe_disease[test_idx],

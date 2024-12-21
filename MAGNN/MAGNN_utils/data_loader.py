@@ -3,6 +3,7 @@ import os
 import compress_pickle as cp
 import numpy as np
 import scipy
+import pickle
 
 
 def load_compressed_pickle(file_path, compression="gzip"):
@@ -159,22 +160,47 @@ def load_preprocessed_data_2metapaths(prefix="data/sampled/preprocessed"):
     adjlist13 = adjlist13
     in_file.close()
 
-    in_file = prefix + "/0/0-1-0_idx.gz"
-    idx00 = load_compressed_pickle(in_file)
-    in_file = prefix + "/0/0-1-2-1-0_idx.gz"
-    idx01 = load_compressed_pickle(in_file)
-    in_file = prefix + "/0/0-2-0_idx.gz"
-    idx02 = load_compressed_pickle(in_file)
-    in_file = prefix + "/0/0-2-1-2-0_idx.gz"
-    idx03 = load_compressed_pickle(in_file)
-    in_file = prefix + "/1/1-0-1_idx.gz"
-    idx10 = load_compressed_pickle(in_file)
-    in_file = prefix + "/1/1-0-2-0-1_idx.gz"
-    idx11 = load_compressed_pickle(in_file)
-    in_file = prefix + "/1/1-2-0-2-1_idx.gz"
-    idx12 = load_compressed_pickle(in_file)
-    in_file = prefix + "/1/1-2-1_idx.gz"
-    idx13 = load_compressed_pickle(in_file)
+    # in_file = prefix + "/0/0-1-0_idx.gz"
+    # idx00 = load_compressed_pickle(in_file)
+    # in_file = prefix + "/0/0-1-2-1-0_idx.gz"
+    # idx01 = load_compressed_pickle(in_file)
+    # in_file = prefix + "/0/0-2-0_idx.gz"
+    # idx02 = load_compressed_pickle(in_file)
+    # in_file = prefix + "/0/0-2-1-2-0_idx.gz"
+    # idx03 = load_compressed_pickle(in_file)
+    # in_file = prefix + "/1/1-0-1_idx.gz"
+    # idx10 = load_compressed_pickle(in_file)
+    # in_file = prefix + "/1/1-0-2-0-1_idx.gz"
+    # idx11 = load_compressed_pickle(in_file)
+    # in_file = prefix + "/1/1-2-0-2-1_idx.gz"
+    # idx12 = load_compressed_pickle(in_file)
+    # in_file = prefix + "/1/1-2-1_idx.gz"
+    # idx13 = load_compressed_pickle(in_file)
+
+    in_file = open(prefix + "/0/0-1-0_idx.pickle", "rb")
+    idx00 = pickle.load(in_file)
+    in_file.close()
+    in_file = open(prefix + "/0/0-1-2-1-0_idx.pickle", "rb")
+    idx01 = pickle.load(in_file)
+    in_file.close()
+    in_file = open(prefix + "/0/0-2-0_idx.pickle", "rb")
+    idx02 = pickle.load(in_file)
+    in_file.close()
+    in_file = open(prefix + "/0/0-2-1-2-0_idx.pickle", "rb")
+    idx03 = pickle.load(in_file)
+    in_file.close()
+    in_file = open(prefix + "/1/1-0-1_idx.pickle", "rb")
+    idx10 = pickle.load(in_file)
+    in_file.close()
+    in_file = open(prefix + "/1/1-0-2-0-1_idx.pickle", "rb")
+    idx11 = pickle.load(in_file)
+    in_file.close()
+    in_file = open(prefix + "/1/1-2-0-2-1_idx.pickle", "rb")
+    idx12 = pickle.load(in_file)
+    in_file.close()
+    in_file = open(prefix + "/1/1-2-1_idx.pickle", "rb")
+    idx13 = pickle.load(in_file)
+    in_file.close()
 
     adjM = scipy.sparse.load_npz(prefix + "/adjM.npz")
     type_mask = np.load(prefix + "/node_types.npy")
