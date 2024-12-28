@@ -474,14 +474,14 @@ def run_model(
             y_proba_test = torch.cat(pos_proba_list + neg_proba_list)
             y_proba_test = y_proba_test.cpu().numpy()
 
-        # evaluation metrics
+        # overall evaluation metrics
         auc = roc_auc_score(y_true_test, y_proba_test)
         ap = average_precision_score(y_true_test, y_proba_test)
         print("Link Prediction Test")
         print("AUC = {}".format(auc))
         print("AP = {}".format(ap))
 
-        # Log final test metrics to wandb
+        # log final test metrics to wandb
         wandb.log({"test_auc": auc, "test_ap": ap})
 
         auc_list.append(auc)
