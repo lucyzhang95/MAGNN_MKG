@@ -5,6 +5,7 @@ import time
 import numpy as np
 import torch
 import torch.nn.functional as F
+import wandb
 from sklearn.metrics import average_precision_score, roc_auc_score
 
 from MAGNN_utils.data_loader import load_preprocessed_data_2metapaths
@@ -30,8 +31,8 @@ use_masks = [
     [True, True, False, False],
 ]
 no_masks = [[False] * 4, [False] * 4]
-num_microbe = 7180
-num_disease = 771
+num_microbe = 7527
+num_disease = 836
 expected_metapaths = [
     [(0, 1, 0), (0, 1, 2, 1, 0), (0, 2, 0), (0, 2, 1, 2, 0)],
     [(1, 0, 1), (1, 0, 2, 0, 1), (1, 2, 0, 2, 1), (1, 2, 1)],
@@ -110,6 +111,9 @@ def run_model(
             dropout_rate,
         )
         net.to(device)
+
+        # watch the model to track gradients
+        wandb.watch(net, log="all")
 
         # use Adam optimizer
         optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=weight_decay)
@@ -249,6 +253,8 @@ def run_model(
                             np.mean(dur3),
                         )
                     )
+                    # Log the training loss to wandb
+                    wandb.log({"train_loss": train_loss.item()})
 
             # validation
             net.eval()
@@ -333,6 +339,9 @@ def run_model(
                     epoch, val_loss.item(), t_end - t_start
                 )
             )
+
+            # Log the validation loss to wandb
+            wandb.log({"val_loss": val_loss.item()})
 
             # early stopping
             early_stopping(val_loss, net)
@@ -426,11 +435,16 @@ def run_model(
 
             y_proba_test = torch.cat(pos_proba_list + neg_proba_list)
             y_proba_test = y_proba_test.cpu().numpy()
+
         auc = roc_auc_score(y_true_test, y_proba_test)
         ap = average_precision_score(y_true_test, y_proba_test)
         print("Link Prediction Test")
         print("AUC = {}".format(auc))
         print("AP = {}".format(ap))
+
+        # Log final test metrics to wandb
+        wandb.log({"test_auc": auc, "test_ap": ap})
+
         auc_list.append(auc)
         ap_list.append(ap)
 
@@ -441,7 +455,7 @@ def run_model(
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(description="MRGNN testing for the recommendation dataset")
+    ap = argparse.ArgumentParser(description="MAGNN testing run for sampled MKG dataset")
     ap.add_argument(
         "--feats-type",
         type=int,
@@ -476,7 +490,7 @@ if __name__ == "__main__":
     ap.add_argument(
         "--epoch",
         type=int,
-        default=100,
+        default=10,
         help="Number of epochs. Default is 100.",
     )
     ap.add_argument("--patience", type=int, default=5, help="Patience. Default is 5.")
@@ -500,6 +514,27 @@ if __name__ == "__main__":
     )
 
     args = ap.parse_args()
+
+    # --- Initialize wandb ---
+    wandb.init(
+        project="sample_MAGNN_run",
+        config={
+            "feats_type": args.feats_type,
+            "hidden_dim": args.hidden_dim,
+            "num_heads": args.num_heads,
+            "attn_vec_dim": args.attn_vec_dim,
+            "rnn_type": args.rnn_type,
+            "num_epochs": args.num_epochs,
+            "patience": args.patience,
+            "batch_size": args.batch_size,
+            "neighbor_samples": args.neighbor_samples,
+            "repeat": args.repeat,
+            "save_postfix": args.save_postfix,
+            "learning_rate": lr,
+            "weight_decay": weight_decay,
+        },
+    )
+
     run_model(
         args.feats_type,
         args.hidden_dim,
