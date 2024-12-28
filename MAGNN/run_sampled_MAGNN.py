@@ -261,6 +261,8 @@ def run_model(
             # validation
             net.eval()
             val_loss = []
+            val_pos_proba_list = []
+            val_neg_proba_list = []
             with torch.no_grad():
                 for iteration in range(val_idx_generator.num_iterations()):
                     # forward
@@ -327,22 +329,42 @@ def run_model(
                         -1, neg_embedding_disease.shape[1], 1
                     )
 
+                    # score = dot product of the embeddings
                     pos_out = torch.bmm(pos_embedding_microbe, pos_embedding_disease)
                     neg_out = -torch.bmm(neg_embedding_microbe, neg_embedding_disease)
-
+                    # calculate BCE loss
                     val_loss.append(-torch.mean(F.logsigmoid(pos_out) + F.logsigmoid(neg_out)))
-                val_loss = torch.mean(torch.tensor(val_loss))
+                    # collect probabilities for AUC / AP
+                    pos_proba = torch.sigmoid(pos_out).flatten().cpu().numpy()
+                    neg_proba = torch.sigmoid(-neg_out).flatten().cpu().numpy()
+
+                    val_pos_proba_list.append(pos_proba)
+                    val_neg_proba_list.append(neg_proba)
+
+            val_loss = torch.mean(torch.tensor(val_loss))
+
+            # compute AUC/AP across the entire validation set
+            val_pos_proba = np.concatenate(val_pos_proba_list)
+            val_neg_proba = np.concatenate(val_neg_proba_list)
+
+            # cConstruct labels: 1 for positives, 0 for negatives
+            val_labels = np.concatenate([np.ones_like(val_pos_proba), np.zeros_like(val_neg_proba)])
+            val_scores = np.concatenate([val_pos_proba, val_neg_proba])
+
+            val_auc = roc_auc_score(val_labels, val_scores)
+            val_ap = average_precision_score(val_labels, val_scores)
 
             t_end = time.time()
-
             # print validation info
             print(
-                "#Validation: Epoch {:05d} | Val_Loss {:.4f} | Time(s) {:.4f}".format(
-                    epoch, val_loss.item(), t_end - t_start
+                "#Validation: Epoch {:05d} | Val_Loss {:.4f} | Val_AUC {:.4f} | Val_AP {:.4f} | Time(s) {:.4f}".format(
+                    epoch, val_loss, val_auc, val_ap, t_end - t_start
                 )
             )
-            # Log the validation loss to wandb
-            wandb.log({"val_loss": val_loss.item()}, step=global_step)
+            # log the validation loss to wandb
+            wandb.log(
+                {"val_loss": val_loss, "val_auc": val_auc, "val_ap": val_ap}, step=global_step
+            )
 
             # early stopping
             early_stopping(val_loss, net)
@@ -356,6 +378,8 @@ def run_model(
             shuffle=False,
         )
         net.load_state_dict(torch.load("checkpoint/checkpoint_{}.pt".format(save_postfix)))
+
+        # test
         net.eval()
         pos_proba_list = []
         neg_proba_list = []
@@ -437,6 +461,7 @@ def run_model(
             y_proba_test = torch.cat(pos_proba_list + neg_proba_list)
             y_proba_test = y_proba_test.cpu().numpy()
 
+        # evaluation metrics
         auc = roc_auc_score(y_true_test, y_proba_test)
         ap = average_precision_score(y_true_test, y_proba_test)
         print("Link Prediction Test")
