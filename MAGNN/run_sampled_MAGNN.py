@@ -347,8 +347,9 @@ def run_model(
             val_pos_proba = np.concatenate(val_pos_proba_list)
             val_neg_proba = np.concatenate(val_neg_proba_list)
 
-            # cConstruct labels: 1 for positives, 0 for negatives
+            # construct labels: 1 for positives, 0 for negatives
             val_labels = np.concatenate([np.ones_like(val_pos_proba), np.zeros_like(val_neg_proba)])
+            # negative edge might not have lower score than positive edge
             val_scores = np.concatenate([val_pos_proba, val_neg_proba])
 
             val_auc = roc_auc_score(val_labels, val_scores)
