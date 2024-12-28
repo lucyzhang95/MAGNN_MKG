@@ -495,7 +495,7 @@ if __name__ == "__main__":
         help="Number of epochs. Default is 100.",
     )
     ap.add_argument("--patience", type=int, default=5, help="Patience. Default is 5.")
-    ap.add_argument("--batch-size", type=int, default=32, help="Batch size. Default is 8.")
+    ap.add_argument("--batch-size", type=int, default=64, help="Batch size. Default is 8.")
     ap.add_argument(
         "--samples",
         type=int,
