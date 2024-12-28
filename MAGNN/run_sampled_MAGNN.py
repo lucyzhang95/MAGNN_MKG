@@ -494,7 +494,7 @@ if __name__ == "__main__":
         help="Number of epochs. Default is 100.",
     )
     ap.add_argument("--patience", type=int, default=5, help="Patience. Default is 5.")
-    ap.add_argument("--batch-size", type=int, default=32, help="Batch size. Default is 8.")
+    ap.add_argument("--batch-size", type=int, default=8, help="Batch size. Default is 8.")
     ap.add_argument(
         "--samples",
         type=int,
@@ -524,10 +524,10 @@ if __name__ == "__main__":
             "num_heads": args.num_heads,
             "attn_vec_dim": args.attn_vec_dim,
             "rnn_type": args.rnn_type,
-            "num_epochs": args.num_epochs,
+            "num_epochs": args.epoch,
             "patience": args.patience,
             "batch_size": args.batch_size,
-            "neighbor_samples": args.neighbor_samples,
+            "neighbor_samples": args.samples,
             "repeat": args.repeat,
             "save_postfix": args.save_postfix,
             "learning_rate": lr,
