@@ -14,7 +14,7 @@ from MAGNN_utils.pytorchtools import EarlyStopping
 from model import MAGNN_lp_2metapaths_layer
 
 # Params
-num_ntype = 3  # microbe, disease, metabolite = 3
+num_ntype = 3  # microbe + disease + metabolite = 3
 dropout_rate = 0.5
 lr = 0.001
 weight_decay = 0.001
@@ -141,6 +141,7 @@ def run_model(
         global_step = 0
         for epoch in range(num_epochs):
             t_start = time.time()
+            epoch_train_loss = []
 
             # training
             net.train()
@@ -242,6 +243,8 @@ def run_model(
                 t3 = time.time()
                 dur3.append(t3 - t2)
 
+                epoch_train_loss.append(train_loss.item())
+
                 # print training info
                 if iteration % 100 == 0:
                     print(
@@ -255,8 +258,16 @@ def run_model(
                         )
                     )
                     # Log the training loss to wandb
-                    wandb.log({"train_loss": train_loss.item()}, step=global_step)
+                    wandb.log(
+                        {"train_loss_per_100_iterations": train_loss.item()}, step=global_step
+                    )
                     global_step += 1
+
+            mean_epoch_loss = np.mean(epoch_train_loss)
+            # print epoch training info
+            print(f"Epoch {epoch} done: mean train loss = {mean_epoch_loss:.4f}")
+            # log the mean epoch loss to wandb
+            wandb.log({"train_loss_epoch": mean_epoch_loss}, step=epoch)
 
             # validation
             net.eval()
@@ -364,7 +375,8 @@ def run_model(
             )
             # log the validation loss to wandb
             wandb.log(
-                {"val_loss": val_loss, "val_auc": val_auc, "val_ap": val_ap}, step=global_step
+                {"val_loss_epoch": val_loss, "val_auc_epoch": val_auc, "val_ap_epoch": val_ap},
+                step=global_step,
             )
 
             # early stopping
