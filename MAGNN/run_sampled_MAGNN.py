@@ -138,6 +138,7 @@ def run_model(
             shuffle=False,
         )
 
+        global_step = 0
         for epoch in range(num_epochs):
             t_start = time.time()
 
@@ -254,7 +255,8 @@ def run_model(
                         )
                     )
                     # Log the training loss to wandb
-                    wandb.log({"train_loss": train_loss.item()})
+                    wandb.log({"train_loss": train_loss.item()}, step=global_step)
+                    global_step += 1
 
             # validation
             net.eval()
@@ -339,9 +341,8 @@ def run_model(
                     epoch, val_loss.item(), t_end - t_start
                 )
             )
-
             # Log the validation loss to wandb
-            wandb.log({"val_loss": val_loss.item()})
+            wandb.log({"val_loss": val_loss.item()}, step=global_step)
 
             # early stopping
             early_stopping(val_loss, net)
@@ -494,7 +495,7 @@ if __name__ == "__main__":
         help="Number of epochs. Default is 100.",
     )
     ap.add_argument("--patience", type=int, default=5, help="Patience. Default is 5.")
-    ap.add_argument("--batch-size", type=int, default=8, help="Batch size. Default is 8.")
+    ap.add_argument("--batch-size", type=int, default=32, help="Batch size. Default is 8.")
     ap.add_argument(
         "--samples",
         type=int,
