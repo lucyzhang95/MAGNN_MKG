@@ -85,6 +85,8 @@ def map_indices_to_dataframe(
     input_df["Index1"] = input_df[col1].map(index_df1.set_index(index_col1)[index_col1_idx])
     input_df["Index2"] = input_df[col2].map(index_df2.set_index(index_col2)[index_col2_idx])
     result_df = input_df[["Index1", "Index2"]]
+    # remove duplicate rows
+    result_df = result_df.drop_duplicates()
 
     return result_df
 
