@@ -139,9 +139,9 @@ print(f"Length of Training data: {len(microbe_disease)}")
 
 save_prefix = "data/sampled/preprocessed/"
 
-num_microbe = (micrometa["MicrobeIdx"].max()+1).astype(np.int16)
-num_disease = (metad["DiseaseIdx"].max()+1).astype(np.int16)
-num_metabolite = (metad["MetaboliteIdx"].max()+1).astype(np.int16)
+num_microbe = (micrometa["MicrobeIdx"].max() + 1).astype(np.int16)
+num_disease = (metad["DiseaseIdx"].max() + 1).astype(np.int16)
+num_metabolite = (metad["MetaboliteIdx"].max() + 1).astype(np.int16)
 
 # build adjacency matrix
 # 0 for microbe, 1 for disease, 2 for metabolite
@@ -371,8 +371,8 @@ np.save(save_prefix + "microbe_disease.npy", microbe_disease)
 
 np.random.seed(453289)
 save_prefix = "data/sampled/preprocessed/"
-num_microbe = (micrometa["MicrobeIdx"].max()+1).astype(np.int16)
-num_disease = (metad["DiseaseIdx"].max()+1).astype(np.int16)
+num_microbe = (micrometa["MicrobeIdx"].max() + 1).astype(np.int16)
+num_disease = (metad["DiseaseIdx"].max() + 1).astype(np.int16)
 microbe_disease = np.load("data/sampled/preprocessed/microbe_disease.npy")
 train_val_test_idx = np.load("data/sampled/preprocessed/micro_disease_train_val_test_idx.npz")
 train_idx = train_val_test_idx["train"]
@@ -409,6 +409,14 @@ for i in range(num_microbe):
         else:
             train_neg_candidates.append([i, j])
 train_neg_candidates = np.array(train_neg_candidates)
+
+# balance training negatives by sampling to match the number of positives
+train_neg_sampled = np.random.choice(
+    len(train_neg_candidates),
+    size=len(train_microbe_disease),  # match the number of positives
+    replace=False,
+)
+train_neg_candidates = train_neg_candidates[train_neg_sampled]
 
 np.savez(
     save_prefix + "train_val_test_neg_microbe_disease.npz",
