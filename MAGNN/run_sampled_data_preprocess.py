@@ -30,15 +30,15 @@ hmdb_micrometa_path = os.path.join(file_path, "hmdb_taxid_met.dat")
 # metabolite-disease file
 hmdb_metad_path = os.path.join(file_path, "hmdb_met_disease.dat")
 
-# load each dataset and sample the datasets
+# load each dataset and sampling the datasets
 microd_df = load_and_concat_files(
     [disbiome_microd_path, gmmad2_microd_path], column_names=["Microbe", "Disease"]
 )
-microd_frac = sample_edges(dataset=microd_df, fraction=0.1)
+microd_frac = sample_edges(dataset=microd_df, fraction=0.3)
 micrometa_df = load_and_concat_files(
     [gmmad2_micrometa_path, hmdb_micrometa_path], column_names=["Microbe", "Metabolite"]
 )
-micrometa_frac = sample_edges(dataset=micrometa_df, fraction=0.1)
+micrometa_frac = sample_edges(dataset=micrometa_df, fraction=0.3)
 metad_df = load_and_concat_files([hmdb_metad_path], column_names=["Metabolite", "Disease"])
 metad_frac = sample_edges(dataset=metad_df, fraction=1.0)
 
@@ -119,6 +119,10 @@ metad = pd.read_csv(
     names=["MetaboliteIdx", "DiseaseIdx"],
 )
 
+print(f"Number of Microbe-Disease edges: {len(microd)}")
+print(f"Number of Microbe-Metabolite edges: {len(micrometa)}")
+print(f"Number of Metabolite-Disease edges: {len(metad)}")
+
 md_train, md_val, md_test = split_date(microd, train_ratio=0.7, val_ratio=0.2, test_ratio=0.1)
 save_split_data2npz(md_train, md_val, md_test, "data/sampled/micro_disease_train_val_test_idx.npz")
 
@@ -135,9 +139,9 @@ print(f"Length of Training data: {len(microbe_disease)}")
 
 save_prefix = "data/sampled/preprocessed/"
 
-num_microbe = 7180
-num_disease = 771
-num_metabolite = 23665
+num_microbe = (micrometa["MicrobeIdx"].max()+1).astype(np.int16)
+num_disease = (metad["DiseaseIdx"].max()+1).astype(np.int16)
+num_metabolite = (metad["MetaboliteIdx"].max()+1).astype(np.int16)
 
 # build adjacency matrix
 # 0 for microbe, 1 for disease, 2 for metabolite
@@ -367,8 +371,8 @@ np.save(save_prefix + "microbe_disease.npy", microbe_disease)
 
 np.random.seed(453289)
 save_prefix = "data/sampled/preprocessed/"
-num_microbe = 7180
-num_disease = 771
+num_microbe = (micrometa["MicrobeIdx"].max()+1).astype(np.int16)
+num_disease = (metad["DiseaseIdx"].max()+1).astype(np.int16)
 microbe_disease = np.load("data/sampled/preprocessed/microbe_disease.npy")
 train_val_test_idx = np.load("data/sampled/preprocessed/micro_disease_train_val_test_idx.npz")
 train_idx = train_val_test_idx["train"]
