@@ -3,6 +3,7 @@ import pathlib
 import time
 
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn.functional as F
 import wandb
@@ -16,7 +17,7 @@ from model import MAGNN_lp_2metapaths_layer
 # Params
 num_ntype = 3  # microbe + disease + metabolite = 3
 dropout_rate = 0.5
-lr = 0.001
+lr = 0.001  # src code was 0.005
 weight_decay = 0.001
 
 # [0, 1, 0]: ([0, 1] is 0 and [1, 0] is 1 = [0, 1])
@@ -31,8 +32,13 @@ use_masks = [
     [True, True, False, False],
 ]
 no_masks = [[False] * 4, [False] * 4]
-num_microbe = 7527
-num_disease = 836
+
+# load node idx
+microbe_idx = pd.read_csv("data/sampled/microbe_index.dat", sep="\t", encoding="utf-8", header=None)
+disease_idx = pd.read_csv("data/sampled/disease_index.dat", sep="\t", encoding="utf-8", header=None)
+
+num_microbe = np.int16(len(microbe_idx))
+num_disease = np.int16(len(microbe_idx))
 expected_metapaths = [
     [(0, 1, 0), (0, 1, 2, 1, 0), (0, 2, 0), (0, 2, 1, 2, 0)],
     [(1, 0, 1), (1, 0, 2, 0, 1), (1, 2, 0, 2, 1), (1, 2, 1)],
@@ -83,13 +89,13 @@ def run_model(
             in_dims.append(dim)
             features_list.append(torch.zeros((num_nodes, 10)).to(device))
 
-    # TODO: after run the model, need to change the name of train_val_test_pos_microbe_disease["train_pos_user_artist"]
     train_pos_microbe_disease = train_val_test_pos_microbe_disease["train_pos_micro_dis"]
     val_pos_microbe_disease = train_val_test_pos_microbe_disease["val_pos_micro_dis"]
     test_pos_microbe_disease = train_val_test_pos_microbe_disease["test_pos_micro_dis"]
     train_neg_microbe_disease = train_val_test_neg_microbe_disease["train_neg_micro_dis"]
     val_neg_microbe_disease = train_val_test_neg_microbe_disease["val_neg_micro_dis"]
     test_neg_microbe_disease = train_val_test_neg_microbe_disease["test_neg_micro_dis"]
+
     y_true_test = np.array(
         [1] * len(test_pos_microbe_disease) + [0] * len(test_neg_microbe_disease)
     )
@@ -360,7 +366,6 @@ def run_model(
 
             # construct labels: 1 for positives, 0 for negatives
             val_labels = np.concatenate([np.ones_like(val_pos_proba), np.zeros_like(val_neg_proba)])
-            # negative edge might not have lower score than positive edge
             val_scores = np.concatenate([val_pos_proba, val_neg_proba])
 
             val_auc = roc_auc_score(val_labels, val_scores)
@@ -533,7 +538,7 @@ if __name__ == "__main__":
         help="Number of epochs. Default is 100.",
     )
     ap.add_argument("--patience", type=int, default=5, help="Patience. Default is 5.")
-    ap.add_argument("--batch-size", type=int, default=64, help="Batch size. Default is 8.")
+    ap.add_argument("--batch-size", type=int, default=32, help="Batch size. Default is 8.")
     ap.add_argument(
         "--samples",
         type=int,
@@ -556,7 +561,7 @@ if __name__ == "__main__":
 
     # --- Initialize wandb ---
     wandb.init(
-        project="sample_MAGNN_run",
+        project="12292024_sampled_MAGNN_run",
         config={
             "feats_type": args.feats_type,
             "hidden_dim": args.hidden_dim,
