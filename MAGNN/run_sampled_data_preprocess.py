@@ -266,7 +266,7 @@ micro_d_meta_d_micro = generate_long_relationship_array(
     relational_list=disease_microbe_list,
     intermediate_triplet=disease_metabolite_disease,
     num_offset1=num_microbe,
-    scaling_factor=0.3,
+    scaling_factor=0.5,
 )
 
 micro_d_meta_d_micro = lexicographical_sort(micro_d_meta_d_micro, [0, 2, 1, 3, 4])
@@ -276,6 +276,7 @@ micro_meta_d_meta_micro = generate_long_relationship_array(
     relational_list=metabolite_microbe_list,
     intermediate_triplet=metabolite_disease_metabolite,
     num_offset1=(num_microbe + num_disease),
+    scaling_factor=0.5,
 )
 
 micro_meta_d_meta_micro = lexicographical_sort(micro_meta_d_meta_micro, [0, 2, 1, 3, 4])
@@ -286,7 +287,7 @@ d_meta_micro_meta_d = generate_long_relationship_array(
     intermediate_triplet=metabolite_microbe_metabolite,
     num_offset1=(num_microbe + num_disease),
     num_offset2=num_microbe,
-    scaling_factor=0.5,
+    scaling_factor=1.0,
 )
 
 d_meta_micro_meta_d = lexicographical_sort(d_meta_micro_meta_d, [0, 2, 1, 3, 4])
