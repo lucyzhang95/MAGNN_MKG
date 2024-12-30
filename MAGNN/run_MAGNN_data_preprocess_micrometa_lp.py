@@ -34,11 +34,11 @@ hmdb_metad_path = os.path.join(file_path, "hmdb_met_disease.dat")
 microd_df = load_and_concat_files(
     [disbiome_microd_path, gmmad2_microd_path], column_names=["Microbe", "Disease"]
 )
-microd_frac = sample_edges(dataset=microd_df, fraction=0.3)
+microd_frac = sample_edges(dataset=microd_df, fraction=0.2)
 micrometa_df = load_and_concat_files(
     [gmmad2_micrometa_path, hmdb_micrometa_path], column_names=["Microbe", "Metabolite"]
 )
-micrometa_frac = sample_edges(dataset=micrometa_df, fraction=0.3)
+micrometa_frac = sample_edges(dataset=micrometa_df, fraction=0.2)
 metad_df = load_and_concat_files([hmdb_metad_path], column_names=["Metabolite", "Disease"])
 metad_frac = sample_edges(dataset=metad_df, fraction=1.0)
 
@@ -257,7 +257,7 @@ meta_micro_d_micro_meta = generate_long_relationship_array(
     relational_list=microbe_metabolite_list,
     intermediate_triplet=microbe_disease_microbe,
     num_offset2=(num_microbe + num_disease),
-    scaling_factor=1.0,
+    scaling_factor=0.3,
 )
 
 meta_micro_d_micro_meta = lexicographical_sort(meta_micro_d_micro_meta, [0, 2, 1, 3, 4])
@@ -267,7 +267,7 @@ micro_d_meta_d_micro = generate_long_relationship_array(
     relational_list=disease_microbe_list,
     intermediate_triplet=disease_metabolite_disease,
     num_offset1=num_microbe,
-    scaling_factor=0.5,
+    scaling_factor=0.3,
 )
 
 micro_d_meta_d_micro = lexicographical_sort(micro_d_meta_d_micro, [0, 2, 1, 3, 4])
@@ -277,7 +277,7 @@ micro_meta_d_meta_micro = generate_long_relationship_array(
     relational_list=metabolite_microbe_list,
     intermediate_triplet=metabolite_disease_metabolite,
     num_offset1=(num_microbe + num_disease),
-    scaling_factor=0.5,
+    scaling_factor=0.3,
 )
 
 micro_meta_d_meta_micro = lexicographical_sort(micro_meta_d_meta_micro, [0, 2, 1, 3, 4])
@@ -295,7 +295,7 @@ meta_d_micro_d_meta = lexicographical_sort(meta_d_micro_d_meta, [0, 2, 1, 3, 4])
 
 expected_metapaths = [
     [(0, 1, 0), (0, 1, 2, 1, 0), (0, 2, 0), (0, 2, 1, 2, 0)],
-    [(1, 0, 1), (1, 0, 2, 0, 1), (1, 2, 0, 2, 1), (1, 2, 1)],
+    [(2, 0, 2), (2, 0, 1, 0, 2), (2, 1, 0, 1, 2), (2, 1, 2)],
 ]
 # create the directories if they do not exist
 for i in range(len(expected_metapaths)):
