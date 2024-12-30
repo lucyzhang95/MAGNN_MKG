@@ -222,6 +222,85 @@ def load_preprocessed_data_2metapaths(prefix="data/sampled/preprocessed"):
         train_val_test_neg_microbe_disease,
     )
 
+def load_preprocessed_data_micrometa(prefix="data/sampled/preprocessed"):
+    in_file = open(prefix + "/0/0-1-0.adjlist", "r")
+    adjlist00 = [line.strip() for line in in_file]
+    adjlist00 = adjlist00
+    in_file.close()
+    in_file = open(prefix + "/0/0-1-2-1-0.adjlist", "r")
+    adjlist01 = [line.strip() for line in in_file]
+    adjlist01 = adjlist01
+    in_file.close()
+    in_file = open(prefix + "/0/0-2-0.adjlist", "r")
+    adjlist02 = [line.strip() for line in in_file]
+    adjlist02 = adjlist02
+    in_file.close()
+    in_file = open(prefix + "/0/0-2-1-2-0.adjlist", "r")
+    adjlist03 = [line.strip() for line in in_file]
+    adjlist03 = adjlist03
+    in_file.close()
+    in_file = open(prefix + "/2/2-0-2.adjlist", "r")
+    adjlist20 = [line.strip() for line in in_file]
+    adjlist20 = adjlist20
+    in_file.close()
+    in_file = open(prefix + "/2/2-0-1-0-2.adjlist", "r")
+    adjlist21 = [line.strip() for line in in_file]
+    adjlist21 = adjlist21
+    in_file.close()
+    in_file = open(prefix + "/2/2-1-0-1-2.adjlist", "r")
+    adjlist22 = [line.strip() for line in in_file]
+    adjlist22 = adjlist22
+    in_file.close()
+    in_file = open(prefix + "/2/2-1-2.adjlist", "r")
+    adjlist23 = [line.strip() for line in in_file]
+    adjlist23 = adjlist23
+    in_file.close()
+
+    in_file = open(prefix + "/0/0-1-0_idx.pickle", "rb")
+    idx00 = pickle.load(in_file)
+    in_file.close()
+    in_file = open(prefix + "/0/0-1-2-1-0_idx.pickle", "rb")
+    idx01 = pickle.load(in_file)
+    in_file.close()
+    in_file = open(prefix + "/0/0-2-0_idx.pickle", "rb")
+    idx02 = pickle.load(in_file)
+    in_file.close()
+    in_file = open(prefix + "/0/0-2-1-2-0_idx.pickle", "rb")
+    idx03 = pickle.load(in_file)
+    in_file.close()
+    in_file = open(prefix + "/2/2-0-2_idx.pickle", "rb")
+    idx20 = pickle.load(in_file)
+    in_file.close()
+    in_file = open(prefix + "/2/2-0-1-0-2_idx.pickle", "rb")
+    idx21 = pickle.load(in_file)
+    in_file.close()
+    in_file = open(prefix + "/2/2-1-0-1-2_idx.pickle", "rb")
+    idx22 = pickle.load(in_file)
+    in_file.close()
+    in_file = open(prefix + "/2/2-1-2_idx.pickle", "rb")
+    idx23 = pickle.load(in_file)
+    in_file.close()
+
+    adjM = scipy.sparse.load_npz(prefix + "/adjM.npz")
+    type_mask = np.load(prefix + "/node_types.npy")
+    train_val_test_pos_microbe_metabolite = np.load(prefix + "/train_val_test_pos_microbe_metabolite.npz")
+    train_val_test_neg_microbe_metabolite = np.load(prefix + "/train_val_test_neg_microbe_metabolite.npz")
+
+    return (
+        [
+            [adjlist00, adjlist01, adjlist02, adjlist03],
+            [adjlist20, adjlist21, adjlist22, adjlist23],
+        ],
+        [
+            [idx00, idx01, idx02, idx03],
+            [idx20, idx21, idx22, idx23],
+        ],
+        adjM,
+        type_mask,
+        train_val_test_pos_microbe_metabolite,
+        train_val_test_neg_microbe_metabolite,
+    )
+
 
 def load_preprocessed_data2(prefix="data/preprocessed"):
     def load_adjlists(file_names, folder):
