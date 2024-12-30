@@ -397,7 +397,7 @@ def run_model(
             num_data=len(test_pos_microbe_metabolite),
             shuffle=False,
         )
-        net.load_state_dict(torch.load("checkpoint/micrometa_checkpoint_{}.pt".format(save_postfix)))
+        net.load_state_dict(torch.load("checkpoint/checkpoint_{}.pt".format(save_postfix)))
 
         # test
         net.eval()
@@ -556,7 +556,7 @@ if __name__ == "__main__":
     ap.add_argument(
         "--save-postfix",
         default="MKG_MicroD",
-        help="Postfix for the saved model and result. Default is MKG_MicroD.",
+        help="Postfix for the saved model and result. Default is MKG_MicroMeta.",
     )
     ap.add_argument(
         "--lr",
@@ -633,4 +633,3 @@ if __name__ == "__main__":
         args.save_postfix,
         args.lr
     )
-
