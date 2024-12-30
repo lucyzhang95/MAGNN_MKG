@@ -124,7 +124,7 @@ print(f"Number of Microbe-Metabolite edges: {len(micrometa)}")
 print(f"Number of Metabolite-Disease edges: {len(metad)}")
 
 md_train, md_val, md_test = split_date(microd, train_ratio=0.7, val_ratio=0.2, test_ratio=0.1)
-save_split_data2npz(md_train, md_val, md_test, "data/sampled/micro_disease_train_val_test_idx.npz")
+save_split_data2npz(md_train, md_val, md_test, "data/sampled/preprocessed/micro_disease_train_val_test_idx.npz")
 
 # training: 70%, validation: 20%, testing: 10%
 train_val_test_idx = np.load("data/sampled/preprocessed/micro_disease_train_val_test_idx.npz")
@@ -426,7 +426,7 @@ np.savez(
     test_neg_micro_dis=test_neg_candidates,
 )
 np.savez(
-    save_prefix + "train_val_test_pos_user_microbe_disease.npz",
+    save_prefix + "train_val_test_pos_microbe_disease.npz",
     train_pos_micro_dis=microbe_disease[train_idx],
     val_pos_micro_dis=microbe_disease[val_idx],
     test_pos_micro_dis=microbe_disease[test_idx],
