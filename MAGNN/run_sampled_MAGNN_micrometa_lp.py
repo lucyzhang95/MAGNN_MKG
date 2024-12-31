@@ -515,136 +515,122 @@ def run_model(
     print("AP_mean = {}, AP_std = {}".format(np.mean(ap_list), np.std(ap_list)))
 
 
-if __name__ == "__main__":
-    ap = argparse.ArgumentParser(description="MAGNN testing run for sampled MKG dataset")
-    ap.add_argument(
-        "--feats-type",
-        type=int,
-        default=0,
-        help="Type of the node features used. "
-        + "0 - all id vectors; "
-        + "1 - all zero vector. Default is 0.",
-    )
-    ap.add_argument(
-        "--hidden-dim",
-        type=int,
-        default=64,
-        help="Dimension of the node hidden state. Default is 64.",
-    )
-    ap.add_argument(
-        "--num-heads",
-        type=int,
-        default=8,
-        help="Number of the attention heads. Default is 8.",
-    )
-    ap.add_argument(
-        "--attn-vec-dim",
-        type=int,
-        default=128,
-        help="Dimension of the attention vector. Default is 128.",
-    )
-    ap.add_argument(
-        "--rnn-type",
-        default="RotatE0",
-        help="Type of the aggregator. Default is RotatE0.",
-    )
-    ap.add_argument(
-        "--epoch",
-        type=int,
-        default=10,
-        help="Number of epochs. Default is 100.",
-    )
-    ap.add_argument("--patience", type=int, default=5, help="Patience. Default is 5.")
-    ap.add_argument("--batch-size", type=int, default=32, help="Batch size. Default is 8.")
-    ap.add_argument(
-        "--samples",
-        type=int,
-        default=100,
-        help="Number of neighbors sampled. Default is 100.",
-    )
-    ap.add_argument(
-        "--repeat",
-        type=int,
-        default=1,
-        help="Repeat the training and testing for N times. Default is 1.",
-    )
-    ap.add_argument(
-        "--save-postfix",
-        default="MKG_MicroMeta",
-        help="Postfix for the saved model and result. Default is MKG_MicroD.",
-    )
-    ap.add_argument(
-        "--lr",
-        type=float,
-        default=0.001,
-        help="Learning rate. Default is 0.005.",
-    )
+ap = argparse.ArgumentParser(description="MAGNN testing run for sampled MKG dataset")
+ap.add_argument(
+    "--feats-type",
+    type=int,
+    default=0,
+    help="Type of the node features used. "
+    + "0 - all id vectors; "
+    + "1 - all zero vector. Default is 0.",
+)
+ap.add_argument(
+    "--hidden-dim",
+    type=int,
+    default=64,
+    help="Dimension of the node hidden state. Default is 64.",
+)
+ap.add_argument(
+    "--num-heads",
+    type=int,
+    default=8,
+    help="Number of the attention heads. Default is 8.",
+)
+ap.add_argument(
+    "--attn-vec-dim",
+    type=int,
+    default=128,
+    help="Dimension of the attention vector. Default is 128.",
+)
+ap.add_argument(
+    "--rnn-type",
+    default="RotatE0",
+    help="Type of the aggregator. Default is RotatE0.",
+)
+ap.add_argument(
+    "--epoch",
+    type=int,
+    default=10,
+    help="Number of epochs. Default is 100.",
+)
+ap.add_argument("--patience", type=int, default=5, help="Patience. Default is 5.")
+ap.add_argument("--batch-size", type=int, default=32, help="Batch size. Default is 8.")
+ap.add_argument(
+    "--samples",
+    type=int,
+    default=100,
+    help="Number of neighbors sampled. Default is 100.",
+)
+ap.add_argument(
+    "--repeat",
+    type=int,
+    default=1,
+    help="Repeat the training and testing for N times. Default is 1.",
+)
+ap.add_argument(
+    "--save-postfix",
+    default="MKG_MicroMeta",
+    help="Postfix for the saved model and result. Default is MKG_MicroD.",
+)
+ap.add_argument(
+    "--lr",
+    type=float,
+    default=0.001,
+    help="Learning rate. Default is 0.005.",
+)
 
-    args = ap.parse_args()
+args = ap.parse_args()
 
-    # --- Initialize wandb ---
-    # wandb.init(
-    #     project="12292024_sampled_MAGNN_run",
-    #     config={
-    #         "num_epochs": args.epoch,
-    #         "patience": args.patience,
-    #         "feats_type": args.feats_type,
-    #         "hidden_dim": args.hidden_dim,
-    #         "rnn_type": args.rnn_type,
-    #         "repeat": args.repeat,
-    #         "save_postfix": args.save_postfix,
-    #     },
-    # )
 
-    # # Debug: Print all parameters in wandb.config
-    # print("W&B Config:", dict(wandb.config))
-    # config = wandb.config
+def train():
+    wandb.init()
 
-    # run_model(
-    #     feats_type=config.feats_type,
-    #     hidden_dim=config.hidden_dim,
-    #     num_heads=config.num_heads,
-    #     attn_vec_dim=config.attn_vec_dim,
-    #     rnn_type=config.rnn_type,
-    #     num_epochs=config.num_epochs,
-    #     patience=config.patience,
-    #     batch_size=config.batch_size,
-    #     neighbor_samples=config.neighbor_samples,
-    #     repeat=config.repeat,
-    #     save_postfix=config.save_postfix,
-    #     lr=config.lr,
-    # )
+    config = wandb.config
 
-    wandb.init(
-        project="12302024_MicroMeta_lp",
-        config={
-            "feats_type": args.feats_type,
-            "hidden_dim": args.hidden_dim,
-            "num_heads": args.num_heads,
-            "attn_vec_dim": args.attn_vec_dim,
-            "rnn_type": args.rnn_type,
-            "num_epochs": args.epoch,
-            "patience": args.patience,
-            "batch_size": args.batch_size,
-            "neighbor_samples": args.samples,
-            "repeat": args.repeat,
-            "save_postfix": args.save_postfix,
-            "lr": args.lr,
-            "weight_decay": weight_decay,
-        },
-    )
+    save_postfix = f"rnn{config.rnn_type}_ns{config.neighbor_samples}_lr{config.lr}"
 
     run_model(
-        args.feats_type,
-        args.hidden_dim,
-        args.num_heads,
-        args.attn_vec_dim,
-        args.rnn_type,
-        args.epoch,
-        args.patience,
-        args.batch_size,
-        args.samples,
-        args.repeat,
-        args.save_postfix,
-        args.lr,
+        config.feats_type,
+        config.hidden_dim,
+        config.num_heads,
+        config.attn_vec_dim,
+        config.rnn_type,
+        config.num_epochs,
+        config.patience,
+        config.batch_size,
+        config.neighbor_samples,
+        config.repeat,
+        save_postfix,
+        config.lr,
     )
+
+
+if __name__ == "__main__":
+    sweep_config = {
+        "method": "grid",
+        "name": "MicroMeta lp hyperparameter tuning",
+        "metric": {"name": "val_loss_epoch", "goal": "minimize"},
+        "parameters": {
+            "feats_type": {"values": [0]},
+            "hidden_dim": {"values": [64]},
+            "num_heads": {"values": [8]},
+            "attn_vec_dim": {"values": [128]},
+            "rnn_type": {"values": ["RotatE0", "TransE0"]},
+            "num_epochs": {"values": [10]},
+            "patience": {"values": [5]},
+            "batch_size": {"values": [32]},
+            "neighbor_samples": {"values": [10, 50, 100]},
+            "repeat": {"values": [1]},
+            "lr": {"values": [0.001, 0.005]},
+        },
+        # "early_terminate": {
+        #     "type": "hyperband",
+        #     "max_count": 10
+        # },
+    }
+
+    # create the sweep
+    sweep_id = wandb.sweep(sweep_config, project="12302024_MicroMeta_lp")
+
+    # start the sweep agent
+    wandb.agent(sweep_id, function=train)
