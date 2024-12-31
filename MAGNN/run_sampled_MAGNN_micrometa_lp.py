@@ -280,8 +280,8 @@ def run_model(
             # validation
             net.eval()
             val_loss = []
-            val_pos_proba_list = []
-            val_neg_proba_list = []
+            pos_proba_list = []
+            neg_proba_list = []
             with torch.no_grad():
                 for iteration in range(val_idx_generator.num_iterations()):
                     # forward
@@ -348,30 +348,27 @@ def run_model(
                         -1, neg_embedding_metabolite.shape[1], 1
                     )
 
-                    # score = dot product of the embeddings
                     pos_out = torch.bmm(pos_embedding_microbe, pos_embedding_metabolite)
                     neg_out = -torch.bmm(neg_embedding_microbe, neg_embedding_metabolite)
-                    # calculate BCE loss
                     val_loss.append(-torch.mean(F.logsigmoid(pos_out) + F.logsigmoid(neg_out)))
-                    # collect probabilities for AUC / AP
-                    pos_proba = torch.sigmoid(pos_out).flatten().cpu().numpy()
-                    neg_proba = torch.sigmoid(-neg_out).flatten().cpu().numpy()
 
-                    val_pos_proba_list.append(pos_proba)
-                    val_neg_proba_list.append(neg_proba)
+                    pos_proba_list.append(torch.sigmoid(pos_out))
+                    neg_proba_list.append(torch.sigmoid(neg_out))
 
-            val_loss = torch.mean(torch.tensor(val_loss))
+                # calculate epoch validation loss
+                val_loss = torch.mean(torch.tensor(val_loss))
 
-            # compute AUC/AP across the entire validation set
-            val_pos_proba = np.concatenate(val_pos_proba_list)
-            val_neg_proba = np.concatenate(val_neg_proba_list)
+                # concatenate epoch positive and negative probabilities
+                y_proba_val = torch.cat(pos_proba_list + neg_proba_list).cpu().numpy()
 
-            # construct labels: 1 for positives, 0 for negatives
-            val_labels = np.concatenate([np.ones_like(val_pos_proba), np.zeros_like(val_neg_proba)])
-            val_scores = np.concatenate([val_pos_proba, val_neg_proba])
+                # construct labels
+                y_true_val = np.concatenate(
+                    [np.ones(len(pos_proba_list)), np.zeros(len(neg_proba_list))]
+                )
 
-            val_auc = roc_auc_score(val_labels, val_scores)
-            val_ap = average_precision_score(val_labels, val_scores)
+                # compute AUC and AP
+                val_auc = roc_auc_score(y_true_val, y_proba_val)
+                val_ap = average_precision_score(y_true_val, y_proba_val)
 
             t_end = time.time()
             # print validation info
