@@ -9,11 +9,10 @@ import torch.nn.functional as F
 import wandb
 from sklearn.metrics import average_precision_score, roc_auc_score
 
-from MAGNN_utils.data_loader import load_preprocessed_data_2metapaths
+from MAGNN_utils.data_loader import load_preprocessed_data_micrometa
 from MAGNN_utils.model_tools import IndexGenerator, parse_minibatch
 from MAGNN_utils.pytorchtools import EarlyStopping
 from model import MAGNN_lp_2metapaths_layer
-from sklearn.model_selection import StratifiedKFold
 
 # Params
 num_ntype = 3  # microbe + disease + metabolite = 3
@@ -37,7 +36,9 @@ no_masks = [[False] * 4, [False] * 4]
 # load node idx
 microbe_idx = pd.read_csv("data/sampled/microbe_index.dat", sep="\t", encoding="utf-8", header=None)
 disease_idx = pd.read_csv("data/sampled/disease_index.dat", sep="\t", encoding="utf-8", header=None)
-metabolite_idx = pd.read_csv("data/sampled/metabolite_index.dat", sep="\t", encoding="utf-8", header=None)
+metabolite_idx = pd.read_csv(
+    "data/sampled/metabolite_index.dat", sep="\t", encoding="utf-8", header=None
+)
 
 num_microbe = np.int16(len(microbe_idx))
 num_disease = np.int16(len(disease_idx))
@@ -49,18 +50,18 @@ expected_metapaths = [
 
 
 def run_model(
-        feats_type,
-        hidden_dim,
-        num_heads,
-        attn_vec_dim,
-        rnn_type,
-        num_epochs,
-        patience,
-        batch_size,
-        neighbor_samples,
-        repeat,
-        save_postfix,
-        lr
+    feats_type,
+    hidden_dim,
+    num_heads,
+    attn_vec_dim,
+    rnn_type,
+    num_epochs,
+    patience,
+    batch_size,
+    neighbor_samples,
+    repeat,
+    save_postfix,
+    lr,
 ):
     (
         adjlists_micrometa,
@@ -69,7 +70,7 @@ def run_model(
         type_mask,
         train_val_test_pos_microbe_metabolite,
         train_val_test_neg_microbe_metabolite,
-    ) = load_preprocessed_data_2metapaths()
+    ) = load_preprocessed_data_micrometa()
 
     # device setup
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -148,12 +149,17 @@ def run_model(
             shuffle=False,
         )
 
+        # initialize global step counter
+        step = 0
+
         for epoch in range(num_epochs):
             t_start = time.time()
-            epoch_train_loss = []
+            train_loss_epoch = []
 
             # training
             net.train()
+            total_iterations = train_pos_idx_generator.num_iterations()
+
             for iteration in range(train_pos_idx_generator.num_iterations()):
                 # forward
                 t0 = time.time()
@@ -182,7 +188,7 @@ def run_model(
                     device,
                     neighbor_samples,
                     use_masks,
-                    num_microbe+num_disease,
+                    num_microbe + num_disease,
                 )
                 (
                     train_neg_g_lists,
@@ -195,7 +201,7 @@ def run_model(
                     device,
                     neighbor_samples,
                     no_masks,
-                    num_microbe+num_disease,
+                    num_microbe + num_disease,
                 )
 
                 t1 = time.time()
@@ -239,6 +245,7 @@ def run_model(
                 pos_out = torch.bmm(pos_embedding_microbe, pos_embedding_metabolite)
                 neg_out = -torch.bmm(neg_embedding_microbe, neg_embedding_metabolite)
 
+                # calculate training loss
                 train_loss = -torch.mean(F.logsigmoid(pos_out) + F.logsigmoid(neg_out))
 
                 t2 = time.time()
@@ -252,9 +259,9 @@ def run_model(
                 t3 = time.time()
                 dur3.append(t3 - t2)
 
-                epoch_train_loss.append(train_loss.item())
+                train_loss_epoch.append(train_loss.item())
 
-                # print training info
+                # print training info per 100 iteration
                 if iteration % 100 == 0:
                     print(
                         "*Training: Epoch {:05d} | Iteration {:05d} | Train_Loss {:.4f} | Time1(s) {:.4f} | Time2(s) {:.4f} | Time3(s) {:.4f}".format(
@@ -266,16 +273,18 @@ def run_model(
                             np.mean(dur3),
                         )
                     )
-                    # Log the training loss to wandb
-                    wandb.log(
-                        {"train_loss_per_100_iterations": train_loss.item()}, step=iteration
-                    )
 
-            mean_epoch_loss = np.mean(epoch_train_loss)
+                    # sync the step count for iteration and epoch
+                    step = epoch * total_iterations + iteration
+
+                    # Log the training loss to wandb
+                    wandb.log({"train_loss_per_100_iteration": train_loss.item()}, step=step)
+
+            avg_train_loss_epoch = np.mean(train_loss_epoch)
             # print epoch training info
-            print(f"Epoch {epoch + 1} done: mean train loss = {mean_epoch_loss:.4f}")
+            print(f"Epoch {epoch} done: mean train loss = {avg_train_loss_epoch:.4f}")
             # log the mean epoch loss to wandb
-            wandb.log({"train_loss": mean_epoch_loss}, step=epoch)
+            wandb.log({"train_loss_epoch": avg_train_loss_epoch}, step=step)
 
             # validation
             net.eval()
@@ -286,8 +295,12 @@ def run_model(
                 for iteration in range(val_idx_generator.num_iterations()):
                     # forward
                     val_idx_batch = val_idx_generator.next()
-                    val_pos_microbe_metabolite_batch = val_pos_microbe_metabolite[val_idx_batch].tolist()
-                    val_neg_microbe_metabolite_batch = val_neg_microbe_metabolite[val_idx_batch].tolist()
+                    val_pos_microbe_metabolite_batch = val_pos_microbe_metabolite[
+                        val_idx_batch
+                    ].tolist()
+                    val_neg_microbe_metabolite_batch = val_neg_microbe_metabolite[
+                        val_idx_batch
+                    ].tolist()
 
                     (
                         val_pos_g_lists,
@@ -300,7 +313,7 @@ def run_model(
                         device,
                         neighbor_samples,
                         no_masks,
-                        num_microbe+num_disease,
+                        num_microbe + num_disease,
                     )
                     (
                         val_neg_g_lists,
@@ -313,7 +326,7 @@ def run_model(
                         device,
                         neighbor_samples,
                         no_masks,
-                        num_microbe+num_disease,
+                        num_microbe + num_disease,
                     )
 
                     [pos_embedding_microbe, pos_embedding_metabolite], _ = net(
@@ -350,6 +363,7 @@ def run_model(
 
                     pos_out = torch.bmm(pos_embedding_microbe, pos_embedding_metabolite)
                     neg_out = -torch.bmm(neg_embedding_microbe, neg_embedding_metabolite)
+                    # calculate validation loss
                     val_loss.append(-torch.mean(F.logsigmoid(pos_out) + F.logsigmoid(neg_out)))
 
                     pos_proba_list.append(torch.sigmoid(pos_out))
@@ -379,8 +393,8 @@ def run_model(
             )
             # log the validation loss to wandb
             wandb.log(
-                {"val_loss": val_loss, "val_auc_epoch": val_auc, "val_ap_epoch": val_ap},
-                step=epoch,
+                {"val_loss_epoch": val_loss, "val_auc_epoch": val_auc, "val_ap_epoch": val_ap},
+                step=step,
             )
 
             # early stopping
@@ -404,8 +418,12 @@ def run_model(
             for iteration in range(test_idx_generator.num_iterations()):
                 # forward
                 test_idx_batch = test_idx_generator.next()
-                test_pos_microbe_metabolite_batch = test_pos_microbe_metabolite[test_idx_batch].tolist()
-                test_neg_microbe_metabolite_batch = test_neg_microbe_metabolite[test_idx_batch].tolist()
+                test_pos_microbe_metabolite_batch = test_pos_microbe_metabolite[
+                    test_idx_batch
+                ].tolist()
+                test_neg_microbe_metabolite_batch = test_neg_microbe_metabolite[
+                    test_idx_batch
+                ].tolist()
 
                 (
                     test_pos_g_lists,
@@ -418,7 +436,7 @@ def run_model(
                     device,
                     neighbor_samples,
                     no_masks,
-                    num_microbe+num_disease,
+                    num_microbe + num_disease,
                 )
 
                 (
@@ -432,7 +450,7 @@ def run_model(
                     device,
                     neighbor_samples,
                     no_masks,
-                    num_microbe+num_disease,
+                    num_microbe + num_disease,
                 )
 
                 [pos_embedding_microbe, pos_embedding_metabolite], _ = net(
@@ -504,8 +522,8 @@ if __name__ == "__main__":
         type=int,
         default=0,
         help="Type of the node features used. "
-             + "0 - all id vectors; "
-             + "1 - all zero vector. Default is 0.",
+        + "0 - all id vectors; "
+        + "1 - all zero vector. Default is 0.",
     )
     ap.add_argument(
         "--hidden-dim",
@@ -552,8 +570,8 @@ if __name__ == "__main__":
     )
     ap.add_argument(
         "--save-postfix",
-        default="MKG_MicroD",
-        help="Postfix for the saved model and result. Default is MKG_MicroMeta.",
+        default="MKG_MicroMeta",
+        help="Postfix for the saved model and result. Default is MKG_MicroD.",
     )
     ap.add_argument(
         "--lr",
@@ -598,7 +616,7 @@ if __name__ == "__main__":
     # )
 
     wandb.init(
-        project="12302024_sampled_MAGNN_MicroMeta_lp",
+        project="12302024_MicroMeta_lp",
         config={
             "feats_type": args.feats_type,
             "hidden_dim": args.hidden_dim,
@@ -628,5 +646,5 @@ if __name__ == "__main__":
         args.samples,
         args.repeat,
         args.save_postfix,
-        args.lr
+        args.lr,
     )
