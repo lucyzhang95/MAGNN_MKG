@@ -50,18 +50,18 @@ expected_metapaths = [
 
 
 def run_model(
-    feats_type,
-    hidden_dim,
-    num_heads,
-    attn_vec_dim,
-    rnn_type,
-    num_epochs,
-    patience,
-    batch_size,
-    neighbor_samples,
-    repeat,
-    save_postfix,
-    lr,
+        feats_type,
+        hidden_dim,
+        num_heads,
+        attn_vec_dim,
+        rnn_type,
+        num_epochs,
+        patience,
+        batch_size,
+        neighbor_samples,
+        repeat,
+        save_postfix,
+        lr,
 ):
     (
         adjlists_micrometa,
@@ -361,26 +361,30 @@ def run_model(
                         -1, neg_embedding_metabolite.shape[1], 1
                     )
 
-                    pos_out = torch.bmm(pos_embedding_microbe, pos_embedding_metabolite)
-                    neg_out = -torch.bmm(neg_embedding_microbe, neg_embedding_metabolite)
+                    # calculate logits for positive and negative samples
+                    pos_out = torch.bmm(pos_embedding_microbe, pos_embedding_metabolite).squeeze(-1)
+                    neg_out = -torch.bmm(neg_embedding_microbe, neg_embedding_metabolite).squeeze(-1)
+
                     # calculate validation loss
                     val_loss.append(-torch.mean(F.logsigmoid(pos_out) + F.logsigmoid(neg_out)))
 
-                    pos_proba_list.append(torch.sigmoid(pos_out))
-                    neg_proba_list.append(torch.sigmoid(neg_out))
+                    # calculate probabilities and append
+                    pos_proba_list.append(torch.sigmoid(pos_out).view(-1))
+                    neg_proba_list.append(torch.sigmoid(neg_out).view(-1))
 
                 # calculate epoch validation loss
                 val_loss = torch.mean(torch.tensor(val_loss))
 
-                # concatenate epoch positive and negative probabilities
+                # concatenate probabilities
                 y_proba_val = torch.cat(pos_proba_list + neg_proba_list).cpu().numpy()
-
-                # construct labels
+                # Construct ground truth labels
+                num_pos_samples = sum(p.shape[0] for p in pos_proba_list)
+                num_neg_samples = sum(n.shape[0] for n in neg_proba_list)
                 y_true_val = np.concatenate(
-                    [np.ones(len(pos_proba_list)), np.zeros(len(neg_proba_list))]
+                    [np.ones(num_pos_samples), np.zeros(num_neg_samples)]
                 )
 
-                # compute AUC and AP
+                # Compute AUC and AP
                 val_auc = roc_auc_score(y_true_val, y_proba_val)
                 val_ap = average_precision_score(y_true_val, y_proba_val)
 
@@ -521,8 +525,8 @@ ap.add_argument(
     type=int,
     default=0,
     help="Type of the node features used. "
-    + "0 - all id vectors; "
-    + "1 - all zero vector. Default is 0.",
+         + "0 - all id vectors; "
+         + "1 - all zero vector. Default is 0.",
 )
 ap.add_argument(
     "--hidden-dim",
@@ -587,7 +591,7 @@ def train():
 
     config = wandb.config
 
-    save_postfix = f"rnn{config.rnn_type}_ns{config.neighbor_samples}_lr{config.lr}"
+    save_postfix = f"rnn{config.rnn_type}_ns{config.neighbor_samples}_lr{config.lr}_ep{config.num_epochs}"
 
     run_model(
         config.feats_type,
