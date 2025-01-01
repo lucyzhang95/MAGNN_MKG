@@ -17,7 +17,7 @@ from model import MAGNN_lp_2metapaths_layer
 # Params
 num_ntype = 3  # microbe + disease + metabolite = 3
 dropout_rate = 0.5
-lr = 0.001  # src code was 0.005
+# lr = 0.005
 weight_decay = 0.001
 
 # [0, 1, 0]: ([0, 1] is 0 and [1, 0] is 1 = [0, 1])
@@ -57,6 +57,7 @@ def run_model(
     neighbor_samples,
     repeat,
     save_postfix,
+    lr,
 ):
     (
         adjlists_microdis,
@@ -144,13 +145,17 @@ def run_model(
             shuffle=False,
         )
 
-        global_step = 0
+        # initialize global step counter
+        step = 0
+
         for epoch in range(num_epochs):
             t_start = time.time()
             epoch_train_loss = []
 
             # training
             net.train()
+            total_iterations = train_pos_idx_generator.num_iterations()
+
             for iteration in range(train_pos_idx_generator.num_iterations()):
                 # forward
                 t0 = time.time()
@@ -263,23 +268,24 @@ def run_model(
                             np.mean(dur3),
                         )
                     )
+
+                    # sync the step count for iteration and epoch
+                    step = epoch * total_iterations + iteration
+
                     # Log the training loss to wandb
-                    wandb.log(
-                        {"train_loss_per_100_iterations": train_loss.item()}, step=global_step
-                    )
-                    global_step += 1
+                    wandb.log({"train_loss_per_100_iterations": train_loss.item()}, step=iteration)
 
             mean_epoch_loss = np.mean(epoch_train_loss)
             # print epoch training info
-            print(f"Epoch {epoch} done: mean train loss = {mean_epoch_loss:.4f}")
+            print(f"Epoch {epoch + 1} done: mean train loss = {mean_epoch_loss:.4f}")
             # log the mean epoch loss to wandb
-            wandb.log({"train_loss_epoch": mean_epoch_loss}, step=epoch)
+            wandb.log({"train_loss": mean_epoch_loss}, step=epoch)
 
             # validation
             net.eval()
             val_loss = []
-            val_pos_proba_list = []
-            val_neg_proba_list = []
+            pos_proba_list = []
+            neg_proba_list = []
             with torch.no_grad():
                 for iteration in range(val_idx_generator.num_iterations()):
                     # forward
@@ -346,30 +352,30 @@ def run_model(
                         -1, neg_embedding_disease.shape[1], 1
                     )
 
-                    # score = dot product of the embeddings
-                    pos_out = torch.bmm(pos_embedding_microbe, pos_embedding_disease)
-                    neg_out = -torch.bmm(neg_embedding_microbe, neg_embedding_disease)
-                    # calculate BCE loss
+                    # calculate logits for positive and negative samples
+                    pos_out = torch.bmm(pos_embedding_microbe, pos_embedding_disease).squeeze(-1)
+                    neg_out = -torch.bmm(neg_embedding_microbe, neg_embedding_disease).squeeze(-1)
+
+                    # calculate validation loss
                     val_loss.append(-torch.mean(F.logsigmoid(pos_out) + F.logsigmoid(neg_out)))
-                    # collect probabilities for AUC / AP
-                    pos_proba = torch.sigmoid(pos_out).flatten().cpu().numpy()
-                    neg_proba = torch.sigmoid(-neg_out).flatten().cpu().numpy()
 
-                    val_pos_proba_list.append(pos_proba)
-                    val_neg_proba_list.append(neg_proba)
+                    # calculate probabilities and append
+                    pos_proba_list.append(torch.sigmoid(pos_out).view(-1))
+                    neg_proba_list.append(torch.sigmoid(neg_out).view(-1))
 
-            val_loss = torch.mean(torch.tensor(val_loss))
+                # calculate epoch validation loss
+                val_loss = torch.mean(torch.tensor(val_loss))
 
-            # compute AUC/AP across the entire validation set
-            val_pos_proba = np.concatenate(val_pos_proba_list)
-            val_neg_proba = np.concatenate(val_neg_proba_list)
+                # concatenate probabilities
+                y_proba_val = torch.cat(pos_proba_list + neg_proba_list).cpu().numpy()
+                # Construct ground truth labels
+                num_pos_samples = sum(p.shape[0] for p in pos_proba_list)
+                num_neg_samples = sum(n.shape[0] for n in neg_proba_list)
+                y_true_val = np.concatenate([np.ones(num_pos_samples), np.zeros(num_neg_samples)])
 
-            # construct labels: 1 for positives, 0 for negatives
-            val_labels = np.concatenate([np.ones_like(val_pos_proba), np.zeros_like(val_neg_proba)])
-            val_scores = np.concatenate([val_pos_proba, val_neg_proba])
-
-            val_auc = roc_auc_score(val_labels, val_scores)
-            val_ap = average_precision_score(val_labels, val_scores)
+                # Compute AUC and AP
+                val_auc = roc_auc_score(y_true_val, y_proba_val)
+                val_ap = average_precision_score(y_true_val, y_proba_val)
 
             t_end = time.time()
             # print validation info
@@ -381,7 +387,7 @@ def run_model(
             # log the validation loss to wandb
             wandb.log(
                 {"val_loss_epoch": val_loss, "val_auc_epoch": val_auc, "val_ap_epoch": val_ap},
-                step=global_step,
+                step=step,
             )
 
             # early stopping
@@ -498,97 +504,122 @@ def run_model(
     print("AP_mean = {}, AP_std = {}".format(np.mean(ap_list), np.std(ap_list)))
 
 
-if __name__ == "__main__":
-    ap = argparse.ArgumentParser(description="MAGNN testing run for sampled MKG dataset")
-    ap.add_argument(
-        "--feats-type",
-        type=int,
-        default=0,
-        help="Type of the node features used. "
-        + "0 - all id vectors; "
-        + "1 - all zero vector. Default is 0.",
-    )
-    ap.add_argument(
-        "--hidden-dim",
-        type=int,
-        default=64,
-        help="Dimension of the node hidden state. Default is 64.",
-    )
-    ap.add_argument(
-        "--num-heads",
-        type=int,
-        default=8,
-        help="Number of the attention heads. Default is 8.",
-    )
-    ap.add_argument(
-        "--attn-vec-dim",
-        type=int,
-        default=128,
-        help="Dimension of the attention vector. Default is 128.",
-    )
-    ap.add_argument(
-        "--rnn-type",
-        default="RotatE0",
-        help="Type of the aggregator. Default is RotatE0.",
-    )
-    ap.add_argument(
-        "--epoch",
-        type=int,
-        default=10,
-        help="Number of epochs. Default is 100.",
-    )
-    ap.add_argument("--patience", type=int, default=5, help="Patience. Default is 5.")
-    ap.add_argument("--batch-size", type=int, default=32, help="Batch size. Default is 8.")
-    ap.add_argument(
-        "--samples",
-        type=int,
-        default=100,
-        help="Number of neighbors sampled. Default is 100.",
-    )
-    ap.add_argument(
-        "--repeat",
-        type=int,
-        default=1,
-        help="Repeat the training and testing for N times. Default is 1.",
-    )
-    ap.add_argument(
-        "--save-postfix",
-        default="MKG_MicroD",
-        help="Postfix for the saved model and result. Default is MKG_MicroD.",
-    )
+ap = argparse.ArgumentParser(description="MAGNN testing run for sampled MKG dataset")
+ap.add_argument(
+    "--feats-type",
+    type=int,
+    default=0,
+    help="Type of the node features used. "
+    + "0 - all id vectors; "
+    + "1 - all zero vector. Default is 0.",
+)
+ap.add_argument(
+    "--hidden-dim",
+    type=int,
+    default=64,
+    help="Dimension of the node hidden state. Default is 64.",
+)
+ap.add_argument(
+    "--num-heads",
+    type=int,
+    default=8,
+    help="Number of the attention heads. Default is 8.",
+)
+ap.add_argument(
+    "--attn-vec-dim",
+    type=int,
+    default=128,
+    help="Dimension of the attention vector. Default is 128.",
+)
+ap.add_argument(
+    "--rnn-type",
+    default="RotatE0",
+    help="Type of the aggregator. Default is RotatE0.",
+)
+ap.add_argument(
+    "--epoch",
+    type=int,
+    default=10,
+    help="Number of epochs. Default is 100.",
+)
+ap.add_argument("--patience", type=int, default=5, help="Patience. Default is 5.")
+ap.add_argument("--batch-size", type=int, default=32, help="Batch size. Default is 8.")
+ap.add_argument(
+    "--samples",
+    type=int,
+    default=100,
+    help="Number of neighbors sampled. Default is 100.",
+)
+ap.add_argument(
+    "--repeat",
+    type=int,
+    default=1,
+    help="Repeat the training and testing for N times. Default is 1.",
+)
+ap.add_argument(
+    "--save-postfix",
+    default="MKG_MicroD",
+    help="Postfix for the saved model and result. Default is MKG_MicroD.",
+)
+ap.add_argument(
+    "--lr",
+    type=float,
+    default=0.001,
+    help="Learning rate. Default is 0.005.",
+)
 
-    args = ap.parse_args()
+args = ap.parse_args()
 
-    # --- Initialize wandb ---
-    wandb.init(
-        project="12292024_sampled_MAGNN_run",
-        config={
-            "feats_type": args.feats_type,
-            "hidden_dim": args.hidden_dim,
-            "num_heads": args.num_heads,
-            "attn_vec_dim": args.attn_vec_dim,
-            "rnn_type": args.rnn_type,
-            "num_epochs": args.epoch,
-            "patience": args.patience,
-            "batch_size": args.batch_size,
-            "neighbor_samples": args.samples,
-            "repeat": args.repeat,
-            "save_postfix": args.save_postfix,
-            "learning_rate": lr,
-            "weight_decay": weight_decay,
-        },
-    )
+
+def train():
+    wandb.init()
+
+    config = wandb.config
+
+    save_postfix = f"MicroD_rnn{config.rnn_type}_ns{config.neighbor_samples}_lr{config.lr}_ep{config.num_epochs}"
 
     run_model(
-        args.feats_type,
-        args.hidden_dim,
-        args.num_heads,
-        args.attn_vec_dim,
-        args.rnn_type,
-        args.epoch,
-        args.patience,
-        args.batch_size,
-        args.samples,
-        args.repeat,
-        args.save_postfix,
+        config.feats_type,
+        config.hidden_dim,
+        config.num_heads,
+        config.attn_vec_dim,
+        config.rnn_type,
+        config.num_epochs,
+        config.patience,
+        config.batch_size,
+        config.neighbor_samples,
+        config.repeat,
+        save_postfix,
+        config.lr,
     )
+
+
+if __name__ == "__main__":
+    sweep_config = {
+        "method": "grid",
+        "name": "MicroD lp hyperparameter tuning",
+        "metric": {"name": "val_loss_epoch", "goal": "minimize"},
+        "parameters": {
+            "feats_type": {"values": [0]},
+            "hidden_dim": {"values": [64]},
+            "num_heads": {"values": [8]},
+            "attn_vec_dim": {"values": [128]},
+            "rnn_type": {"values": ["RotatE0", "TransE0"]},
+            "num_epochs": {"values": [10]},
+            "patience": {"values": [5]},
+            "batch_size": {"values": [32]},
+            "neighbor_samples": {"values": [10, 50, 100]},
+            "repeat": {"values": [1]},
+            "lr": {"values": [0.001, 0.005]},
+        },
+        # "early_terminate": {
+        #     "type": "hyperband",
+        #     "max_count": 10
+        # },
+    }
+
+    # create the sweep
+    sweep_id = wandb.sweep(sweep_config, project="MicroD_lp")
+
+    # start the sweep agent
+    wandb.agent(sweep_id, function=train)
