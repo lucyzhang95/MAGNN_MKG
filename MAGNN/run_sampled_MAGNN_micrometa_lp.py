@@ -591,7 +591,7 @@ def train():
 
     config = wandb.config
 
-    save_postfix = f"rnn{config.rnn_type}_ns{config.neighbor_samples}_lr{config.lr}_ep{config.num_epochs}"
+    save_postfix = f"MicroMeta_rnn{config.rnn_type}_ns{config.neighbor_samples}_lr{config.lr}_ep{config.num_epochs}"
 
     run_model(
         config.feats_type,
