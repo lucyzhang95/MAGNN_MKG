@@ -3,5 +3,4 @@
 /data/raw_data/
 /.venv/
 /utils/taxdump.tar.gz
-/MAGNN/data/sampled/
 /MAGNN/data/preprocessed/
