@@ -15,9 +15,8 @@ from MAGNN_utils.pytorchtools import EarlyStopping
 from model import MAGNN_lp_2metapaths_layer
 
 # Params
-num_ntype = 3  # microbe + disease + metabolite = 3
+num_ntype = 3
 dropout_rate = 0.5
-# lr = 0.005
 weight_decay = 0.001
 
 # [0, 1, 0]: ([0, 1] is 0 and [1, 0] is 1 = [0, 1])
@@ -34,8 +33,8 @@ use_masks = [
 no_masks = [[False] * 4, [False] * 4]
 
 # load node idx
-microbe_idx = pd.read_csv("data/sampled/microbe_index.dat", sep="\t", encoding="utf-8", header=None)
-disease_idx = pd.read_csv("data/sampled/disease_index.dat", sep="\t", encoding="utf-8", header=None)
+microbe_idx = pd.read_csv("data/sampled/unique_microbes_idx.dat", sep="\t", encoding="utf-8", header=None)
+disease_idx = pd.read_csv("data/sampled/unique_diseases_idx.dat", sep="\t", encoding="utf-8", header=None)
 
 num_microbe = np.int16(len(microbe_idx))
 num_disease = np.int16(len(microbe_idx))
