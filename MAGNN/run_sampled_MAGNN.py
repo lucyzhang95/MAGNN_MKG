@@ -257,7 +257,7 @@ def run_model(
                 epoch_train_loss.append(train_loss.item())
 
                 # print training info
-                if iteration % 100 == 0:
+                if iteration % 50 == 0:
                     print(
                         "*Training: Epoch {:05d} | Iteration {:05d} | Train_Loss {:.4f} | Time1(s) {:.4f} | Time2(s) {:.4f} | Time3(s) {:.4f}".format(
                             epoch,
@@ -273,7 +273,7 @@ def run_model(
                     step = epoch * total_iterations + iteration
 
                     # Log the training loss to wandb
-                    wandb.log({"train_loss_per_100_iterations": train_loss.item()}, step=iteration)
+                    wandb.log({"train_loss_per_50_iterations": train_loss.item()}, step=iteration)
 
             mean_epoch_loss = np.mean(epoch_train_loss)
             # print epoch training info
@@ -363,19 +363,19 @@ def run_model(
                     pos_proba_list.append(torch.sigmoid(pos_out).view(-1))
                     neg_proba_list.append(torch.sigmoid(neg_out).view(-1))
 
-                # calculate epoch validation loss
-                val_loss = torch.mean(torch.tensor(val_loss))
+            # calculate epoch validation loss
+            val_loss = torch.mean(torch.tensor(val_loss))
+            # concatenate probabilities
+            y_proba_val = torch.cat(pos_proba_list + neg_proba_list).cpu().numpy()
 
-                # concatenate probabilities
-                y_proba_val = torch.cat(pos_proba_list + neg_proba_list).cpu().numpy()
-                # Construct ground truth labels
-                num_pos_samples = sum(p.shape[0] for p in pos_proba_list)
-                num_neg_samples = sum(n.shape[0] for n in neg_proba_list)
-                y_true_val = np.concatenate([np.ones(num_pos_samples), np.zeros(num_neg_samples)])
+            # construct ground truth labels
+            num_pos_samples = sum(p.shape[0] for p in pos_proba_list)
+            num_neg_samples = sum(n.shape[0] for n in neg_proba_list)
+            y_true_val = np.concatenate([np.ones(num_pos_samples), np.zeros(num_neg_samples)])
 
-                # Compute AUC and AP
-                val_auc = roc_auc_score(y_true_val, y_proba_val)
-                val_ap = average_precision_score(y_true_val, y_proba_val)
+            # compute AUC and AP
+            val_auc = roc_auc_score(y_true_val, y_proba_val)
+            val_ap = average_precision_score(y_true_val, y_proba_val)
 
             t_end = time.time()
             # print validation info
@@ -482,8 +482,7 @@ def run_model(
                 pos_proba_list.append(torch.sigmoid(pos_out))
                 neg_proba_list.append(torch.sigmoid(neg_out))
 
-            y_proba_test = torch.cat(pos_proba_list + neg_proba_list)
-            y_proba_test = y_proba_test.cpu().numpy()
+            y_proba_test = torch.cat(pos_proba_list + neg_proba_list).cpu().numpy()
 
         # overall evaluation metrics
         auc = roc_auc_score(y_true_test, y_proba_test)
@@ -602,15 +601,15 @@ if __name__ == "__main__":
         "parameters": {
             "feats_type": {"values": [0]},
             "hidden_dim": {"values": [64]},
-            "num_heads": {"values": [8]},
-            "attn_vec_dim": {"values": [128]},
-            "rnn_type": {"values": ["RotatE0", "TransE0"]},
+            "num_heads": {"values": [4, 8]},
+            "attn_vec_dim": {"values": [64, 128]},
+            "rnn_type": {"values": ["RotatE0"]},
             "num_epochs": {"values": [10]},
             "patience": {"values": [5]},
-            "batch_size": {"values": [32]},
-            "neighbor_samples": {"values": [10, 50, 100]},
+            "batch_size": {"values": [8]},
+            "neighbor_samples": {"values": [50, 100]},
             "repeat": {"values": [1]},
-            "lr": {"values": [0.001, 0.005]},
+            "lr": {"values": [0.001, 0.1, 1]},
         },
         # "early_terminate": {
         #     "type": "hyperband",
