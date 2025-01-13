@@ -266,6 +266,10 @@ metapath_indices_mapping = {
     (1, 0, 2, 0, 1): d_micro_meta_micro_d,
     (1, 2, 0, 2, 1): d_meta_micro_meta_d,
     (1, 2, 1): disease_metabolite_disease,
+    (2, 0, 2): metabolite_microbe_metabolite,
+    (2, 0, 1, 0, 2): meta_micro_d_micro_meta,
+    (2, 1, 0, 1, 2): meta_d_micro_d_meta,
+    (2, 1, 2): metabolite_disease_metabolite,
 }
 
 # write all things
@@ -396,6 +400,8 @@ microbe_metabolite = pd.read_csv(
     delimiter="\t",
     names=["MicrobeID", "MetaboliteID"],
 )
+microbe_metabolite = microbe_metabolite[["MicrobeID", "MetaboliteID"]].to_numpy()
+np.save(save_prefix + "microbe_metabolite.npy", microbe_metabolite)
 
 # output positive and negative samples for microbe-metabolite training, validation and testing
 np.random.seed(453289)
