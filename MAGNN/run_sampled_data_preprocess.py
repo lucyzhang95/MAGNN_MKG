@@ -7,123 +7,42 @@ import pandas as pd
 import scipy
 
 from MAGNN_utils.preprocess import (
-    assign_array_index,
-    export_index2dat,
     generate_long_relationship_array,
     generate_triplet_array,
     lexicographical_sort,
-    load_and_concat_files,
-    map_indices_to_dataframe,
-    sample_edges,
     save_split_data2npz,
     split_date,
 )
 
-# list all file paths
-file_path = os.path.join(os.getcwd(), "../data", "MAGNN_data")
-# microbe-disease files
-disbiome_microd_path = os.path.join(file_path, "disbiome_taxid_mondo.dat")
-gmmad2_microd_path = os.path.join(file_path, "gmmad2_taxid_mondo.dat")
-# microbe-metabolite files
-gmmad2_micrometa_path = os.path.join(file_path, "gmmad2_taxid_met.dat")
-hmdb_micrometa_path = os.path.join(file_path, "hmdb_taxid_met.dat")
-# metabolite-disease file
-hmdb_metad_path = os.path.join(file_path, "hmdb_met_disease.dat")
-
-# load each dataset and sampling the datasets
-microd_df = load_and_concat_files(
-    [disbiome_microd_path, gmmad2_microd_path], column_names=["Microbe", "Disease"]
-)
-microd_frac = sample_edges(dataset=microd_df, fraction=0.3)
-micrometa_df = load_and_concat_files(
-    [gmmad2_micrometa_path, hmdb_micrometa_path], column_names=["Microbe", "Metabolite"]
-)
-micrometa_frac = sample_edges(dataset=micrometa_df, fraction=0.3)
-metad_df = load_and_concat_files([hmdb_metad_path], column_names=["Metabolite", "Disease"])
-metad_frac = sample_edges(dataset=metad_df, fraction=1.0)
-
-# assign index to each node
-microbes1 = microd_frac["Microbe"].unique()
-microbes2 = micrometa_frac["Microbe"].unique()
-all_microbes = assign_array_index(
-    [microbes1, microbes2], col_name="Microbe", index_name="MicrobeIdx"
-)
-export_index2dat(all_microbes, "data/sampled/microbe_index.dat")
-d1 = microd_frac["Disease"].unique()
-d2 = metad_frac["Disease"].unique()
-all_diseases = assign_array_index([d1, d2], col_name="Disease", index_name="DiseaseIdx")
-export_index2dat(all_diseases, "data/sampled/disease_index.dat")
-metabolites1 = micrometa_frac["Metabolite"].unique()
-metabolites2 = metad_frac["Metabolite"].unique()
-all_metabolites = assign_array_index(
-    [metabolites1, metabolites2], col_name="Metabolite", index_name="MetaboliteIdx"
-)
-export_index2dat(all_metabolites, "data/sampled/metabolite_index.dat")
-
-microd = map_indices_to_dataframe(
-    input_df=microd_frac,
-    col1="Microbe",
-    col2="Disease",
-    index_df1=all_microbes,
-    index_col1="Microbe",
-    index_col1_idx="MicrobeIdx",
-    index_df2=all_diseases,
-    index_col2="Disease",
-    index_col2_idx="DiseaseIdx",
-)
-export_index2dat(microd, "data/sampled/microbe_disease.dat")
-micrometa = map_indices_to_dataframe(
-    input_df=micrometa_frac,
-    col1="Microbe",
-    col2="Metabolite",
-    index_df1=all_microbes,
-    index_col1="Microbe",
-    index_col1_idx="MicrobeIdx",
-    index_df2=all_metabolites,
-    index_col2="Metabolite",
-    index_col2_idx="MetaboliteIdx",
-)
-export_index2dat(micrometa, "data/sampled/microbe_metabolite.dat")
-metad = map_indices_to_dataframe(
-    input_df=metad_frac,
-    col1="Metabolite",
-    col2="Disease",
-    index_df1=all_metabolites,
-    index_col1="Metabolite",
-    index_col1_idx="MetaboliteIdx",
-    index_df2=all_diseases,
-    index_col2="Disease",
-    index_col2_idx="DiseaseIdx",
-)
-export_index2dat(metad, "data/sampled/metabolite_disease.dat")
-
-microd = pd.read_csv(
-    "data/sampled/microbe_disease.dat",
+# load 3 relation data
+mid = pd.read_csv(
+    "data/sampled/common_microbe_disease_idx.dat",
     sep="\t",
     encoding="utf-8",
     header=None,
-    names=["MicrobeIdx", "DiseaseIdx"],
+    names=["MicrobeIdx", "DiseaseIdx", "Weight"],
 )
-micrometa = pd.read_csv(
-    "data/sampled/microbe_metabolite.dat",
+mime = pd.read_csv(
+    "data/sampled/common_microbe_metabolite_idx.dat",
     sep="\t",
     encoding="utf-8",
     header=None,
-    names=["MicrobeIdx", "MetaboliteIdx"],
+    names=["MicrobeIdx", "MetaboliteIdx", "Weight"],
 )
-metad = pd.read_csv(
-    "data/sampled/metabolite_disease.dat",
+med = pd.read_csv(
+    "data/sampled/common_metabolite_disease_idx.dat",
     sep="\t",
     encoding="utf-8",
     header=None,
-    names=["MetaboliteIdx", "DiseaseIdx"],
+    names=["MetaboliteIdx", "DiseaseIdx", "Weight"],
 )
 
-print(f"Number of Microbe-Disease edges: {len(microd)}")
-print(f"Number of Microbe-Metabolite edges: {len(micrometa)}")
-print(f"Number of Metabolite-Disease edges: {len(metad)}")
+print(f"Number of Microbe-Disease edges: {len(mid)}")
+print(f"Number of Microbe-Metabolite edges: {len(mime)}")
+print(f"Number of Metabolite-Disease edges: {len(med)}")
 
-md_train, md_val, md_test = split_date(microd, train_ratio=0.7, val_ratio=0.2, test_ratio=0.1)
+# microbe-disease
+md_train, md_val, md_test = split_date(mid, train_ratio=0.7, val_ratio=0.2, test_ratio=0.1)
 save_split_data2npz(md_train, md_val, md_test, "data/sampled/preprocessed/micro_disease_train_val_test_idx.npz")
 
 # training: 70%, validation: 20%, testing: 10%
@@ -133,15 +52,30 @@ val_idx = train_val_test_idx["val"]
 test_idx = train_val_test_idx["test"]
 
 # reset microbe-disease index
-microbe_disease = microd.loc[train_idx].reset_index(drop=True)
-microbe_disease.head()
-print(f"Length of Training data: {len(microbe_disease)}")
+microbe_disease = mid.loc[train_idx].reset_index(drop=True)
+print(f"Length of MID Training data: {len(microbe_disease)}")
 
+# microbe-metabolite
+mm_train, mm_val, mm_test = split_date(mime, train_ratio=0.7, val_ratio=0.2, test_ratio=0.1)
+save_split_data2npz(mm_train, mm_val, mm_test, "data/sampled/preprocessed/micro_metabolite_train_val_test_idx.npz")
+
+# microbe-metabolite
+train_val_test_idx_mm = np.load("data/sampled/preprocessed/micro_metabolite_train_val_test_idx.npz")
+train_idx_mm = train_val_test_idx_mm["train"]
+val_idx_mm = train_val_test_idx_mm["val"]
+test_idx_mm = train_val_test_idx_mm["test"]
+
+# reset microbe-metabolite index
+microbe_metabolite = mime.loc[train_idx_mm].reset_index(drop=True)
+print(f"Length of MIME Training data: {len(microbe_metabolite)}")
+
+
+# hardcoded node num
 save_prefix = "data/sampled/preprocessed/"
 
-num_microbe = (micrometa["MicrobeIdx"].max() + 1).astype(np.int16)
-num_disease = (metad["DiseaseIdx"].max() + 1).astype(np.int16)
-num_metabolite = (metad["MetaboliteIdx"].max() + 1).astype(np.int16)
+num_microbe = (mime["MicrobeIdx"].max() + 1).astype(np.int16)
+num_disease = (med["DiseaseIdx"].max() + 1).astype(np.int16)
+num_metabolite = (med["MetaboliteIdx"].max() + 1).astype(np.int16)
 
 # build adjacency matrix
 # 0 for microbe, 1 for disease, 2 for metabolite
@@ -152,17 +86,17 @@ type_mask[num_microbe : num_microbe + num_disease] = 1
 type_mask[num_microbe + num_disease :] = 2
 
 adjM = np.zeros((dim, dim), dtype=np.int16)
-for _, row in microd.iterrows():
+for _, row in mid.iterrows():
     microID = row["MicrobeIdx"]
     diseaseID = num_microbe + row["DiseaseIdx"]
     adjM[microID, diseaseID] = 1
     adjM[diseaseID, microID] = 1
-for _, row in micrometa.iterrows():
+for _, row in mime.iterrows():
     microID = row["MicrobeIdx"]
     metID = num_microbe + num_disease + row["MetaboliteIdx"]
     adjM[microID, metID] = 1
     adjM[metID, microID] = 1
-for _, row in metad.iterrows():
+for _, row in med.iterrows():
     metID = num_microbe + num_disease + row["MetaboliteIdx"]
     diseaseID = num_microbe + row["DiseaseIdx"]
     adjM[metID, diseaseID] = 1
@@ -266,7 +200,7 @@ micro_d_meta_d_micro = generate_long_relationship_array(
     relational_list=disease_microbe_list,
     intermediate_triplet=disease_metabolite_disease,
     num_offset1=num_microbe,
-    scaling_factor=0.5,
+    scaling_factor=1.0,
 )
 
 micro_d_meta_d_micro = lexicographical_sort(micro_d_meta_d_micro, [0, 2, 1, 3, 4])
@@ -276,7 +210,7 @@ micro_meta_d_meta_micro = generate_long_relationship_array(
     relational_list=metabolite_microbe_list,
     intermediate_triplet=metabolite_disease_metabolite,
     num_offset1=(num_microbe + num_disease),
-    scaling_factor=0.5,
+    scaling_factor=1.0,
 )
 
 micro_meta_d_meta_micro = lexicographical_sort(micro_meta_d_meta_micro, [0, 2, 1, 3, 4])
@@ -292,9 +226,32 @@ d_meta_micro_meta_d = generate_long_relationship_array(
 
 d_meta_micro_meta_d = lexicographical_sort(d_meta_micro_meta_d, [0, 2, 1, 3, 4])
 
+# 2-1-0-1-2 (metabolite-disease-microbe-disease-metabolite)
+meta_d_micro_d_meta = generate_long_relationship_array(
+    relational_list=disease_metabolite_list,
+    intermediate_triplet=disease_microbe_disease,
+    num_offset1=num_microbe,
+    num_offset2=(num_microbe + num_disease),
+    scaling_factor=1.0,
+)
+
+meta_d_micro_d_meta = lexicographical_sort(meta_d_micro_d_meta, [0, 2, 1, 3, 4])
+
+# 2-0-1-0-2 (metabolite-microbe-disease-microbe-metabolite)
+meta_micro_d_micro_meta = generate_long_relationship_array(
+    relational_list=microbe_metabolite_list,
+    intermediate_triplet=microbe_disease_microbe,
+    num_offset2=(num_microbe + num_disease),
+    scaling_factor=1.0,
+)
+
+meta_micro_d_micro_meta = lexicographical_sort(meta_micro_d_micro_meta, [0, 2, 1, 3, 4])
+
+
 expected_metapaths = [
     [(0, 1, 0), (0, 1, 2, 1, 0), (0, 2, 0), (0, 2, 1, 2, 0)],
     [(1, 0, 1), (1, 0, 2, 0, 1), (1, 2, 0, 2, 1), (1, 2, 1)],
+    [(2, 0, 2), (2, 0, 1, 0, 2), (2, 1, 0, 1, 2), (2, 1, 2)],
 ]
 # create the directories if they do not exist
 for i in range(len(expected_metapaths)):
@@ -368,12 +325,11 @@ microbe_disease = pd.read_csv(
 microbe_disease = microbe_disease[["MicrobeID", "DiseaseID"]].to_numpy()
 np.save(save_prefix + "microbe_disease.npy", microbe_disease)
 
-# output positive and negative samples for training, validation and testing
-
+# output positive and negative samples for microbe-disease training, validation and testing
 np.random.seed(453289)
 save_prefix = "data/sampled/preprocessed/"
-num_microbe = (micrometa["MicrobeIdx"].max() + 1).astype(np.int16)
-num_disease = (metad["DiseaseIdx"].max() + 1).astype(np.int16)
+num_microbe = (mime["MicrobeIdx"].max() + 1).astype(np.int16)
+num_disease = (med["DiseaseIdx"].max() + 1).astype(np.int16)
 microbe_disease = np.load("data/sampled/preprocessed/microbe_disease.npy")
 train_val_test_idx = np.load("data/sampled/preprocessed/micro_disease_train_val_test_idx.npz")
 train_idx = train_val_test_idx["train"]
@@ -411,13 +367,13 @@ for i in range(num_microbe):
             train_neg_candidates.append([i, j])
 train_neg_candidates = np.array(train_neg_candidates)
 
-# balance training negatives by sampling to match the number of positives
-train_neg_sampled = np.random.choice(
-    len(train_neg_candidates),
-    size=len(train_microbe_disease),  # match the number of positives
-    replace=False,
-)
-train_neg_candidates = train_neg_candidates[train_neg_sampled]
+# # balance training negatives by sampling to match the number of positives
+# train_neg_sampled = np.random.choice(
+#     len(train_neg_candidates),
+#     size=len(train_microbe_disease),  # match the number of positives
+#     replace=False,
+# )
+# train_neg_candidates = train_neg_candidates[train_neg_sampled]
 
 np.savez(
     save_prefix + "train_val_test_neg_microbe_disease.npz",
@@ -430,4 +386,76 @@ np.savez(
     train_pos_micro_dis=microbe_disease[train_idx],
     val_pos_micro_dis=microbe_disease[val_idx],
     test_pos_micro_dis=microbe_disease[test_idx],
+)
+
+
+# output microbe_metabolite.npy
+microbe_metabolite = pd.read_csv(
+    "data/sampled/microbe_metabolite.dat",
+    encoding="utf-8",
+    delimiter="\t",
+    names=["MicrobeID", "MetaboliteID"],
+)
+
+# output positive and negative samples for microbe-metabolite training, validation and testing
+np.random.seed(453289)
+save_prefix = "data/sampled/preprocessed/"
+num_microbe = (mime["MicrobeIdx"].max() + 1).astype(np.int16)
+num_metabolite = (med["MetaboliteIdx"].max() + 1).astype(np.int16)
+microbe_metabolite = np.load("data/sampled/preprocessed/microbe_metabolite.npy")
+train_val_test_idx = np.load("data/sampled/preprocessed/micro_metabolite_train_val_test_idx.npz")
+train_idx = train_val_test_idx["train"]
+val_idx = train_val_test_idx["val"]
+test_idx = train_val_test_idx["test"]
+
+neg_candidates = []
+counter = 0
+for i in range(num_microbe):
+    for j in range(num_metabolite):
+        if counter < len(microbe_metabolite):
+            if i == microbe_metabolite[counter, 0] and j == microbe_metabolite[counter, 1]:
+                counter += 1
+            else:
+                neg_candidates.append([i, j])
+        else:
+            neg_candidates.append([i, j])
+neg_candidates = np.array(neg_candidates)
+
+idx = np.random.choice(len(neg_candidates), len(val_idx) + len(test_idx), replace=False)
+val_neg_candidates = neg_candidates[sorted(idx[: len(val_idx)])]
+test_neg_candidates = neg_candidates[sorted(idx[len(val_idx) :])]
+
+train_microbe_metabolite = microbe_metabolite[train_idx]
+train_neg_candidates = []
+counter = 0
+for i in range(num_microbe):
+    for j in range(num_metabolite):
+        if counter < len(train_microbe_metabolite):
+            if i == train_microbe_metabolite[counter, 0] and j == train_microbe_metabolite[counter, 1]:
+                counter += 1
+            else:
+                train_neg_candidates.append([i, j])
+        else:
+            train_neg_candidates.append([i, j])
+train_neg_candidates = np.array(train_neg_candidates)
+
+# balance training negatives by sampling to match the number of positives
+train_neg_sampled = np.random.choice(
+    len(train_neg_candidates),
+    size=len(train_microbe_metabolite),  # match the number of positives
+    replace=False,
+)
+train_neg_candidates = train_neg_candidates[train_neg_sampled]
+
+np.savez(
+    save_prefix + "train_val_test_neg_microbe_metabolite.npz",
+    train_neg_micro_meta=train_neg_candidates,
+    val_neg_micro_meta=val_neg_candidates,
+    test_neg_micro_meta=test_neg_candidates,
+)
+np.savez(
+    save_prefix + "train_val_test_pos_microbe_metabolite.npz",
+    train_pos_micro_meta=microbe_metabolite[train_idx],
+    val_pos_micro_meta=microbe_metabolite[val_idx],
+    test_pos_micro_meta=microbe_metabolite[test_idx],
 )
