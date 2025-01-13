@@ -556,8 +556,8 @@ ap.add_argument(
 )
 ap.add_argument(
     "--save-postfix",
-    default="MKG_MicroD",
-    help="Postfix for the saved model and result. Default is MKG_MicroD.",
+    default="MKG_MID",
+    help="Postfix for the saved model and result. Default is MKG_MID.",
 )
 ap.add_argument(
     "--lr",
@@ -574,7 +574,7 @@ def train():
 
     config = wandb.config
 
-    save_postfix = f"MicroD_rnn{config.rnn_type}_ns{config.neighbor_samples}_lr{config.lr}_ep{config.num_epochs}"
+    save_postfix = f"MID_attn_vec{config.attn_vec_dim}_ns{config.neighbor_samples}_lr{config.lr}_ep{config.num_epochs}"
 
     run_model(
         config.feats_type,
@@ -595,7 +595,7 @@ def train():
 if __name__ == "__main__":
     sweep_config = {
         "method": "grid",
-        "name": "MicroD lp hyperparameter tuning",
+        "name": "MID lp hyperparameter tuning",
         "metric": {"name": "val_loss_epoch", "goal": "minimize"},
         "parameters": {
             "feats_type": {"values": [0]},
@@ -603,7 +603,7 @@ if __name__ == "__main__":
             "num_heads": {"values": [4, 8]},
             "attn_vec_dim": {"values": [64, 128]},
             "rnn_type": {"values": ["RotatE0"]},
-            "num_epochs": {"values": [10]},
+            "num_epochs": {"values": [10, 100]},
             "patience": {"values": [5]},
             "batch_size": {"values": [8]},
             "neighbor_samples": {"values": [50, 100]},
@@ -617,7 +617,7 @@ if __name__ == "__main__":
     }
 
     # create the sweep
-    sweep_id = wandb.sweep(sweep_config, project="MicroD_lp")
+    sweep_id = wandb.sweep(sweep_config, project="MAGNN_MKG_LP")
 
     # start the sweep agent
     wandb.agent(sweep_id, function=train)

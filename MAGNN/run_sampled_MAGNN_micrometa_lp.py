@@ -15,9 +15,8 @@ from MAGNN_utils.pytorchtools import EarlyStopping
 from model import MAGNN_lp_2metapaths_layer
 
 # Params
-num_ntype = 3  # microbe + disease + metabolite = 3
+num_ntype = 3
 dropout_rate = 0.5
-# lr = 0.005
 weight_decay = 0.001
 
 # [0, 1, 0]: ([0, 1] is 0 and [1, 0] is 1 = [0, 1])
@@ -34,10 +33,10 @@ use_masks = [
 no_masks = [[False] * 4, [False] * 4]
 
 # load node idx
-microbe_idx = pd.read_csv("data/sampled/microbe_index.dat", sep="\t", encoding="utf-8", header=None)
-disease_idx = pd.read_csv("data/sampled/disease_index.dat", sep="\t", encoding="utf-8", header=None)
+microbe_idx = pd.read_csv("data/sampled/unique_diseases_idx.dat", sep="\t", encoding="utf-8", header=None)
+disease_idx = pd.read_csv("data/sampled/unique_diseases_idx.dat", sep="\t", encoding="utf-8", header=None)
 metabolite_idx = pd.read_csv(
-    "data/sampled/metabolite_index.dat", sep="\t", encoding="utf-8", header=None
+    "data/sampled/unique_metabolites_idx.dat", sep="\t", encoding="utf-8", header=None
 )
 
 num_microbe = np.int16(len(microbe_idx))
@@ -372,21 +371,21 @@ def run_model(
                     pos_proba_list.append(torch.sigmoid(pos_out).view(-1))
                     neg_proba_list.append(torch.sigmoid(neg_out).view(-1))
 
-                # calculate epoch validation loss
-                val_loss = torch.mean(torch.tensor(val_loss))
+            # calculate epoch validation loss
+            val_loss = torch.mean(torch.tensor(val_loss))
 
-                # concatenate probabilities
-                y_proba_val = torch.cat(pos_proba_list + neg_proba_list).cpu().numpy()
-                # Construct ground truth labels
-                num_pos_samples = sum(p.shape[0] for p in pos_proba_list)
-                num_neg_samples = sum(n.shape[0] for n in neg_proba_list)
-                y_true_val = np.concatenate(
-                    [np.ones(num_pos_samples), np.zeros(num_neg_samples)]
-                )
+            # concatenate probabilities
+            y_proba_val = torch.cat(pos_proba_list + neg_proba_list).cpu().numpy()
+            # Construct ground truth labels
+            num_pos_samples = sum(p.shape[0] for p in pos_proba_list)
+            num_neg_samples = sum(n.shape[0] for n in neg_proba_list)
+            y_true_val = np.concatenate(
+                [np.ones(num_pos_samples), np.zeros(num_neg_samples)]
+            )
 
-                # Compute AUC and AP
-                val_auc = roc_auc_score(y_true_val, y_proba_val)
-                val_ap = average_precision_score(y_true_val, y_proba_val)
+            # Compute AUC and AP
+            val_auc = roc_auc_score(y_true_val, y_proba_val)
+            val_ap = average_precision_score(y_true_val, y_proba_val)
 
             t_end = time.time()
             # print validation info
@@ -497,8 +496,7 @@ def run_model(
                 pos_proba_list.append(torch.sigmoid(pos_out))
                 neg_proba_list.append(torch.sigmoid(neg_out))
 
-            y_proba_test = torch.cat(pos_proba_list + neg_proba_list)
-            y_proba_test = y_proba_test.cpu().numpy()
+            y_proba_test = torch.cat(pos_proba_list + neg_proba_list).cpu().numpy()
 
         # overall evaluation metrics
         auc = roc_auc_score(y_true_test, y_proba_test)
@@ -573,8 +571,8 @@ ap.add_argument(
 )
 ap.add_argument(
     "--save-postfix",
-    default="MKG_MicroMeta",
-    help="Postfix for the saved model and result. Default is MKG_MicroD.",
+    default="MKG_MIME",
+    help="Postfix for the saved model and result. Default is MKG_MID.",
 )
 ap.add_argument(
     "--lr",
@@ -591,7 +589,7 @@ def train():
 
     config = wandb.config
 
-    save_postfix = f"MicroMeta_rnn{config.rnn_type}_ns{config.neighbor_samples}_lr{config.lr}_ep{config.num_epochs}"
+    save_postfix = f"MIME_attn_vec{config.attn_vec_dim}_ns{config.neighbor_samples}_lr{config.lr}_ep{config.num_epochs}"
 
     run_model(
         config.feats_type,
@@ -612,20 +610,20 @@ def train():
 if __name__ == "__main__":
     sweep_config = {
         "method": "grid",
-        "name": "MicroMeta lp hyperparameter tuning",
+        "name": "MIME lp hyperparameter tuning",
         "metric": {"name": "val_loss_epoch", "goal": "minimize"},
         "parameters": {
             "feats_type": {"values": [0]},
             "hidden_dim": {"values": [64]},
-            "num_heads": {"values": [8]},
-            "attn_vec_dim": {"values": [128]},
-            "rnn_type": {"values": ["RotatE0", "TransE0"]},
-            "num_epochs": {"values": [10]},
+            "num_heads": {"values": [4, 8]},
+            "attn_vec_dim": {"values": [64, 128]},
+            "rnn_type": {"values": ["RotatE0"]},
+            "num_epochs": {"values": [10, 100]},
             "patience": {"values": [5]},
-            "batch_size": {"values": [32]},
-            "neighbor_samples": {"values": [10, 50, 100]},
+            "batch_size": {"values": [8]},
+            "neighbor_samples": {"values": [50, 100]},
             "repeat": {"values": [1]},
-            "lr": {"values": [0.001, 0.005]},
+            "lr": {"values": [0.001, 0.1, 1]},
         },
         # "early_terminate": {
         #     "type": "hyperband",
@@ -634,7 +632,7 @@ if __name__ == "__main__":
     }
 
     # create the sweep
-    sweep_id = wandb.sweep(sweep_config, project="12302024_MicroMeta_lp")
+    sweep_id = wandb.sweep(sweep_config, project="MAGNN_MKG_LP")
 
     # start the sweep agent
     wandb.agent(sweep_id, function=train)
