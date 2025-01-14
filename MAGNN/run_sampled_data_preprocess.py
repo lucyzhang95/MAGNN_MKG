@@ -323,7 +323,7 @@ np.save(save_prefix + "node_types.npy", type_mask)
 
 # output microbe_disease.npy
 microbe_disease = pd.read_csv(
-    "data/sampled/microbe_disease.dat",
+    "data/sampled/common_microbe_disease_idx.dat",
     encoding="utf-8",
     delimiter="\t",
     names=["MicrobeID", "DiseaseID"],
@@ -397,7 +397,7 @@ np.savez(
 
 # output microbe_metabolite.npy
 microbe_metabolite = pd.read_csv(
-    "data/sampled/microbe_metabolite.dat",
+    "data/sampled/common_microbe_metabolite_idx.dat",
     encoding="utf-8",
     delimiter="\t",
     names=["MicrobeID", "MetaboliteID"],
