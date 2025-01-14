@@ -16,7 +16,7 @@ from model import MAGNN_lp_2metapaths_layer
 
 # Params
 num_ntype = 3
-dropout_rate = 0.5
+# dropout_rate = 0.5
 weight_decay = 0.001
 
 # [0, 1, 0]: ([0, 1] is 0 and [1, 0] is 1 = [0, 1])
@@ -57,6 +57,7 @@ def run_model(
     repeat,
     save_postfix,
     lr,
+    dropout_rate,
 ):
     (
         adjlists_microdis,
@@ -566,6 +567,12 @@ ap.add_argument(
     default=0.001,
     help="Learning rate. Default is 0.005.",
 )
+ap.add_argument(
+    "--dropout_rate",
+    type=float,
+    default=0.5,
+    help="Dropout rate. Default is 0.5.",
+)
 
 args = ap.parse_args()
 
@@ -590,6 +597,7 @@ def train():
         config.repeat,
         save_postfix,
         config.lr,
+        config.dropout_rate,
     )
 
 
@@ -610,6 +618,7 @@ if __name__ == "__main__":
             "neighbor_samples": {"values": [50, 100]},
             "repeat": {"values": [1]},
             "lr": {"values": [0.00003, 0.0001, 0.001]},
+            "dropout_rate": {"values": [0.1, 0.2, 0.3, 0.4, 0.5]},
         },
         # "early_terminate": {
         #     "type": "hyperband",
