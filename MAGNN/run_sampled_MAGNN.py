@@ -362,7 +362,8 @@ def run_model(
 
                     # calculate probabilities and append
                     pos_proba_list.append(torch.sigmoid(pos_out).view(-1))
-                    neg_proba_list.append(torch.sigmoid(neg_out).view(-1))
+                    # negative samples are appended with negative sign
+                    neg_proba_list.append(torch.sigmoid(-neg_out).view(-1))
 
             # calculate epoch validation loss
             val_loss = torch.mean(torch.tensor(val_loss))
@@ -617,7 +618,7 @@ if __name__ == "__main__":
             "batch_size": {"values": [8]},
             "neighbor_samples": {"values": [50, 100]},
             "repeat": {"values": [1]},
-            "lr": {"values": [0.00003, 0.0001, 0.001]},
+            "lr": {"values": [0.0001, 0.00003, 0.001]},
             "dropout_rate": {"values": [0.1, 0.2, 0.3, 0.4, 0.5]},
         },
         # "early_terminate": {
