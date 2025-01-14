@@ -482,7 +482,7 @@ def run_model(
                 neg_out = torch.bmm(neg_embedding_microbe, neg_embedding_disease).flatten()
 
                 pos_proba_list.append(torch.sigmoid(pos_out))
-                neg_proba_list.append(torch.sigmoid(neg_out))
+                neg_proba_list.append(torch.sigmoid(-neg_out))
 
             y_proba_test = torch.cat(pos_proba_list + neg_proba_list).cpu().numpy()
 
