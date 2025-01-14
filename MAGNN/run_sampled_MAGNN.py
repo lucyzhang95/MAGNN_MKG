@@ -16,7 +16,6 @@ from model import MAGNN_lp_2metapaths_layer
 
 # Params
 num_ntype = 3
-# dropout_rate = 0.5
 weight_decay = 0.001
 
 # [0, 1, 0]: ([0, 1] is 0 and [1, 0] is 1 = [0, 1])
