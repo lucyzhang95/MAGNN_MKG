@@ -275,7 +275,6 @@ def run_model(
                     wandb.log({"train_loss_per_100_iterations": train_loss.item()}, step=step)
 
             mean_epoch_loss = np.mean(epoch_train_loss)
-            last_train_loss = epoch_train_loss[-1]
             # print epoch training info
             print(f"Epoch {epoch} done: mean train loss = {mean_epoch_loss:.4f}")
             # log last train loss per epoch
