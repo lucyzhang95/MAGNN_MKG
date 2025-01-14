@@ -630,7 +630,7 @@ if __name__ == "__main__":
             "batch_size": {"values": [8]},
             "neighbor_samples": {"values": [50, 100]},
             "repeat": {"values": [1]},
-            "lr": {"values": [0.001, 0.1, 1]},
+            "lr": {"values": [0.0001, 0.00003, 0.001, 0.01]},
             "dropout_rate": {"values": [0.5, 0.4, 0.3]},
         },
         # "early_terminate": {
