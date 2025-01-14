@@ -41,6 +41,8 @@ print(f"Number of Microbe-Disease edges: {len(mid)}")
 print(f"Number of Microbe-Metabolite edges: {len(mime)}")
 print(f"Number of Metabolite-Disease edges: {len(med)}")
 
+# make directory if not exist
+pathlib.Path("data/sampled/preprocessed/").mkdir(parents=True, exist_ok=True)
 # microbe-disease
 md_train, md_val, md_test = split_date(mid, train_ratio=0.7, val_ratio=0.2, test_ratio=0.1)
 save_split_data2npz(md_train, md_val, md_test, "data/sampled/preprocessed/micro_disease_train_val_test_idx.npz")
@@ -273,8 +275,8 @@ metapath_indices_mapping = {
 }
 
 # write all things
-target_idx_lists = [np.arange(num_microbe), np.arange(num_disease)]
-offset_list = [0, num_microbe]
+target_idx_lists = [np.arange(num_microbe), np.arange(num_disease), np.arange(num_metabolite)]
+offset_list = [0, num_microbe, num_microbe + num_disease]
 for i, metapaths in enumerate(expected_metapaths):
     for metapath in metapaths:
         edge_metapath_idx_array = metapath_indices_mapping[metapath]
