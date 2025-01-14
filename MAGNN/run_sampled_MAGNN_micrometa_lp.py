@@ -33,7 +33,7 @@ use_masks = [
 no_masks = [[False] * 4, [False] * 4]
 
 # load node idx
-microbe_idx = pd.read_csv("data/sampled/unique_diseases_idx.dat", sep="\t", encoding="utf-8", header=None)
+microbe_idx = pd.read_csv("data/sampled/unique_microbes_idx.dat", sep="\t", encoding="utf-8", header=None)
 disease_idx = pd.read_csv("data/sampled/unique_diseases_idx.dat", sep="\t", encoding="utf-8", header=None)
 metabolite_idx = pd.read_csv(
     "data/sampled/unique_metabolites_idx.dat", sep="\t", encoding="utf-8", header=None
