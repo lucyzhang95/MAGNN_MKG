@@ -256,7 +256,7 @@ def run_model(
                 epoch_train_loss.append(train_loss.item())
 
                 # print training info
-                if iteration % 50 == 0:
+                if iteration % 100 == 0:
                     print(
                         "*Training: Epoch {:05d} | Iteration {:05d} | Train_Loss {:.4f} | Time1(s) {:.4f} | Time2(s) {:.4f} | Time3(s) {:.4f}".format(
                             epoch,
@@ -272,13 +272,13 @@ def run_model(
                     step = epoch * total_iterations + iteration
 
                     # Log the training loss to wandb
-                    wandb.log({"train_loss_per_50_iterations": train_loss.item()}, step=iteration)
+                    wandb.log({"train_loss_per_100_iterations": train_loss.item()}, step=step)
 
             mean_epoch_loss = np.mean(epoch_train_loss)
             # print epoch training info
-            print(f"Epoch {epoch + 1} done: mean train loss = {mean_epoch_loss:.4f}")
+            print(f"Epoch {epoch} done: mean train loss = {mean_epoch_loss:.4f}")
             # log the mean epoch loss to wandb
-            wandb.log({"train_loss": mean_epoch_loss}, step=epoch)
+            wandb.log({"train_loss_epoch": mean_epoch_loss}, step=step)
 
             # validation
             net.eval()
@@ -608,7 +608,7 @@ if __name__ == "__main__":
             "batch_size": {"values": [8]},
             "neighbor_samples": {"values": [50, 100]},
             "repeat": {"values": [1]},
-            "lr": {"values": [0.001, 0.1, 1]},
+            "lr": {"values": [0.0001, 0.001, 0.1, 1]},
         },
         # "early_terminate": {
         #     "type": "hyperband",
