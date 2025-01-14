@@ -619,7 +619,7 @@ if __name__ == "__main__":
             "neighbor_samples": {"values": [50, 100]},
             "repeat": {"values": [1]},
             "lr": {"values": [0.0001, 0.00003, 0.001]},
-            "dropout_rate": {"values": [0.1, 0.2, 0.3, 0.4, 0.5]},
+            "dropout_rate": {"values": [0.5, 0.4, 0.3]},
         },
         # "early_terminate": {
         #     "type": "hyperband",
