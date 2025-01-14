@@ -20,21 +20,24 @@ mid = pd.read_csv(
     sep="\t",
     encoding="utf-8",
     header=None,
-    names=["MicrobeIdx", "DiseaseIdx", "Weight"],
+    usecols=[0, 1],
+    names=["MicrobeIdx", "DiseaseIdx"],
 )
 mime = pd.read_csv(
     "data/sampled/common_microbe_metabolite_idx.dat",
     sep="\t",
     encoding="utf-8",
     header=None,
-    names=["MicrobeIdx", "MetaboliteIdx", "Weight"],
+    usecols=[0, 1],
+    names=["MicrobeIdx", "MetaboliteIdx"],
 )
 med = pd.read_csv(
     "data/sampled/common_metabolite_disease_idx.dat",
     sep="\t",
     encoding="utf-8",
     header=None,
-    names=["MetaboliteIdx", "DiseaseIdx", "Weight"],
+    usecols=[0, 1],
+    names=["MetaboliteIdx", "DiseaseIdx"],
 )
 
 print(f"Number of Microbe-Disease edges: {len(mid)}")
@@ -326,9 +329,9 @@ microbe_disease = pd.read_csv(
     "data/sampled/common_microbe_disease_idx.dat",
     encoding="utf-8",
     delimiter="\t",
+    usecols=[0, 1],
     names=["MicrobeID", "DiseaseID"],
-)
-microbe_disease = microbe_disease[["MicrobeID", "DiseaseID"]].to_numpy()
+).to_numpy()
 np.save(save_prefix + "microbe_disease.npy", microbe_disease)
 
 # output positive and negative samples for microbe-disease training, validation and testing
@@ -400,9 +403,9 @@ microbe_metabolite = pd.read_csv(
     "data/sampled/common_microbe_metabolite_idx.dat",
     encoding="utf-8",
     delimiter="\t",
+    usecols=[0, 1],
     names=["MicrobeID", "MetaboliteID"],
-)
-microbe_metabolite = microbe_metabolite[["MicrobeID", "MetaboliteID"]].to_numpy()
+).to_numpy()
 np.save(save_prefix + "microbe_metabolite.npy", microbe_metabolite)
 
 # output positive and negative samples for microbe-metabolite training, validation and testing
