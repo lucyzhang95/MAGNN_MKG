@@ -16,7 +16,6 @@ from model import MAGNN_lp_2metapaths_layer
 
 # Params
 num_ntype = 3
-dropout_rate = 0.5
 weight_decay = 0.001
 
 # [0, 1, 0]: ([0, 1] is 0 and [1, 0] is 1 = [0, 1])
@@ -61,6 +60,7 @@ def run_model(
         repeat,
         save_postfix,
         lr,
+        dropout_rate,
 ):
     (
         adjlists_micrometa,
@@ -369,7 +369,7 @@ def run_model(
 
                     # calculate probabilities and append
                     pos_proba_list.append(torch.sigmoid(pos_out).view(-1))
-                    neg_proba_list.append(torch.sigmoid(neg_out).view(-1))
+                    neg_proba_list.append(torch.sigmoid(-neg_out).view(-1))
 
             # calculate epoch validation loss
             val_loss = torch.mean(torch.tensor(val_loss))
@@ -494,7 +494,7 @@ def run_model(
                 neg_out = torch.bmm(neg_embedding_microbe, neg_embedding_metabolite).flatten()
 
                 pos_proba_list.append(torch.sigmoid(pos_out))
-                neg_proba_list.append(torch.sigmoid(neg_out))
+                neg_proba_list.append(torch.sigmoid(-neg_out))
 
             y_proba_test = torch.cat(pos_proba_list + neg_proba_list).cpu().numpy()
 
@@ -580,6 +580,12 @@ ap.add_argument(
     default=0.001,
     help="Learning rate. Default is 0.005.",
 )
+ap.add_argument(
+    "--dropout-rate",
+    type=float,
+    default=0.5,
+    help="Dropout rate. Default is 0.5.",
+)
 
 args = ap.parse_args()
 
@@ -589,7 +595,7 @@ def train():
 
     config = wandb.config
 
-    save_postfix = f"MIME_attn_vec{config.attn_vec_dim}_ns{config.neighbor_samples}_lr{config.lr}_ep{config.num_epochs}"
+    save_postfix = f"MIME_attn_vec{config.attn_vec_dim}_ns{config.neighbor_samples}_lr{config.lr}_ep{config.num_epochs}_drp{config.dropout_rate}"
 
     run_model(
         config.feats_type,
@@ -604,6 +610,7 @@ def train():
         config.repeat,
         save_postfix,
         config.lr,
+        config.dropout_rate,
     )
 
 
@@ -624,6 +631,7 @@ if __name__ == "__main__":
             "neighbor_samples": {"values": [50, 100]},
             "repeat": {"values": [1]},
             "lr": {"values": [0.001, 0.1, 1]},
+            "dropout_rate": {"values": [0.5, 0.4, 0.3]},
         },
         # "early_terminate": {
         #     "type": "hyperband",
