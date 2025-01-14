@@ -279,7 +279,7 @@ def run_model(
             # print epoch training info
             print(f"Epoch {epoch} done: mean train loss = {mean_epoch_loss:.4f}")
             # log last train loss per epoch
-            wandb.log({"mean_train_loss_epoch": mean_epoch_loss, "last_train_loss_epoch": last_train_loss}, step=step)
+            wandb.log({"train_loss_epoch": mean_epoch_loss}, step=step)
 
             # validation
             net.eval()
