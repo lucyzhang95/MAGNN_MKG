@@ -582,7 +582,7 @@ def train():
 
     config = wandb.config
 
-    save_postfix = f"MID_attn_vec{config.attn_vec_dim}_ns{config.neighbor_samples}_lr{config.lr}_ep{config.num_epochs}"
+    save_postfix = f"MID_attn_vec{config.attn_vec_dim}_ns{config.neighbor_samples}_lr{config.lr}_ep{config.num_epochs}_drp{config.dropout_rate}"
 
     run_model(
         config.feats_type,
