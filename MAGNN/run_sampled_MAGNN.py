@@ -627,22 +627,22 @@ if __name__ == "__main__":
         "metric": {"name": "val_loss_epoch", "goal": "minimize"},
         "parameters": {
             "feats_type": {"values": [0]},
-            "hidden_dim": {"values": [64]},
-            "num_heads": {"values": [8]},
-            "attn_vec_dim": {"values": [128]},
+            "hidden_dim": {"values": [32]},
+            "num_heads": {"values": [4]},
+            "attn_vec_dim": {"values": [32]},
             "rnn_type": {"values": ["RotatE0"]},
-            "num_epochs": {"values": [10, 100]},
-            "patience": {"values": [5]},
-            "batch_size": {"values": [8]},
-            "neighbor_samples": {"values": [100]},
+            "num_epochs": {"values": [10, 20]},
+            "patience": {"values": [3, 5]},
+            "batch_size": {"values": [16]},
+            "neighbor_samples": {"values": [25, 50]},
             "repeat": {"values": [1]},
-            "lr": {"values": [0.0001, 0.001, 0.01]},
-            "dropout_rate": {"values": [0.1, 0.2, 0.3, 0.4, 0.5]},
+            "lr": {"values": [0.00001, 0.00003, 0.0001, 0.001]},
+            "dropout_rate": {"values": [0.5]},
         },
-        # "early_terminate": {
-        #     "type": "hyperband",
-        #     "max_count": 10
-        # },
+        "early_terminate": {
+            "type": "hyperband",
+            "max_count": 10
+        },
     }
 
     # create the sweep
