@@ -22,7 +22,7 @@ mid = pd.read_csv(
     header=None,
     usecols=[0, 1],
     names=["MicrobeIdx", "DiseaseIdx"],
-)
+).drop_duplicates()
 mime = pd.read_csv(
     "data/sampled/common_microbe_metabolite_idx.dat",
     sep="\t",
@@ -30,7 +30,7 @@ mime = pd.read_csv(
     header=None,
     usecols=[0, 1],
     names=["MicrobeIdx", "MetaboliteIdx"],
-)
+).drop_duplicates()
 med = pd.read_csv(
     "data/sampled/common_metabolite_disease_idx.dat",
     sep="\t",
@@ -38,7 +38,7 @@ med = pd.read_csv(
     header=None,
     usecols=[0, 1],
     names=["MetaboliteIdx", "DiseaseIdx"],
-)
+).drop_duplicates()
 
 print(f"Number of Microbe-Disease edges: {len(mid)}")
 print(f"Number of Microbe-Metabolite edges: {len(mime)}")
@@ -331,7 +331,7 @@ microbe_disease = pd.read_csv(
     delimiter="\t",
     usecols=[0, 1],
     names=["MicrobeID", "DiseaseID"],
-).to_numpy()
+).drop_duplicates().to_numpy()
 np.save(save_prefix + "microbe_disease.npy", microbe_disease)
 
 # output positive and negative samples for microbe-disease training, validation and testing
@@ -405,7 +405,7 @@ microbe_metabolite = pd.read_csv(
     delimiter="\t",
     usecols=[0, 1],
     names=["MicrobeID", "MetaboliteID"],
-).to_numpy()
+).drop_duplicates().to_numpy()
 np.save(save_prefix + "microbe_metabolite.npy", microbe_metabolite)
 
 # output positive and negative samples for microbe-metabolite training, validation and testing
