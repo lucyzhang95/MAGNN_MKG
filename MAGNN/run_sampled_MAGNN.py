@@ -275,6 +275,7 @@ def run_model(
                     wandb.log({"train_loss_per_100_iterations": train_loss.item()}, step=step)
 
             mean_epoch_loss = np.mean(epoch_train_loss)
+            last_train_loss = epoch_train_loss[-1]
             # print epoch training info
             print(f"Epoch {epoch} done: mean train loss = {mean_epoch_loss:.4f}")
             # log last train loss per epoch
@@ -480,7 +481,7 @@ def run_model(
                 neg_out = torch.bmm(neg_embedding_microbe, neg_embedding_disease).flatten()
 
                 pos_proba_list.append(torch.sigmoid(pos_out))
-                neg_proba_list.append(torch.sigmoid(-neg_out))
+                neg_proba_list.append(torch.sigmoid(neg_out))
 
             y_proba_test = torch.cat(pos_proba_list + neg_proba_list).cpu().numpy()
 
@@ -581,7 +582,7 @@ def train():
 
     config = wandb.config
 
-    save_postfix = f"MID_attn_vec{config.attn_vec_dim}_ns{config.neighbor_samples}_lr{config.lr}_ep{config.num_epochs}_drp{config.dropout_rate}"
+    save_postfix = f"MID_lr{config.lr}_ep{config.num_epochs}_drp{config.dropout_rate}"
 
     run_model(
         config.feats_type,
@@ -609,15 +610,15 @@ if __name__ == "__main__":
             "feats_type": {"values": [0]},
             "hidden_dim": {"values": [64]},
             "num_heads": {"values": [4, 8]},
-            "attn_vec_dim": {"values": [64, 128]},
+            "attn_vec_dim": {"values": [128]},
             "rnn_type": {"values": ["RotatE0"]},
             "num_epochs": {"values": [10, 100]},
             "patience": {"values": [5]},
             "batch_size": {"values": [8]},
-            "neighbor_samples": {"values": [50, 100]},
+            "neighbor_samples": {"values": [100]},
             "repeat": {"values": [1]},
-            "lr": {"values": [0.0001, 0.00003, 0.001]},
-            "dropout_rate": {"values": [0.5, 0.4, 0.3]},
+            "lr": {"values": [0.0001, 0.001, 0.01]},
+            "dropout_rate": {"values": [0.1, 0.2, 0.3, 0.4, 0.5]},
         },
         # "early_terminate": {
         #     "type": "hyperband",
