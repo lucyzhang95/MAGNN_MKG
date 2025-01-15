@@ -103,6 +103,9 @@ def run_model(
     auc_list = []
     ap_list = []
 
+    auc_list_modified = []
+    ap_list_modified = []
+
     for _ in range(repeat):
         net = MAGNN_lp_2metapaths_layer(
             [4, 4],
@@ -408,6 +411,8 @@ def run_model(
         net.eval()
         pos_proba_list = []
         neg_proba_list = []
+        pos_proba_list_modified = []
+        neg_proba_list_modified = []
         with torch.no_grad():
             for iteration in range(test_idx_generator.num_iterations()):
                 # forward
@@ -483,25 +488,40 @@ def run_model(
                 pos_proba_list.append(torch.sigmoid(pos_out))
                 neg_proba_list.append(torch.sigmoid(neg_out))
 
+                # flipping the sign on neg_out)
+                pos_proba_list_modified.append(torch.sigmoid(pos_out))
+                neg_proba_list_modified.append(torch.sigmoid(-neg_out))
+
             y_proba_test = torch.cat(pos_proba_list + neg_proba_list).cpu().numpy()
+            y_proba_test_modified = torch.cat(pos_proba_list_modified + neg_proba_list_modified).cpu().numpy()
 
         # overall evaluation metrics
         auc = roc_auc_score(y_true_test, y_proba_test)
         ap = average_precision_score(y_true_test, y_proba_test)
+
+        auc_modified = roc_auc_score(y_true_test, y_proba_test_modified)
+        ap_modified = average_precision_score(y_true_test, y_proba_test_modified)
+
         print("Link Prediction Test")
         print("AUC = {}".format(auc))
         print("AP = {}".format(ap))
+        print(f"Modified-AUC: {auc_modified:.4f}, AP: {ap_modified:.4f}")
 
         # log final test metrics to wandb
-        wandb.log({"test_auc": auc, "test_ap": ap})
+        wandb.log({"test_auc": auc, "test_ap": ap, "test_auc_modified": auc_modified, "test_ap_modified": ap_modified})
 
         auc_list.append(auc)
         ap_list.append(ap)
+
+        auc_list_modified.append(auc_modified)
+        ap_list_modified.append(ap_modified)
 
     print("----------------------------------------------------------------")
     print("Link Prediction Tests Summary")
     print("AUC_mean = {}, AUC_std = {}".format(np.mean(auc_list), np.std(auc_list)))
     print("AP_mean = {}, AP_std = {}".format(np.mean(ap_list), np.std(ap_list)))
+    print("Modified_AUC_mean = {}, Modified_AUC_std = {}".format(np.mean(auc_list_modified), np.std(auc_list_modified)))
+    print("Modified_AP_mean = {}, Modified_AP_std = {}".format(np.mean(ap_list_modified), np.std(ap_list_modified)))
 
 
 ap = argparse.ArgumentParser(description="MAGNN testing run for sampled MKG dataset")
@@ -609,7 +629,7 @@ if __name__ == "__main__":
         "parameters": {
             "feats_type": {"values": [0]},
             "hidden_dim": {"values": [64]},
-            "num_heads": {"values": [4, 8]},
+            "num_heads": {"values": [8]},
             "attn_vec_dim": {"values": [128]},
             "rnn_type": {"values": ["RotatE0"]},
             "num_epochs": {"values": [10, 100]},
