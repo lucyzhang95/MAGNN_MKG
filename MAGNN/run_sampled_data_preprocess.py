@@ -362,11 +362,16 @@ for i in range(num_microbe):
             neg_candidates.append([i, j])
 neg_candidates = np.array(neg_candidates)
 
-idx = np.random.choice(len(neg_candidates), len(val_idx) + len(test_idx), replace=False)
-val_neg_candidates = neg_candidates[sorted(idx[: len(val_idx)])]
-test_neg_candidates = neg_candidates[sorted(idx[len(val_idx) :])]
-
 train_microbe_disease = microbe_disease[train_idx]
+num_train_neg = len(train_microbe_disease)
+num_val_neg = len(val_idx)
+num_test_neg = len(test_idx)
+
+np.random.shuffle(neg_candidates)
+val_neg_candidates = neg_candidates[:num_val_neg]
+test_neg_candidates = neg_candidates[num_val_neg:num_val_neg + num_test_neg]
+remaining_neg_candidates = neg_candidates[num_val_neg + num_test_neg:]
+
 train_neg_candidates = []
 counter = 0
 for i in range(num_microbe):
@@ -375,18 +380,30 @@ for i in range(num_microbe):
             if i == train_microbe_disease[counter, 0] and j == train_microbe_disease[counter, 1]:
                 counter += 1
             else:
-                train_neg_candidates.append([i, j])
+                # Ensure the pair is not in validation or test negatives
+                if [i, j] not in val_neg_candidates.tolist() and [i, j] not in test_neg_candidates.tolist():
+                    train_neg_candidates.append([i, j])
         else:
-            train_neg_candidates.append([i, j])
+            # Ensure the pair is not in validation or test negatives
+            if [i, j] not in val_neg_candidates.tolist() and [i, j] not in test_neg_candidates.tolist():
+                train_neg_candidates.append([i, j])
+
+train_neg_candidates = np.array(train_neg_candidates)
+val_neg_candidates = np.array(val_neg_candidates)
+test_neg_candidates = np.array(test_neg_candidates)
 train_neg_candidates = np.array(train_neg_candidates)
 
-# # balance training negatives by sampling to match the number of positives
-# train_neg_sampled = np.random.choice(
-#     len(train_neg_candidates),
-#     size=len(train_microbe_disease),  # match the number of positives
-#     replace=False,
-# )
-# train_neg_candidates = train_neg_candidates[train_neg_sampled]
+val_neg_set = set(map(tuple, val_neg_candidates))
+test_neg_set = set(map(tuple, test_neg_candidates))
+train_neg_set = set(map(tuple, train_neg_candidates))
+
+assert len(val_neg_set & test_neg_set) == 0, "Validation and Test sets overlap!"
+assert len(train_neg_set & val_neg_set) == 0, "Training and Validation sets overlap!"
+assert len(train_neg_set & test_neg_set) == 0, "Training and Test sets overlap!"
+
+print(f"Train negatives: {len(train_neg_candidates)}")
+print(f"Validation negatives: {len(val_neg_candidates)}")
+print(f"Test negatives: {len(test_neg_candidates)}")
 
 np.savez(
     save_prefix + "train_val_test_neg_microbe_disease.npz",
@@ -438,11 +455,17 @@ for i in range(num_microbe):
             neg_candidates.append([i, j])
 neg_candidates = np.array(neg_candidates)
 
-idx = np.random.choice(len(neg_candidates), len(val_idx) + len(test_idx), replace=False)
-val_neg_candidates = neg_candidates[sorted(idx[: len(val_idx)])]
-test_neg_candidates = neg_candidates[sorted(idx[len(val_idx) :])]
-
 train_microbe_metabolite = microbe_metabolite[train_idx]
+
+np.random.shuffle(neg_candidates)
+num_train_neg = len(train_microbe_metabolite)
+num_val_neg = len(val_idx)
+num_test_neg = len(test_idx)
+
+val_neg_candidates = neg_candidates[:num_val_neg]
+test_neg_candidates = neg_candidates[num_val_neg:num_val_neg + num_test_neg]
+remaining_neg_candidates = neg_candidates[num_val_neg + num_test_neg:]
+
 train_neg_candidates = []
 counter = 0
 for i in range(num_microbe):
@@ -451,18 +474,31 @@ for i in range(num_microbe):
             if i == train_microbe_metabolite[counter, 0] and j == train_microbe_metabolite[counter, 1]:
                 counter += 1
             else:
-                train_neg_candidates.append([i, j])
+                if [i, j] not in val_neg_candidates.tolist() and [i, j] not in test_neg_candidates.tolist():
+                    train_neg_candidates.append([i, j])
         else:
-            train_neg_candidates.append([i, j])
+            if [i, j] not in val_neg_candidates.tolist() and [i, j] not in test_neg_candidates.tolist():
+                train_neg_candidates.append([i, j])
+
+
+train_neg_candidates = remaining_neg_candidates[
+    np.random.choice(len(remaining_neg_candidates), num_train_neg, replace=False)
+]
+val_neg_candidates = np.array(val_neg_candidates)
+test_neg_candidates = np.array(test_neg_candidates)
 train_neg_candidates = np.array(train_neg_candidates)
 
-# balance training negatives by sampling to match the number of positives
-train_neg_sampled = np.random.choice(
-    len(train_neg_candidates),
-    size=len(train_microbe_metabolite),  # match the number of positives
-    replace=False,
-)
-train_neg_candidates = train_neg_candidates[train_neg_sampled]
+val_neg_set = set(map(tuple, val_neg_candidates))
+test_neg_set = set(map(tuple, test_neg_candidates))
+train_neg_set = set(map(tuple, train_neg_candidates))
+
+assert len(val_neg_set & test_neg_set) == 0, "MIME Validation and Test sets overlap!"
+assert len(train_neg_set & val_neg_set) == 0, "MIME Training and Validation sets overlap!"
+assert len(train_neg_set & test_neg_set) == 0, "MIME Training and Test sets overlap!"
+
+print(f"MIME Train negatives: {len(train_neg_candidates)}")
+print(f"MIME Validation negatives: {len(val_neg_candidates)}")
+print(f"MIME Test negatives: {len(test_neg_candidates)}")
 
 np.savez(
     save_prefix + "train_val_test_neg_microbe_metabolite.npz",
