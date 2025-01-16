@@ -380,11 +380,11 @@ for i in range(num_microbe):
             if i == train_microbe_disease[counter, 0] and j == train_microbe_disease[counter, 1]:
                 counter += 1
             else:
-                # Ensure the pair is not in validation or test negatives
+                # ensure the pair is not in validation or test negatives
                 if [i, j] not in val_neg_candidates.tolist() and [i, j] not in test_neg_candidates.tolist():
                     train_neg_candidates.append([i, j])
         else:
-            # Ensure the pair is not in validation or test negatives
+            # ensure the pair is not in validation or test negatives
             if [i, j] not in val_neg_candidates.tolist() and [i, j] not in test_neg_candidates.tolist():
                 train_neg_candidates.append([i, j])
 
