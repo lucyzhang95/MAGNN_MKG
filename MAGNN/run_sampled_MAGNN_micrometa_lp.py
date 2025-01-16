@@ -16,7 +16,6 @@ from model import MAGNN_lp_2metapaths_layer
 
 # Params
 num_ntype = 3
-weight_decay = 0.001
 
 # [0, 1, 0]: ([0, 1] is 0 and [1, 0] is 1 = [0, 1])
 etypes_lists = [
@@ -61,6 +60,7 @@ def run_model(
         save_postfix,
         lr,
         dropout_rate,
+        weight_decay,
 ):
     (
         adjlists_micrometa,
@@ -605,6 +605,12 @@ ap.add_argument(
     default=0.5,
     help="Dropout rate. Default is 0.5.",
 )
+ap.add_argument(
+    "--weight-decay",
+    type=float,
+    default=0.001,
+    help="Weight decay. Default is 0.001.",
+)
 
 args = ap.parse_args()
 
@@ -630,6 +636,7 @@ def train():
         save_postfix,
         config.lr,
         config.dropout_rate,
+        config.weight_decay,
     )
 
 
@@ -651,6 +658,7 @@ if __name__ == "__main__":
             "repeat": {"values": [1]},
             "lr": {"values": [0.00005, 0.0001, 0.001, 0.01]},
             "dropout_rate": {"values": [0.5]},
+            "weight_decay": {"values": [0.005]},
         },
         "early_terminate": {
             "type": "hyperband",
