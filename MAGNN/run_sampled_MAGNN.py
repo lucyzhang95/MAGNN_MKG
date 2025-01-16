@@ -412,6 +412,7 @@ def run_model(
         neg_proba_list = []
         pos_proba_list_modified = []
         neg_proba_list_modified = []
+
         with torch.no_grad():
             for iteration in range(test_idx_generator.num_iterations()):
                 # forward
