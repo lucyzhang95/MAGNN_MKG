@@ -674,7 +674,7 @@ if __name__ == "__main__":
             "batch_size": {"values": [8]},
             "neighbor_samples": {"values": [50]},
             "repeat": {"values": [1]},
-            "lr": {"values": [0.0003]},
+            "lr": {"values": [0.0001]},
             "dropout_rate": {"values": [0.2]},
         },
         "early_terminate": {
