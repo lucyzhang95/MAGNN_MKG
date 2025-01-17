@@ -650,7 +650,7 @@ def train():
 
     config = wandb.config
 
-    save_postfix = f"MID_prediction_model_{args.save_postfix}_epoch{config.num_epochs}"
+    save_postfix = f"MID_prediction_model_{args.save_postfix}_epoch{config.num_epochs}_drp{config.dropout_rate}"
 
     run_model(
         config.feats_type,
