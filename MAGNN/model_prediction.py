@@ -679,7 +679,7 @@ if __name__ == "__main__":
             "num_heads": {"values": [4]},
             "attn_vec_dim": {"values": [32]},
             "rnn_type": {"values": ["RotatE0"]},
-            "num_epochs": {"values": [10]},
+            "num_epochs": {"values": [1, 10]},
             "patience": {"values": [5]},
             "batch_size": {"values": [8]},
             "neighbor_samples": {"values": [50]},
