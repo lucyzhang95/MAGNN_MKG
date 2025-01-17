@@ -412,7 +412,6 @@ def run_model(
         neg_proba_list = []
         pos_proba_list_modified = []
         neg_proba_list_modified = []
-
         with torch.no_grad():
             for iteration in range(test_idx_generator.num_iterations()):
                 # forward
@@ -602,7 +601,7 @@ def train():
 
     config = wandb.config
 
-    save_postfix = f"MID_lr{config.lr}_ep{config.num_epochs}_drp{config.dropout_rate}"
+    save_postfix = f"MID_lr{config.lr}_attn_vec_dim{config.attn_vec_dim}_ep{config.num_epochs}"
 
     run_model(
         config.feats_type,
@@ -630,15 +629,15 @@ if __name__ == "__main__":
             "feats_type": {"values": [0]},
             "hidden_dim": {"values": [32]},
             "num_heads": {"values": [4]},
-            "attn_vec_dim": {"values": [32]},
+            "attn_vec_dim": {"values": [32, 64]},
             "rnn_type": {"values": ["RotatE0"]},
             "num_epochs": {"values": [10, 20]},
-            "patience": {"values": [3, 5]},
-            "batch_size": {"values": [16]},
-            "neighbor_samples": {"values": [25, 50]},
+            "patience": {"values": [5]},
+            "batch_size": {"values": [8]},
+            "neighbor_samples": {"values": [50]},
             "repeat": {"values": [1]},
-            "lr": {"values": [0.00001, 0.00003, 0.0001, 0.001]},
-            "dropout_rate": {"values": [0.5]},
+            "lr": {"values": [0.0001, 0.0003, 0.001, 0.003, 0.01]},
+            "dropout_rate": {"values": [0.2]},
         },
         "early_terminate": {
             "type": "hyperband",
