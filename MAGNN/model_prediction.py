@@ -415,6 +415,7 @@ def run_model(
         pos_proba_list_modified = []
         neg_proba_list_modified = []
 
+        # store final embeddings and pairwise scores (sigmoid applied)
         cumulative_pairwise_scores = []
         cumulative_microbe_indices = []
         cumulative_disease_indices = []
@@ -425,7 +426,6 @@ def run_model(
             for iteration in range(test_idx_generator.num_iterations()):
                 # forward
                 test_idx_batch = test_idx_generator.next()
-                test_pos_microbe_disease_batch = test_pos_microbe_disease[test_idx_batch].tolist()
                 test_pos_microbe_disease_batch = test_neg_microbe_disease[test_idx_batch].tolist()
 
                 (
@@ -466,10 +466,9 @@ def run_model(
                     )
                 )
 
-                # compute pairwise scores for the batch
+                # compute pairwise scores for the batch (sigmoid applied with dot product between embeddings)
                 pairwise_score = torch.sigmoid(torch.matmul(pos_embedding_microbe, pos_embedding_disease.T))
 
-                # store results
                 cumulative_pairwise_scores.append(pairwise_score.detach().cpu().numpy())
                 cumulative_microbe_embeddings.append(pos_embedding_microbe.detach().cpu().numpy())
                 cumulative_disease_embeddings.append(pos_embedding_disease.detach().cpu().numpy())
@@ -556,11 +555,11 @@ def run_model(
 
         # save pairwise scores to CSV with headers
         pairwise_df = pd.DataFrame(final_pairwise_scores, index=row_headers, columns=col_headers)
-        pairwise_df.to_csv("embeddings/final_pairwise_scores_with_headers.csv", index=True)
+        pairwise_df.to_csv("embeddings/mid_final_pairwise_scores_with_headers.csv", index=True)
 
         # save embeddings to .npy files
-        np.save("embeddings/final_microbe_embeddings.npy", final_microbe_embeddings)
-        np.save("embeddings/final_disease_embeddings.npy", final_disease_embeddings)
+        np.save("embeddings/mid_final_microbe_embeddings.npy", final_microbe_embeddings)
+        np.save("embeddings/mid_final_disease_embeddings.npy", final_disease_embeddings)
 
         print("Saved pairwise scores and embeddings successfully.")
 
