@@ -416,8 +416,8 @@ def run_model(
             for iteration in range(test_idx_generator.num_iterations()):
                 # forward
                 test_idx_batch = test_idx_generator.next()
-                test_pos_user_artist_batch = test_pos_microbe_disease[test_idx_batch].tolist()
-                test_neg_user_artist_batch = test_neg_microbe_disease[test_idx_batch].tolist()
+                test_pos_microbe_disease_batch = test_pos_microbe_disease[test_idx_batch].tolist()
+                test_neg_microbe_disease_batch = test_neg_microbe_disease[test_idx_batch].tolist()
 
                 (
                     test_pos_g_lists,
@@ -426,7 +426,7 @@ def run_model(
                 ) = parse_minibatch(
                     adjlists_microdis,
                     edge_metapath_indices_list_microdis,
-                    test_pos_user_artist_batch,
+                    test_pos_microbe_disease_batch,
                     device,
                     neighbor_samples,
                     no_masks,
@@ -440,7 +440,7 @@ def run_model(
                 ) = parse_minibatch(
                     adjlists_microdis,
                     edge_metapath_indices_list_microdis,
-                    test_neg_user_artist_batch,
+                    test_neg_microbe_disease_batch,
                     device,
                     neighbor_samples,
                     no_masks,
