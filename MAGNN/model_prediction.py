@@ -534,20 +534,31 @@ def run_model(
         auc_list_modified.append(auc_modified)
         ap_list_modified.append(ap_modified)
 
-        # get pairwise_scores and final embeddings of microbe and disease
-        final_pairwise_scores = np.concatenate(cumulative_pairwise_scores, axis=0)
+        # get maximum column size for consistent dimensions
+        max_cols = max(array.shape[1] for array in cumulative_pairwise_scores)
+
+        # pad each array in cumulative_pairwise_scores to match max_cols
+        padded_pairwise_scores = [
+            np.pad(array, ((0, 0), (0, max_cols - array.shape[1])), mode="constant", constant_values=0)
+            for array in cumulative_pairwise_scores
+        ]
+
+        # concatenate padded arrays
+        final_pairwise_scores = np.concatenate(padded_pairwise_scores, axis=0)
+
+        # concatenate embeddings
         final_microbe_embeddings = np.concatenate(cumulative_microbe_embeddings, axis=0)
         final_disease_embeddings = np.concatenate(cumulative_disease_embeddings, axis=0)
 
         # prepare headers
         row_headers = [f"Microbe_{idx}" for idx in cumulative_microbe_indices]
-        col_headers = [f"Disease_{idx}" for idx in cumulative_disease_indices]
+        col_headers = [f"Disease_{i}" for i in range(max_cols)]  # Use consistent column headers
 
         # save pairwise scores to CSV with headers
         pairwise_df = pd.DataFrame(final_pairwise_scores, index=row_headers, columns=col_headers)
         pairwise_df.to_csv("embeddings/final_pairwise_scores_with_headers.csv", index=True)
 
-        # save embeddings to .npy
+        # save embeddings to .npy files
         np.save("embeddings/final_microbe_embeddings.npy", final_microbe_embeddings)
         np.save("embeddings/final_disease_embeddings.npy", final_disease_embeddings)
 
