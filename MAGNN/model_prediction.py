@@ -1,6 +1,7 @@
 import argparse
 import pathlib
 import time
+import random
 
 import numpy as np
 import pandas as pd
@@ -57,7 +58,16 @@ def run_model(
     save_postfix,
     lr,
     dropout_rate,
+    seed,
 ):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
     (
         adjlists_microdis,
         edge_metapath_indices_list_microdis,
@@ -640,6 +650,12 @@ ap.add_argument(
     default=0.5,
     help="Dropout rate. Default is 0.5.",
 )
+ap.add_argument(
+    "--seed",
+    type=int,
+    default=42,
+    help="Random seed. Default is 42.",
+)
 
 args = ap.parse_args()
 
@@ -649,7 +665,7 @@ def train():
 
     config = wandb.config
 
-    save_postfix = f"MID_prediction_model_{args.save_postfix}_epoch{config.num_epochs}_drp{config.dropout_rate}"
+    save_postfix = f"MID_prediction_model_{args.save_postfix}_epoch{config.num_epochs}_drp{config.dropout_rate}_seed{config.seed}"
 
     run_model(
         config.feats_type,
@@ -665,6 +681,7 @@ def train():
         save_postfix,
         config.lr,
         config.dropout_rate,
+        config.seed,
     )
 
 
@@ -679,13 +696,14 @@ if __name__ == "__main__":
             "num_heads": {"values": [4]},
             "attn_vec_dim": {"values": [32]},
             "rnn_type": {"values": ["RotatE0"]},
-            "num_epochs": {"values": [1, 10]},
+            "num_epochs": {"values": [10]},
             "patience": {"values": [5]},
             "batch_size": {"values": [8]},
             "neighbor_samples": {"values": [50]},
             "repeat": {"values": [1]},
             "lr": {"values": [0.0001]},
             "dropout_rate": {"values": [0.2, 0.3, 0.4, 0.5]},
+            "seed": {"values": [42, 10, 62]},
         },
         "early_terminate": {
             "type": "hyperband",
