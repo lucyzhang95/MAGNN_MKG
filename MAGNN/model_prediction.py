@@ -17,7 +17,6 @@ from model import MAGNN_lp_2metapaths_layer
 
 # Params
 num_ntype = 3
-weight_decay = 0.001
 
 # [0, 1, 0]: ([0, 1] is 0 and [1, 0] is 1 = [0, 1])
 etypes_lists = [
@@ -57,6 +56,7 @@ def run_model(
     repeat,
     save_postfix,
     lr,
+    weight_decay,
     dropout_rate,
     seed,
 ):
@@ -422,15 +422,9 @@ def run_model(
         net.eval()
         pos_proba_list = []
         neg_proba_list = []
-        pos_proba_list_modified = []
-        neg_proba_list_modified = []
 
-        # store final embeddings and pairwise scores (sigmoid applied)
-        cumulative_pairwise_scores = []
         cumulative_microbe_indices = []
         cumulative_disease_indices = []
-        cumulative_microbe_embeddings = []
-        cumulative_disease_embeddings = []
 
         with torch.no_grad():
             for iteration in range(test_idx_generator.num_iterations()):
@@ -475,16 +469,6 @@ def run_model(
                         test_pos_idx_batch_mapped_lists,
                     )
                 )
-
-                # compute pairwise scores for the batch (sigmoid applied with dot product between embeddings)
-                pairwise_score = torch.sigmoid(torch.matmul(pos_embedding_microbe, pos_embedding_disease.T))
-
-                cumulative_pairwise_scores.append(pairwise_score.detach().cpu().numpy())
-                cumulative_microbe_embeddings.append(pos_embedding_microbe.detach().cpu().numpy())
-                cumulative_disease_embeddings.append(pos_embedding_disease.detach().cpu().numpy())
-                cumulative_microbe_indices.extend([pair[0] for pair in test_pos_microbe_disease_batch])
-                cumulative_disease_indices.extend([pair[1] for pair in test_pos_microbe_disease_batch])
-
                 [neg_embedding_microbe, neg_embedding_disease], _ = net(
                     (
                         test_neg_g_lists,
@@ -509,76 +493,64 @@ def run_model(
                     -1, neg_embedding_disease.shape[1], 1
                 )
 
+                # dot product of microbe and disease matrix embeddings
                 pos_out = torch.bmm(pos_embedding_microbe, pos_embedding_disease).flatten()
                 neg_out = torch.bmm(neg_embedding_microbe, neg_embedding_disease).flatten()
 
+                # probability of microbe-disease for both positive and negative interactions
                 pos_proba_list.append(torch.sigmoid(pos_out))
                 neg_proba_list.append(torch.sigmoid(neg_out))
 
-                # flipping the sign on neg_out)
-                pos_proba_list_modified.append(torch.sigmoid(pos_out))
-                neg_proba_list_modified.append(torch.sigmoid(-neg_out))
+                # get node indices
+                cumulative_microbe_indices.extend([pair[0] for pair in test_pos_microbe_disease_batch])
+                cumulative_disease_indices.extend([pair[1] for pair in test_pos_microbe_disease_batch])
 
             y_proba_test = torch.cat(pos_proba_list + neg_proba_list).cpu().numpy()
-            y_proba_test_modified = torch.cat(pos_proba_list_modified + neg_proba_list_modified).cpu().numpy()
+            # combine probabilities across batches
+            final_pos_scores = torch.cat(pos_proba_list).cpu().numpy()
+
+            unique_microbe_indices = sorted(set(cumulative_microbe_indices))
+            unique_disease_indices = sorted(set(cumulative_disease_indices))
+            index_map = {(m_idx, d_idx): idx for idx, (m_idx, d_idx) in
+                         enumerate(zip(cumulative_microbe_indices, cumulative_disease_indices))}
+
+            # create pairwise matrix
+            pairwise_scores_matrix = np.full((len(unique_microbe_indices), len(unique_disease_indices)), np.nan)
+            for i, mi_idx in enumerate(unique_microbe_indices):
+                for j, d_idx in enumerate(unique_disease_indices):
+                    idx = index_map.get((mi_idx, d_idx))
+                    if idx is not None:
+                        pairwise_scores_matrix[i, j] = final_pos_scores[idx]
 
         # overall evaluation metrics
         auc = roc_auc_score(y_true_test, y_proba_test)
         ap = average_precision_score(y_true_test, y_proba_test)
 
-        auc_modified = roc_auc_score(y_true_test, y_proba_test_modified)
-        ap_modified = average_precision_score(y_true_test, y_proba_test_modified)
-
         print("Link Prediction Test")
         print("AUC = {}".format(auc))
         print("AP = {}".format(ap))
-        print(f"Modified-AUC: {auc_modified:.4f}, AP: {ap_modified:.4f}")
 
         # log final test metrics to wandb
-        wandb.log({"test_auc": auc, "test_ap": ap, "test_auc_modified": auc_modified, "test_ap_modified": ap_modified})
+        wandb.log({"test_auc": auc, "test_ap": ap})
 
         auc_list.append(auc)
         ap_list.append(ap)
 
-        auc_list_modified.append(auc_modified)
-        ap_list_modified.append(ap_modified)
+        # convert indices into readable row and column names
+        row_headers = [f"Microbe_{idx}" for idx in unique_microbe_indices]
+        col_headers = [f"Disease_{idx}" for idx in unique_disease_indices]
 
-        # get maximum column size for consistent dimensions
-        max_cols = max(array.shape[1] for array in cumulative_pairwise_scores)
+        # create a DataFrame for saving to CSV
+        pairwise_df = pd.DataFrame(pairwise_scores_matrix, index=row_headers, columns=col_headers)
+        pairwise_df.to_csv(f"embeddings/mid_pairwise_scores_{save_postfix}.csv", index=True)
 
-        # pad each array in cumulative_pairwise_scores to match max_cols
-        padded_pairwise_scores = [
-            np.pad(array, ((0, 0), (0, max_cols - array.shape[1])), mode="constant", constant_values=0)
-            for array in cumulative_pairwise_scores
-        ]
+        print("Saved pairwise scores successfully!")
 
-        # concatenate padded arrays
-        final_pairwise_scores = np.concatenate(padded_pairwise_scores, axis=0)
-
-        # concatenate embeddings
-        final_microbe_embeddings = np.concatenate(cumulative_microbe_embeddings, axis=0)
-        final_disease_embeddings = np.concatenate(cumulative_disease_embeddings, axis=0)
-
-        # prepare headers
-        row_headers = [f"Microbe_{idx}" for idx in cumulative_microbe_indices]
-        col_headers = [f"Disease_{i}" for i in range(max_cols)]  # Use consistent column headers
-
-        # save pairwise scores to CSV with headers
-        pairwise_df = pd.DataFrame(final_pairwise_scores, index=row_headers, columns=col_headers)
-        pairwise_df.to_csv("embeddings/mid_final_pairwise_scores_with_headers.csv", index=True)
-
-        # save embeddings to .npy files
-        np.save("embeddings/mid_final_microbe_embeddings.npy", final_microbe_embeddings)
-        np.save("embeddings/mid_final_disease_embeddings.npy", final_disease_embeddings)
-
-        print("Saved pairwise scores and embeddings successfully.")
 
     print("----------------------------------------------------------------")
     print("Link Prediction Tests Summary")
     print("AUC_mean = {}, AUC_std = {}".format(np.mean(auc_list), np.std(auc_list)))
     print("AP_mean = {}, AP_std = {}".format(np.mean(ap_list), np.std(ap_list)))
-    print("Modified_AUC_mean = {}, Modified_AUC_std = {}".format(np.mean(auc_list_modified), np.std(auc_list_modified)))
-    print("Modified_AP_mean = {}, Modified_AP_std = {}".format(np.mean(ap_list_modified), np.std(ap_list_modified)))
 
 
 ap = argparse.ArgumentParser(description="MAGNN testing run for sampled MKG dataset")
@@ -645,6 +617,11 @@ ap.add_argument(
     help="Learning rate. Default is 0.005.",
 )
 ap.add_argument(
+    "--weight_decay",
+    type=float,
+    default=0.001,
+)
+ap.add_argument(
     "--dropout_rate",
     type=float,
     default=0.5,
@@ -680,6 +657,7 @@ def train():
         config.repeat,
         save_postfix,
         config.lr,
+        config.weight_decay,
         config.dropout_rate,
         config.seed,
     )
@@ -696,12 +674,13 @@ if __name__ == "__main__":
             "num_heads": {"values": [4]},
             "attn_vec_dim": {"values": [32]},
             "rnn_type": {"values": ["RotatE0"]},
-            "num_epochs": {"values": [10]},
+            "num_epochs": {"values": [1, 10]},
             "patience": {"values": [5]},
             "batch_size": {"values": [8]},
             "neighbor_samples": {"values": [50]},
             "repeat": {"values": [1]},
             "lr": {"values": [0.0001]},
+            "weight_decay": {"values": [0.001, 0.0001, 0]},
             "dropout_rate": {"values": [0.2, 0.3, 0.4, 0.5]},
             "seed": {"values": [42, 10, 62]},
         },
