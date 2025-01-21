@@ -59,6 +59,7 @@ def run_model(
     weight_decay,
     dropout_rate,
     seed,
+    do_training=True
 ):
     random.seed(seed)
     np.random.seed(seed)
@@ -112,9 +113,6 @@ def run_model(
 
     auc_list = []
     ap_list = []
-
-    auc_list_modified = []
-    ap_list_modified = []
 
     for _ in range(repeat):
         net = MAGNN_lp_2metapaths_layer(
@@ -423,14 +421,37 @@ def run_model(
         pos_proba_list = []
         neg_proba_list = []
 
-        cumulative_microbe_indices = []
-        cumulative_disease_indices = []
+        cumulative_microbe_embeddings = []
+        cumulative_disease_embeddings = []
+
+        all_test_microbes = np.concatenate([
+            test_pos_microbe_disease[:, 0],  # microbe column = 0
+            test_neg_microbe_disease[:, 0],
+        ])
+        all_test_diseases = np.concatenate([
+            test_pos_microbe_disease[:, 1],  # disease column = 1
+            test_neg_microbe_disease[:, 1],
+        ])
+
+        unique_microbes = np.unique(all_test_microbes)
+        unique_diseases = np.unique(all_test_diseases)
+
+        # create index maps: microbe_id -> row index, disease_id -> col index
+        microbe_id_to_row = {m_id: i for i, m_id in enumerate(unique_microbes)}
+        disease_id_to_col = {d_id: j for j, d_id in enumerate(unique_diseases)}
+
+        # matrix for all test microbes/diseases, initialize with 0
+        test_scores_matrix = np.zeros(
+            (len(unique_microbes), len(unique_diseases)),
+            dtype=np.float32
+        )
 
         with torch.no_grad():
             for iteration in range(test_idx_generator.num_iterations()):
                 # forward
                 test_idx_batch = test_idx_generator.next()
-                test_pos_microbe_disease_batch = test_neg_microbe_disease[test_idx_batch].tolist()
+                test_pos_microbe_disease_batch = test_pos_microbe_disease[test_idx_batch].tolist()
+                test_neg_microbe_disease_batch = test_neg_microbe_disease[test_idx_batch].tolist()
 
                 (
                     test_pos_g_lists,
@@ -453,7 +474,7 @@ def run_model(
                 ) = parse_minibatch(
                     adjlists_microdis,
                     edge_metapath_indices_list_microdis,
-                    test_pos_microbe_disease_batch,
+                    test_neg_microbe_disease_batch,
                     device,
                     neighbor_samples,
                     no_masks,
@@ -469,6 +490,24 @@ def run_model(
                         test_pos_idx_batch_mapped_lists,
                     )
                 )
+
+                pairwise_score = torch.sigmoid(
+                    torch.matmul(pos_embedding_microbe, pos_embedding_disease.T)
+                )
+                B = len(test_pos_microbe_disease_batch)  # batch size
+                for i in range(B):
+                    real_m = test_pos_microbe_disease_batch[i][0]  # microbe ID
+                    row_idx = microbe_id_to_row[real_m]
+                    for j in range(B):
+                        real_d = test_pos_microbe_disease_batch[j][1]  # disease ID
+                        col_idx = disease_id_to_col[real_d]
+
+                        # store pairwise score[i,j] in the big matrix
+                        test_scores_matrix[row_idx, col_idx] = pairwise_score[i, j].item()
+
+                cumulative_microbe_embeddings.append(pos_embedding_microbe.detach().cpu().numpy())
+                cumulative_disease_embeddings.append(pos_embedding_disease.detach().cpu().numpy())
+
                 [neg_embedding_microbe, neg_embedding_disease], _ = net(
                     (
                         test_neg_g_lists,
@@ -501,26 +540,7 @@ def run_model(
                 pos_proba_list.append(torch.sigmoid(pos_out))
                 neg_proba_list.append(torch.sigmoid(neg_out))
 
-                # get node indices
-                cumulative_microbe_indices.extend([pair[0] for pair in test_pos_microbe_disease_batch])
-                cumulative_disease_indices.extend([pair[1] for pair in test_pos_microbe_disease_batch])
-
             y_proba_test = torch.cat(pos_proba_list + neg_proba_list).cpu().numpy()
-            # combine probabilities across batches
-            final_pos_scores = torch.cat(pos_proba_list).cpu().numpy()
-
-            unique_microbe_indices = sorted(set(cumulative_microbe_indices))
-            unique_disease_indices = sorted(set(cumulative_disease_indices))
-            index_map = {(m_idx, d_idx): idx for idx, (m_idx, d_idx) in
-                         enumerate(zip(cumulative_microbe_indices, cumulative_disease_indices))}
-
-            # create pairwise matrix
-            pairwise_scores_matrix = np.full((len(unique_microbe_indices), len(unique_disease_indices)), np.nan)
-            for i, mi_idx in enumerate(unique_microbe_indices):
-                for j, d_idx in enumerate(unique_disease_indices):
-                    idx = index_map.get((mi_idx, d_idx))
-                    if idx is not None:
-                        pairwise_scores_matrix[i, j] = final_pos_scores[idx]
 
         # overall evaluation metrics
         auc = roc_auc_score(y_true_test, y_proba_test)
@@ -536,15 +556,20 @@ def run_model(
         auc_list.append(auc)
         ap_list.append(ap)
 
-        # convert indices into readable row and column names
-        row_headers = [f"Microbe_{idx}" for idx in unique_microbe_indices]
-        col_headers = [f"Disease_{idx}" for idx in unique_disease_indices]
+        row_headers = [f"Microbe_{m}" for m in unique_microbes]
+        col_headers = [f"Disease_{d}" for d in unique_diseases]
 
-        # create a DataFrame for saving to CSV
-        pairwise_df = pd.DataFrame(pairwise_scores_matrix, index=row_headers, columns=col_headers)
-        pairwise_df.to_csv(f"embeddings/mid_pairwise_scores_{save_postfix}.csv", index=True)
+        pairwise_df = pd.DataFrame(test_scores_matrix, index=row_headers, columns=col_headers)
+        pairwise_df.to_csv(f"embeddings/mid_pairwise_scores_{save_postfix}.csv")
 
-        print("Saved pairwise scores successfully!")
+        print("Saved pairwise scores matrix with real microbe/disease IDs:", test_scores_matrix.shape)
+
+        final_microbe_embeddings = np.concatenate(cumulative_microbe_embeddings, axis=0)
+        final_disease_embeddings = np.concatenate(cumulative_disease_embeddings, axis=0)
+
+        np.save(f"embeddings/mid_microbe_embeddings_{save_postfix}.npy", final_microbe_embeddings)
+        np.save(f"embeddings/mid_disease_embeddings_{save_postfix}.npy", final_disease_embeddings)
+        print("Saved test embeddings for microbes and diseases.")
 
 
     print("----------------------------------------------------------------")
@@ -642,7 +667,7 @@ def train():
 
     config = wandb.config
 
-    save_postfix = f"MID_prediction_model_{args.save_postfix}_epoch{config.num_epochs}_drp{config.dropout_rate}_seed{config.seed}"
+    save_postfix = f"MID_prediction_model_{args.save_postfix}_drp{config.dropout_rate}_seed{config.seed}_wd{config.weight_decay}"
 
     run_model(
         config.feats_type,
@@ -674,13 +699,13 @@ if __name__ == "__main__":
             "num_heads": {"values": [4]},
             "attn_vec_dim": {"values": [32]},
             "rnn_type": {"values": ["RotatE0"]},
-            "num_epochs": {"values": [1, 10]},
+            "num_epochs": {"values": [10]},
             "patience": {"values": [5]},
             "batch_size": {"values": [8]},
             "neighbor_samples": {"values": [50]},
             "repeat": {"values": [1]},
             "lr": {"values": [0.0001]},
-            "weight_decay": {"values": [0.001, 0.0001, 0]},
+            "weight_decay": {"values": [0.001, 0.0001]},
             "dropout_rate": {"values": [0.2, 0.3, 0.4, 0.5]},
             "seed": {"values": [42, 10, 62]},
         },
