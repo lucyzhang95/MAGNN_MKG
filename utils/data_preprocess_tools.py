@@ -399,7 +399,7 @@ def map_gene2entrez(
     return mapped
 
 
-def map_microbe_name2taxid(mapping_src, microbe_names, unmapped_out_path):
+def map_microbe_name2taxid(mapping_src, microbe_names, unmapped_out_path=None):
     microbe_names = set(microbe_names)
     print("count of unique microbial names to map:", len(microbe_names))
 
@@ -419,14 +419,14 @@ def map_microbe_name2taxid(mapping_src, microbe_names, unmapped_out_path):
     print("count of mapped unique microbial names:", len(mapped))
     print("count of unmapped unique microbial names:", len(unmapped))
 
-    # sort unmapped microbial names
-    unmapped.sort(key=lambda x: x[0])
-    names_notfound = pd.DataFrame(unmapped, columns=["microbe_name"])
-    # print("unmapped genes:", names_notfound.head())
-    names_notfound.to_csv(
-        unmapped_out_path, sep="\t", header=True, index=False
-    )
-
+    if unmapped:
+        unmapped.sort(key=lambda x: x[0])
+        names_notfound = pd.DataFrame(unmapped, columns=["microbe_name"])
+        if unmapped_out_path:
+            names_notfound.to_csv(
+                unmapped_out_path, sep="\t", header=True, index=False
+            )
+            print(f"Unmapped microbial names saved to: {unmapped_out_path}")
     return mapped
 
 
