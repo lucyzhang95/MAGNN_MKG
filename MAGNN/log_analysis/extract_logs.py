@@ -2,10 +2,6 @@ import re
 import pandas as pd
 import glob
 
-from sympy.assumptions.lra_satask import lra_satask
-from sympy.physics.quantum.identitysearch import lr_op
-from torch.nn.functional import leaky_relu_, local_response_norm
-
 
 def extract_param(file_name, param_prefix):
     match = re.search(rf'{param_prefix}(\d+e-\d+)', file_name)
@@ -79,26 +75,26 @@ if __name__ == "__main__":
 
     lr_epoch_df = pd.DataFrame(all_lr_epoch_data)
     lr_metrics_df = pd.DataFrame(all_metrics_data)
-    lr_epoch_csv_path = "R_data/lr_train_eval_log.csv"
-    lr_metrics_csv_path = "R_data/lr_val_metrics.csv"
+    lr_epoch_csv_path = "R_data/mid_lr_no_dpwd_train_eval_log.csv"
+    lr_metrics_csv_path = "R_data/mid_lr_no_dpwd_val_metrics.csv"
     lr_epoch_df.to_csv(lr_epoch_csv_path, index=False)
     lr_metrics_df.to_csv(lr_metrics_csv_path, index=False)
 
-    all_dp_epoch_data = []
-    all_dp_metrics_data = []
-    file_paths = glob.glob("MID_logs/dp/*.log")
-    for file_path in file_paths:
-        dp_epoch_data, dp_metrics_data = extract_data_from_logs_updated(file_path, "dp")
-        all_dp_epoch_data.extend(dp_epoch_data)
-        all_dp_metrics_data.extend(dp_metrics_data)
-
-    dp_epoch_df = pd.DataFrame(all_dp_epoch_data)
-    dp_metrics_df = pd.DataFrame(all_dp_metrics_data)
-    dp_epoch_csv_path = "R_data/dp_train_eval_log.csv"
-    dp_metrics_csv_path = "R_data/dp_val_metrics.csv"
-    dp_epoch_df.to_csv(dp_epoch_csv_path, index=False)
-    dp_metrics_df.to_csv(dp_metrics_csv_path, index=False)
-
+    # all_dp_epoch_data = []
+    # all_dp_metrics_data = []
+    # file_paths = glob.glob("MID_logs/dp/*.log")
+    # for file_path in file_paths:
+    #     dp_epoch_data, dp_metrics_data = extract_data_from_logs_updated(file_path, "dp")
+    #     all_dp_epoch_data.extend(dp_epoch_data)
+    #     all_dp_metrics_data.extend(dp_metrics_data)
+    #
+    # dp_epoch_df = pd.DataFrame(all_dp_epoch_data)
+    # dp_metrics_df = pd.DataFrame(all_dp_metrics_data)
+    # dp_epoch_csv_path = "R_data/dp_train_eval_log.csv"
+    # dp_metrics_csv_path = "R_data/dp_val_metrics.csv"
+    # dp_epoch_df.to_csv(dp_epoch_csv_path, index=False)
+    # dp_metrics_df.to_csv(dp_metrics_csv_path, index=False)
+    #
     # lr test metrics
     all_lr_final_test_metrics_data = []
     file_paths = glob.glob("MID_logs/lr/*.log")
@@ -106,44 +102,44 @@ if __name__ == "__main__":
         final_lr_test_metrics_data = extract_final_test_metrics(file_path, "lr")
         all_lr_final_test_metrics_data.extend(final_lr_test_metrics_data)
     final_lr_test_metrics_df = pd.DataFrame(all_lr_final_test_metrics_data)
-    final_lr_test_metrics_csv_path = "R_data/lr_test_metrics.csv"
+    final_lr_test_metrics_csv_path = "R_data/mid_lr_no_dpwd_test_metrics.csv"
     final_lr_test_metrics_df.to_csv(final_lr_test_metrics_csv_path, index=False)
-
-    # dp test metrics
-    all_dp_final_test_metrics_data = []
-    file_paths = glob.glob("MID_logs/dp/*.log")
-    for file_path in file_paths:
-        final_dp_test_metrics_data = extract_final_test_metrics(file_path, "dp")
-        all_dp_final_test_metrics_data.extend(final_dp_test_metrics_data)
-    final_dp_test_metrics_df = pd.DataFrame(all_dp_final_test_metrics_data)
-    final_dp_test_metrics_csv_path = "R_data/dp_test_metrics.csv"
-    final_dp_test_metrics_df.to_csv(final_dp_test_metrics_csv_path, index=False)
-
-
-    # process lr log txt files for mime prediction
-    mime_lr_epoch_data = []
-    mime_lr_metrics_data = []
-    file_paths = glob.glob("MIME_logs/lr/*.log")
-    for file_path in file_paths:
-        mime_epoch_data, mime_metrics_data = extract_data_from_logs_updated(file_path, "lr")
-        mime_lr_epoch_data.extend(mime_epoch_data)
-        mime_lr_metrics_data.extend(mime_metrics_data)
-
-    mime_lr_epoch_df = pd.DataFrame(mime_lr_epoch_data)
-    mime_lr_metrics_df = pd.DataFrame(mime_lr_metrics_data)
-    mime_lr_epoch_csv_path = "R_data/mime_lr_train_eval_log.csv"
-    mime_lr_metrics_csv_path = "R_data/mime_lr_val_metrics.csv"
-    mime_lr_epoch_df.to_csv(mime_lr_epoch_csv_path, index=False)
-    mime_lr_metrics_df.to_csv(mime_lr_metrics_csv_path, index=False)
-
-    # mime test metrics
-    mime_lr_final_test_metrics_data = []
-    file_paths = glob.glob("MIME_logs/lr/*.log")
-    for file_path in file_paths:
-        mime_final_lr_test_metrics_data = extract_final_test_metrics(file_path, "lr")
-        mime_lr_final_test_metrics_data.extend(mime_final_lr_test_metrics_data)
-    mime_final_lr_test_metrics_df = pd.DataFrame(mime_lr_final_test_metrics_data)
-    mime_final_lr_test_metrics_csv_path = "R_data/mime_lr_test_metrics.csv"
-    mime_final_lr_test_metrics_df.to_csv(mime_final_lr_test_metrics_csv_path, index=False)
+    #
+    # # dp test metrics
+    # all_dp_final_test_metrics_data = []
+    # file_paths = glob.glob("MID_logs/dp/*.log")
+    # for file_path in file_paths:
+    #     final_dp_test_metrics_data = extract_final_test_metrics(file_path, "dp")
+    #     all_dp_final_test_metrics_data.extend(final_dp_test_metrics_data)
+    # final_dp_test_metrics_df = pd.DataFrame(all_dp_final_test_metrics_data)
+    # final_dp_test_metrics_csv_path = "R_data/dp_test_metrics.csv"
+    # final_dp_test_metrics_df.to_csv(final_dp_test_metrics_csv_path, index=False)
+    #
+    #
+    # # process lr log txt files for mime prediction
+    # mime_lr_epoch_data = []
+    # mime_lr_metrics_data = []
+    # file_paths = glob.glob("MIME_logs/lr/*.log")
+    # for file_path in file_paths:
+    #     mime_epoch_data, mime_metrics_data = extract_data_from_logs_updated(file_path, "lr")
+    #     mime_lr_epoch_data.extend(mime_epoch_data)
+    #     mime_lr_metrics_data.extend(mime_metrics_data)
+    #
+    # mime_lr_epoch_df = pd.DataFrame(mime_lr_epoch_data)
+    # mime_lr_metrics_df = pd.DataFrame(mime_lr_metrics_data)
+    # mime_lr_epoch_csv_path = "R_data/mime_lr_train_eval_log.csv"
+    # mime_lr_metrics_csv_path = "R_data/mime_lr_val_metrics.csv"
+    # mime_lr_epoch_df.to_csv(mime_lr_epoch_csv_path, index=False)
+    # mime_lr_metrics_df.to_csv(mime_lr_metrics_csv_path, index=False)
+    #
+    # # mime test metrics
+    # mime_lr_final_test_metrics_data = []
+    # file_paths = glob.glob("MIME_logs/lr/*.log")
+    # for file_path in file_paths:
+    #     mime_final_lr_test_metrics_data = extract_final_test_metrics(file_path, "lr")
+    #     mime_lr_final_test_metrics_data.extend(mime_final_lr_test_metrics_data)
+    # mime_final_lr_test_metrics_df = pd.DataFrame(mime_lr_final_test_metrics_data)
+    # mime_final_lr_test_metrics_csv_path = "R_data/mime_lr_test_metrics.csv"
+    # mime_final_lr_test_metrics_df.to_csv(mime_final_lr_test_metrics_csv_path, index=False)
 
 
