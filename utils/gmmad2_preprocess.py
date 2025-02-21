@@ -141,7 +141,7 @@ met2chebi_cid = map_metabolite2chebi_cid(
 
 # load manually mapped metabolite data (w/ 6 dup hits)
 gmmad2_filled_metabolite_path = (
-    "../data/manual/gmmad2_metabolite_notfound_022125.txt"
+    "../data/manual/gmmad2_metabolite_notfound_filled.txt"
 )
 
 # organize the kegg metabolite id and identifiers to a dictionary
