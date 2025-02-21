@@ -50,7 +50,7 @@ mesh2mondo = map_disease_id2mondo(
 
 # load manually mapped disease data
 gmmad2_filled_disease_path = (
-    "../data/manual/gmmad2_disease_notfound_filled_mondo.txt"
+    "../data/manual/gmmad2_disease_notfound_filled_022125.txt"
 )
 
 # organize the disease mesh id and MONDO id to a dictionary
@@ -223,24 +223,25 @@ mg_met_type_ct = count_entity(
     gmmad2_mg_rec, node="subject", attr="id", split_char=":"
 )
 
-# final record filter for MAGNN input with {pubchem_cid:gene_id} (53,277)
-# e.g., [{'PUBCHEM.COMPOUND:985': 'NCBIGene:2796'}, ...]
-gmmad2_mg4magnn = entity_filter_for_magnn(
-    gmmad2_mg_rec,
-    node1="subject",
-    attr1="id",
-    val1=["PUBCHEM.COMPOUND"],
-    node2="object",
-    attr2="id",
-    attr3=None,
-)
-# print(gmmad2_mg4magnn)
+if __name__ == "__main__":
+    # final record filter for MAGNN input with {pubchem_cid:gene_id} (53,277)
+    # e.g., [{'PUBCHEM.COMPOUND:985': 'NCBIGene:2796'}, ...]
+    gmmad2_mg4magnn = entity_filter_for_magnn(
+        gmmad2_mg_rec,
+        node1="subject",
+        attr1="id",
+        val1=["PUBCHEM.COMPOUND"],
+        node2="object",
+        attr2="id",
+        attr3=None,
+    )
+    # print(gmmad2_mg4magnn)
 
-# export the final filtered records to .dat file (53,277->53,277 unique)
-export_data2dat(
-    in_data=gmmad2_mg4magnn,
-    col1="pubchem_cid",
-    col2="gene",
-    out_path="../data/MAGNN_data/gmmad2_met_gene.dat",
-    database="GMMAD2: Metabolite-Gene",
-)
+    # export the final filtered records to .dat file (53,277->53,277 unique)
+    export_data2dat(
+        in_data=gmmad2_mg4magnn,
+        col1="pubchem_cid",
+        col2="gene",
+        out_path="../data/MAGNN_data/gmmad2_met_gene.dat",
+        database="GMMAD2: Metabolite-Gene",
+    )
