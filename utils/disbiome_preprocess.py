@@ -57,17 +57,17 @@ print("unique disease names exclude mondo:", len(set(disbiome_disease_names)))
 # map disease names to their MONDO identifiers with search for doid names
 # 67 dup hits and 145 no hit
 # output e.g., {'hyperglycemia': 'MONDO:0002909', ...}
-doidname2mondo = map_disease_name2mondo(
-    disbiome_disease_names,
-    scopes="disease_ontology.name",
-    field="all",
-    unmapped_out_path="../data/manual/disbiome_disease_mondo_notfound2.csv",
-)
+# doidname2mondo = map_disease_name2mondo(
+#     disbiome_disease_names,
+#     scopes="disease_ontology.name",
+#     field="all",
+#     unmapped_out_path="../data/manual/disbiome_disease_mondo_notfound.csv",
+# )
 # print(doidname2mondo)
 
 # load manually mapped disease data
 filled_disease_path = (
-    "../data/manual/disbiome_disease_notfound_filled_mondo.txt"
+    "../data/manual/disbiome_disease_notfound_filled_022125.txt"
 )
 # organize the disease name and MONDO id to a dictionary
 # e.g., {'chronic rhinosinusitis': 'MONDO:0006031'}
@@ -124,24 +124,25 @@ disbiome_final_rank_ct = count_entity(
     disbiome_final_filtered, node="subject", attr="rank", split_char=None
 )
 
-# export microbe and disease from disbiome_final_filtered records (5025)
-# final output e.g., [{'NCBITaxon:59823': 'MONDO:0005010'}, {'NCBITaxon:853': 'MESH:D009765'}, ...]
-disbiome_data4magnn = entity_filter_for_magnn(
-    disbiome_final_filtered,
-    node1="subject",
-    attr1="taxid",
-    val1="strain",
-    node2="object",
-    attr2="id",
-    attr3="parent_taxid",
-)
-# print(disbiome_data4magnn)
+if __name__ == "__main__":
+    # export microbe and disease from disbiome_final_filtered records (5025)
+    # final output e.g., [{'NCBITaxon:59823': 'MONDO:0005010'}, {'NCBITaxon:853': 'MESH:D009765'}, ...]
+    disbiome_data4magnn = entity_filter_for_magnn(
+        disbiome_final_filtered,
+        node1="subject",
+        attr1="taxid",
+        val1="strain",
+        node2="object",
+        attr2="id",
+        attr3="parent_taxid",
+    )
+    # print(disbiome_data4magnn)
 
-# export to .dat (5025->3813; 1212 less due to duplication)
-export_data2dat(
-    in_data=disbiome_data4magnn,
-    col1="taxid",
-    col2="disease_id",
-    out_path="../data/MAGNN_data/disbiome_taxid_mondo.dat",
-    database="disbiome",
-)
+    # export to .dat (5025->3761; 1291 less due to duplication)
+    export_data2dat(
+        in_data=disbiome_data4magnn,
+        col1="taxid",
+        col2="disease_id",
+        out_path="../data/MAGNN_data/disbiome_taxid_mondo.dat",
+        database="disbiome",
+    )
